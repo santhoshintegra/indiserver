@@ -20,66 +20,66 @@ public class lx200generic extends telescope implements telescope_driver {
 		return 0;
 	}
 
-	private int get_firmware_info() {
+	public int get_firmware_info() {
 		com_driver.sendCommand(":GVP#");
 		com_driver.wait(delay);
 		com_driver.getAnswerString();
 		return 0;
 	}
 
-	private int site_coords(int site) {
+	public int site_coords(int site) {
 		return 0;
 	}
 
-	private int get_current_position() {
+	public int get_current_position() {
 		return 0;
 	}
 
-	private int set_datetime(int datetime) {
+	public int set_datetime(int datetime) {
 		return 0;
 	}
 
-	private int set_utc_offset(int offset) {
+	public int set_utc_offset(int offset) {
 		return 0;
 	}
 
-	private int set_site_coords(int site, float longitude, float latitude,
+	public int set_site_coords(int site, float longitude, float latitude,
 			String name) {
 		return 0;
 	}
 
-	private int set_slew_speed(int speed) {
+	public int set_slew_speed(int speed) {
 		return 0;
 	}
 
-	private void move_north() {
+	public void move_north() {
 	}
 
-	private void move_east() {
+	public void move_east() {
 	}
 
-	private void move_south() {
+	public void move_south() {
 	}
 
-	private void move_west() {
+	public void move_west() {
 	}
 
-	private void cancel_all() {
+	public void cancel_all() {
 	}
 
-	private void cancel_north() {
+	public void cancel_north() {
 	}
 
-	private void cancel_east() {
+	public void cancel_east() {
 	}
 
-	private void cancel_south() {
+	public void cancel_south() {
 	}
 
-	private void cancel_west() {
+	public void cancel_west() {
 	}
 
-	private int move_to_target(int radec) {
+	public int move_to_target(int radec) {
 		return 0;
 	}
 
