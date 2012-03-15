@@ -1,5 +1,11 @@
 package de.hallenbeck.indiserver.communication_drivers;
 
+/**
+ * Bluetooth-Serial-Port-Profile driver for short-range wireless connection to telescope
+ * @author atuschen
+ *
+ */
+
 public class bluetooth implements communication_driver {
 
 	public devicelist[] getDeviceList() {
