@@ -13,7 +13,7 @@ The following links are important
 The INDI protocol white paper:
 http://www.clearskyinstitute.com/INDI/INDI.pdf
 
-*Telescope-specific interface*
+*Telescope-specific interfaces*
 
 The Meade LX200 commandset: 
 http://www.meade.com/support/TelescopeProtocol_2010-10.pdf
