@@ -6,8 +6,13 @@ package de.hallenbeck.indiserver.server;
  * The server should run as service in background and take its settings from 
  * preferences set by the main activity.
  * 
- * Also the server-service should be started by intent and destroy itself 
- * after the last client disconnected. 
+ * The server-service should be able to be started by intent if the first 
+ * android client connects and destroy itself after the last client disconnected. 
+ * 
+ * For network connections (without android-clients) the server should be started
+ * by the main activity.
+ * 
+ * The user should be notified of a running server via notification-manager.
  *   
  * @author atuschen
  *
