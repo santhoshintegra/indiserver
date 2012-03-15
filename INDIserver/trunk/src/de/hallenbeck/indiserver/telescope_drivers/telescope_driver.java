@@ -23,6 +23,9 @@ public interface telescope_driver {
 	
 	/**
 	 * Interface for receiving INDI XML-messages from the driver
+	 * THIS IS JUST A SIMPLIFICATION DUMMY!
+	 * The INDI-Server/Driver should be able to send messages itself,
+	 * so a callback message-handler would be needed.
 	 * @return
 	 */
 	public String recvINDImsg();
