@@ -1,0 +1,15 @@
+#summary External ressources related to this project
+
+= Introduction =
+
+The following links are important
+
+
+= Details =
+
+*The client-server interface*
+The INDI protocol white paper : http://www.clearskyinstitute.com/INDI/INDI.pdf
+
+*Telescope-specific interface*
+The Meade LX200 commandset: http://www.meade.com/support/TelescopeProtocol_2010-10.pdf
+The Celestron NexStar commandset: http://www.nexstarsite.com/download/manuals/NexStarCommunicationProtocolV1.2.zip
