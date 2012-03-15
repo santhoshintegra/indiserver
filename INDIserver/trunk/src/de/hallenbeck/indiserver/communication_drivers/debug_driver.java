@@ -1,50 +1,52 @@
 package de.hallenbeck.indiserver.communication_drivers;
 
+import android.util.Log;
+
 /**
  * Dummy driver for debugging purposes only
  * @author atuschen
  *
  */
 public class debug_driver implements communication_driver {
+	
+	private final String TAG="Com-Driver";
 
 	public void setTimeout(int timeout) {
-		// TODO Auto-generated method stub
-
+		Log.d(TAG,"Set timeout "+timeout);
 	}
 
 	public devicelist[] getDeviceList() {
-		// TODO Auto-generated method stub
+		Log.d(TAG,"Get devicelist");
 		return null;
 	}
 
 	public int connect(String device) {
-		// TODO Auto-generated method stub
+		Log.d(TAG,"Connect "+device);
 		return 0;
 	}
 
 	public int disconnect() {
-		// TODO Auto-generated method stub
+		Log.d(TAG,"Disconnect");
 		return 0;
 	}
 
 	public int sendCommand(String command) {
-		// TODO Auto-generated method stub
+		Log.d(TAG,"Send command "+command);
 		return 0;
 	}
 
 	public void wait(int delay) {
-		// TODO Auto-generated method stub
-
+		Log.d(TAG,"Wait "+delay);
 	}
 
 	public int getAnswerInt() {
-		// TODO Auto-generated method stub
-		return 0;
+		Log.d(TAG,"Get Answer Int");
+		return 1234;
 	}
 
 	public String getAnswerString() {
-		// TODO Auto-generated method stub
-		return null;
+		Log.d(TAG,"Get Answer String");
+		return "dummy";
 	}
 
 }
