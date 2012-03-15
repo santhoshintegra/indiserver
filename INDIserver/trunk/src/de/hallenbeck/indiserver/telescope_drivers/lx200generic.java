@@ -13,7 +13,6 @@ public class lx200generic extends telescope implements telescope_driver {
 	private boolean connected=false;
 	
 	public int connect() {
-		// TODO Auto-generated method stub
 		com_driver.setTimeout(500);
 		super.connect();
 		get_firmware_info();
@@ -21,103 +20,77 @@ public class lx200generic extends telescope implements telescope_driver {
 		return 0;
 	}
 
-	public int get_firmware_info() {
-		// TODO Auto-generated method stub
+	private int get_firmware_info() {
 		com_driver.sendCommand(":GVP#");
 		com_driver.wait(delay);
 		com_driver.getAnswerString();
 		return 0;
 	}
 
-	public coords get_site_coords(int site) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public RADec get_current_position() {
-		// TODO Auto-generated method stub
-		
-		return null;
-	}
-
-	public int set_datetime(int datetime) {
-		// TODO Auto-generated method stub
+	private int site_coords(int site) {
 		return 0;
 	}
 
-	public int set_utc_offset(int offset) {
-		// TODO Auto-generated method stub
+	private int get_current_position() {
 		return 0;
 	}
 
-	public int set_site_coords(int site, float longitude, float latitude,
+	private int set_datetime(int datetime) {
+		return 0;
+	}
+
+	private int set_utc_offset(int offset) {
+		return 0;
+	}
+
+	private int set_site_coords(int site, float longitude, float latitude,
 			String name) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
-	public int set_slew_speed(int speed) {
-		// TODO Auto-generated method stub
+	private int set_slew_speed(int speed) {
 		return 0;
 	}
 
-	public void move_north() {
-		// TODO Auto-generated method stub
-
+	private void move_north() {
 	}
 
-	public void move_east() {
-		// TODO Auto-generated method stub
-
+	private void move_east() {
 	}
 
-	public void move_south() {
-		// TODO Auto-generated method stub
-
+	private void move_south() {
 	}
 
-	public void move_west() {
-		// TODO Auto-generated method stub
-
+	private void move_west() {
 	}
 
-	
-	public void cancel_all() {
-		// TODO Auto-generated method stub
-		
+	private void cancel_all() {
 	}
 
-	public void cancel_north() {
-		// TODO Auto-generated method stub
-		
+	private void cancel_north() {
 	}
 
-	public void cancel_east() {
-		// TODO Auto-generated method stub
-		
+	private void cancel_east() {
 	}
 
-	public void cancel_south() {
-		// TODO Auto-generated method stub
-		
+	private void cancel_south() {
 	}
 
-	public void cancel_west() {
-		// TODO Auto-generated method stub
-		
+	private void cancel_west() {
 	}
 
-	public int move_to_target(RADec radec) {
-		// TODO Auto-generated method stub
+	private int move_to_target(int radec) {
 		return 0;
 	}
 
-
-	@Override
-	int StringToInt(String s) {
+	public void sendINDImsg(String xmlcommand) {
 		// TODO Auto-generated method stub
-		return 0;
+		
 	}
 
+	public String recvINDImsg() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

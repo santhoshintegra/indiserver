@@ -11,15 +11,12 @@ public abstract class telescope {
 	
 	public communication_driver com_driver=null;
 	public boolean connected=false;
-	
-	abstract int StringToInt(String s);
 
 	/**
 	 * Set the driver for communication with the telescope
 	 * @param driver
 	 */
 	public void set_communication_driver(communication_driver driver) {
-		// TODO Auto-generated method stub
 		com_driver=driver;
 	}
 	
