@@ -19,3 +19,11 @@ INDI-messages are xml-messages, the server only relays them to the drivers.
 Xml-parsing itself must be done by the drivers.
 
 It is also possible to send INDI-messages from apps directly to the drivers, but this way it isn't possible that more than one app at the same time can use the driver. Also it then isn't possible to remote control a telescope connected to an android-device via network. 
+
+There are some well-known clients already using INDI:
+
+KStars
+
+SkyChart (a.k.a. Cartes Du Ciel)
+
+
