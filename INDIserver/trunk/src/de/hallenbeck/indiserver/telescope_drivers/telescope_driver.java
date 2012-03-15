@@ -9,7 +9,6 @@ import de.hallenbeck.indiserver.communication_drivers.communication_driver;
  */
 public interface telescope_driver {
 	
-	
 	/**
 	 * Set the driver for communication with the telecope
 	 * @param driver
