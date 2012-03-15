@@ -6,7 +6,7 @@ package de.hallenbeck.indiserver.communication_drivers;
  *
  */
 
-public class bluetooth implements communication_driver {
+public class bluetooth extends serial implements communication_driver {
 
 	public devicelist[] getDeviceList() {
 		// TODO Auto-generated method stub
