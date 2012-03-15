@@ -2,6 +2,7 @@ package de.hallenbeck.indiserver.communication_drivers;
 
 /**
  * Serial communication driver for devices with /dev/ttyS or /dev/ttyUSB support
+ * Base class for all other communication drivers as they all use serial communication
  * @author atuschen
  *
  */
