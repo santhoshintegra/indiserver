@@ -23,7 +23,7 @@ It is also possible to send INDI-messages from apps directly to the drivers, but
 There are some well-known clients already using INDI:
 
 KStars
+http://edu.kde.org/kstars/
 
 SkyChart (a.k.a. Cartes Du Ciel)
-
-
+http://www.stargazing.net/astropc/
