@@ -14,3 +14,6 @@ The telescope-driver interfaces to the telescope itself via the com-driver.
 The INDI-Server then interfaces with the telescope-driver and listens on a network-port for clients to connect. 
 
 The clients (such as SkyMap or SkEye) then send INDI-commands to the server and the server sends them via the drivers to the telescope.
+
+INDI-messages are xml-messages, the server only relays them to the drivers.
+Xml-parsing itself must be done by the drivers.
