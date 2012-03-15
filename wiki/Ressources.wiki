@@ -1,4 +1,5 @@
 #summary External ressources related to this project
+#labels Featured
 
 = Introduction =
 
