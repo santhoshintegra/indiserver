@@ -6,3 +6,21 @@ Communication drivers are used to physicaly connect to the hardware
 = Details =
 
 Communication drivers are the lowest layer of the concept. They connect over a medium like bluetooth, usb, serial or network to the devices and present a standardized interface to the actual device drivers.
+
+The following drivers should be available:
+
+*serial* for direct communication via /dev/ttyS or /dev/ttyUSB
+
+*bluetooth_serial* for communication via Bluetooth-SPP
+
+*usbhost_serial_pl2303* for USB-to-serial adapters with pl2303 chipset
+
+In the far future there can also be
+
+*usbhost_lpi* for Meade LunarPlanetaryImager
+
+*usbhost_dsi* for Meade DeepSkyImager
+
+*usbhost_canon_dslr* for Canon DSLRs 
+
+... and much more!
