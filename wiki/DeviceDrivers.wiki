@@ -1,0 +1,8 @@
+= Introduction =
+
+Device drivers are used to send/recieve messages to/from the hardware via specified Communication Drivers.
+
+
+= Details =
+
+INDI device drivers handle all xml-messages coming from the server and translate them into device-specific commands. The other way round they take data from the devices and translate it to xml-messages, which are then send to the server.
