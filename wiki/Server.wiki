@@ -10,11 +10,11 @@ listens for network connections from clients on tcp-port 7624.
 
 In the simplest mode, the server just relays messages between clients and devices.
 Every message to a device is send to all attached devices and every data from devices is send to all connected clients. This is comparable to a network-hub.
-The drawback is high bandwidth usage.
+The drawback is higher bandwidth usage.
 
 A more sophisticated server manages channels between specific devices and clients.
 If client A wants to connect to device B the server handles this as a channel.
 This is comparable to a network-switch.
-The drawback is one must implement more logic in the server.
+The drawback is one must implement more logic into the server.
 
 For the beginning the simple type is suffient.
