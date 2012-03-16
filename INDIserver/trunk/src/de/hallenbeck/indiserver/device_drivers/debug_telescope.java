@@ -1,5 +1,6 @@
-package de.hallenbeck.indiserver.telescope_drivers;
+package de.hallenbeck.indiserver.device_drivers;
 
+import android.os.Handler;
 import android.util.Log;
 
 /**
@@ -7,7 +8,12 @@ import android.util.Log;
  * @author atuschen
  *
  */
-public class debug_telescope extends telescope implements telescope_driver {
+public class debug_telescope extends telescope implements generic_device_driver {
+
+	public debug_telescope(String driver, Handler mHandler) {
+		super(driver, mHandler, false);
+		// TODO Auto-generated constructor stub
+	}
 
 	private final String TAG="Telescope-Driver";
 	
@@ -105,5 +111,10 @@ public class debug_telescope extends telescope implements telescope_driver {
 	public String recvINDImsg() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public void set_msg_handler(Handler mHandler) {
+		// TODO Auto-generated method stub
+		
 	}
 }
