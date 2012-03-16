@@ -17,9 +17,9 @@ package de.hallenbeck.indiserver.server;
  * Theoretical procedure:
  * 
  * 0. Start server manually via main-activity or automatically via intent by another android-app 
- * 1. Get telescope- and communications-driver setting from preferences set by main-activity
- * 2. Create a new instance of the appropriate telescope-driver class via reflection 
- * 3. Set the appropriate communication-driver (either via constructor of the telescope-driver
+ * 1. Get device- and communications-driver setting from preferences set by main-activity
+ * 2. Create a new instance of the appropriate device-driver class via reflection 
+ * 3. Set the appropriate communication-driver (either via constructor of the device-driver
  *    or via public method device_driver_interface.set_communication_driver(drivername) )
  * 4. call the device_driver_interface.connect() method (may be omited if using constructor?)
  * 5. give the driver a callback-handler for receiving messages from the telescope 
