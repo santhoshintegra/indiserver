@@ -9,7 +9,7 @@ The INDI server loads all device drivers, connects to the devices and then
 listens for network connections from clients on tcp-port 7624.
 
 In the simplest mode, the server just relays messages between clients and devices.
-Every message to a device is send to all attached devices and every data from devices is send to all connected clients. This is comparable to a network-hub.
+Every message from a client is send to all attached devices and every data from devices is send to all connected clients. This is comparable to a network-hub.
 The drawback is higher bandwidth usage.
 
 A more sophisticated server manages channels between specific devices and clients.
