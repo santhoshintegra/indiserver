@@ -20,10 +20,10 @@ package de.hallenbeck.indiserver.server;
  * 1. Get telescope- and communications-driver setting from preferences set by main-activity
  * 2. Create a new instance of the appropriate telescope-driver class via reflection 
  * 3. Set the appropriate communication-driver (either via constructor of the telescope-driver
- *    or via public method generic_device_driver.set_communication_driver(drivername) )
- * 4. call the generic_device_driver.connect() method (may be omited if using constructor?)
+ *    or via public method device_driver_interface.set_communication_driver(drivername) )
+ * 4. call the device_driver_interface.connect() method (may be omited if using constructor?)
  * 5. give the driver a callback-handler for receiving messages from the telescope 
- *    (also via constructor or generic_device_driver.set_msg_handler(handler) method )
+ *    (also via constructor or device_driver_interface.set_msg_handler(handler) method )
  * 5. open a listening socket on port tcp/7624 for clients to connect (one thread for each client)
  * 6. Notify the user of running background service and number of connected clients via notification-manager 
  * 7. when clients connect keep an array of connected clients

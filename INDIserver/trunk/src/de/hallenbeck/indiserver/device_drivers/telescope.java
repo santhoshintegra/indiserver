@@ -1,21 +1,21 @@
 package de.hallenbeck.indiserver.device_drivers;
 
 import android.os.Handler;
-import de.hallenbeck.indiserver.communication_drivers.communication_driver;
+import de.hallenbeck.indiserver.communication_drivers.communication_driver_interface;
 
 /**
  * Generic telescope-class with basic functions   
  * @author atuschen
  *
  */
-public abstract class telescope implements generic_device_driver {
+public abstract class telescope implements device_driver_interface {
 	
-	public communication_driver com_driver=null;
+	public communication_driver_interface com_driver=null;
 	public static boolean connected=false;
 
 	/**
 	 * Constructor of base telescope class
-	 * @param driver: String of communication_driver class
+	 * @param driver: String of communication_driver_interface class
 	 * @param mHandler: Callback Handler for receiving messages
 	 * @param connect: Automatically connect to telescope
 	 */

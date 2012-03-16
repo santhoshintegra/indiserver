@@ -8,7 +8,7 @@ import android.util.Log;
  * @author atuschen
  *
  */
-public class debug_telescope extends telescope implements generic_device_driver {
+public class debug_telescope extends telescope implements device_driver_interface {
 
 	public debug_telescope(String driver, Handler mHandler) {
 		super(driver, mHandler, false);

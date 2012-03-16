@@ -5,7 +5,7 @@ package de.hallenbeck.indiserver.communication_drivers;
  * @author atuschen
  *
  */
-public interface communication_driver {
+public interface communication_driver_interface {
 	
 	/**
 	 * List of possible com devices

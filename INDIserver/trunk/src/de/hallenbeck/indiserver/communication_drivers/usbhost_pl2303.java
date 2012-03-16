@@ -7,7 +7,7 @@ package de.hallenbeck.indiserver.communication_drivers;
  * @author atuschen
  *
  */
-public class usbhost_pl2303 extends serial implements communication_driver {
+public class usbhost_pl2303 extends serial implements communication_driver_interface {
 
 	public void setTimeout(int timeout) {
 		// TODO Auto-generated method stub
