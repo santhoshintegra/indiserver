@@ -1,4 +1,6 @@
-package de.hallenbeck.indiserver.telescope_drivers;
+package de.hallenbeck.indiserver.device_drivers;
+
+import android.os.Handler;
 
 /**
  * Driver for LX200 compatible telescopes, only covering the basic commandset.
@@ -6,8 +8,13 @@ package de.hallenbeck.indiserver.telescope_drivers;
  * @author atuschen
  *
  */
-public class lx200generic extends telescope implements telescope_driver {
+public class lx200generic extends telescope implements generic_device_driver {
 	
+	public lx200generic(String driver, Handler mHandler) {
+		super(driver, mHandler, false);
+		// TODO Auto-generated constructor stub
+	}
+
 	private final int delay=200;
 	private boolean HighPrecision=false;
 	private boolean connected=false;
@@ -91,6 +98,11 @@ public class lx200generic extends telescope implements telescope_driver {
 	public String recvINDImsg() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public void set_msg_handler(Handler mHandler) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

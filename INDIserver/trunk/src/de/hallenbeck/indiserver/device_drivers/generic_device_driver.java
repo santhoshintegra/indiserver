@@ -1,13 +1,14 @@
-package de.hallenbeck.indiserver.telescope_drivers;
+package de.hallenbeck.indiserver.device_drivers;
 
+import android.os.Handler;
 import de.hallenbeck.indiserver.communication_drivers.communication_driver;
 
 /**
- * Generic interface definition for telescope drivers 
+ * Generic interface definition for device drivers 
  * @author atuschen
  *
  */
-public interface telescope_driver {
+public interface generic_device_driver {
 	
 	/**
 	 * Set the driver for communication with the telecope
@@ -23,10 +24,9 @@ public interface telescope_driver {
 	
 	/**
 	 * Interface for receiving INDI XML-messages from the driver
-	 * THIS IS JUST A SIMPLIFICATION DUMMY!
-	 * The INDI-Server/Driver should be able to send messages itself,
-	 * so a callback message-handler would be needed.
+	 * 
+	 * a callback message-handler
 	 * @return
 	 */
-	public String recvINDImsg();
+	public void set_msg_handler(Handler mHandler);
 }
