@@ -7,7 +7,7 @@ import android.util.Log;
  * @author atuschen
  *
  */
-public class debug_driver implements communication_driver {
+public class debug_driver implements communication_driver_interface {
 	
 	private final String TAG="Com-Driver";
 

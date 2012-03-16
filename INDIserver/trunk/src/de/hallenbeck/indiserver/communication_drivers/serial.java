@@ -7,7 +7,7 @@ package de.hallenbeck.indiserver.communication_drivers;
  *
  */
 
-public class serial implements communication_driver {
+public class serial implements communication_driver_interface {
 
 	public void setTimeout(int timeout) {
 		// TODO Auto-generated method stub

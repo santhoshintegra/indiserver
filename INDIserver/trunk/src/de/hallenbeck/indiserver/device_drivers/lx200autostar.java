@@ -7,7 +7,7 @@ import android.os.Handler;
  * @author atuschen
  *
  */
-public class lx200autostar extends lx200generic implements generic_device_driver {
+public class lx200autostar extends lx200generic implements device_driver_interface {
 
 	public lx200autostar(String driver, Handler mHandler) {
 		super(driver, mHandler);

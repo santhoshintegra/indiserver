@@ -8,7 +8,7 @@ import android.os.Handler;
  * @author atuschen
  *
  */
-public class lx200generic extends telescope implements generic_device_driver {
+public class lx200generic extends telescope implements device_driver_interface {
 	
 	public lx200generic(String driver, Handler mHandler) {
 		super(driver, mHandler, false);
