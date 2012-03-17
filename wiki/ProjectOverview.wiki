@@ -22,7 +22,7 @@ It is also possible to send INDI-messages from apps directly to the drivers, but
 
 Simple protocol layout:
 
-|| *Client* || SkyMap, SkEye, KStars etc. ||
+|| *Clients* || SkyMap, SkEye, KStars etc. ||
 ||INDI XML-messages over tcp||
 || *[Server]* || relays messages to device drivers ||
 ||INDI XML-messages over methods/handlers ||
