@@ -1,4 +1,4 @@
 || *Task* || *Priority* || *Status* ||
 ||DeviceDrivers||high||I'm working on an example LX200-Driver||
-||CommunicatioonDrivers||high||I'm working on a Bluetooth-SPP driver||
+||CommunicationDrivers||high||I'm working on a Bluetooth-SPP driver||
 ||Server||low||Will be started, when first drivers are ready||
