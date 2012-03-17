@@ -24,7 +24,7 @@ Simple protocol layout:
 
 || *Client* || SkyMap, SkEye, KStars etc. ||
 ||INDI XML-messages over tcp||
-|| [*Server*] || relays messages to device drivers ||
+|| *[Server]* || relays messages to device drivers ||
 ||INDI XML-messages over methods/handlers ||
 || *Device driver* || translate xml-messages to device-specific commands ||
 || *Communication driver* || transport layer for specific interfaces ||
