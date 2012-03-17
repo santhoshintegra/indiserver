@@ -20,6 +20,15 @@ Xml-parsing itself must be done by the drivers.
 
 It is also possible to send INDI-messages from apps directly to the drivers, but this way it isn't possible that more than one app/client at the same time can use the driver. Also it then isn't possible to remote control a telescope connected to an android-device via network. 
 
+||*Client*|| 
+||INDI XML-messages||
+||*Server*||
+||INDI XML-messages||
+||*Device driver*||
+||Device specific protocol||
+||*Communication driver*||
+||*Devices||
+
 There are some well-known clients already using INDI:
 
 KStars
