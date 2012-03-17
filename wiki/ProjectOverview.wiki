@@ -37,3 +37,7 @@ http://edu.kde.org/kstars/
 
 SkyChart (a.k.a. Cartes Du Ciel)
 http://www.stargazing.net/astropc/
+
+= Status and tasks =
+
+[Tasks]
