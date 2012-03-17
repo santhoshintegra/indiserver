@@ -45,3 +45,18 @@ http://www.stargazing.net/astropc/
 ||DeviceDrivers||high||I'm working on an example LX200-Driver||
 ||CommunicationDrivers||high||I'm working on a Bluetooth-SPP driver||
 ||[Server]||low||Will be started, when first drivers are ready||
+
+= External Ressources =
+
+*The INDI client-server interface*
+
+INDI protocol white paper:
+http://www.clearskyinstitute.com/INDI/INDI.pdf
+
+*Telescope-specific interfaces*
+
+Meade LX200 commandset: 
+http://www.meade.com/support/TelescopeProtocol_2010-10.pdf
+
+Celestron NexStar commandset:
+http://www.nexstarsite.com/download/manuals/NexStarCommunicationProtocolV1.2.zip
