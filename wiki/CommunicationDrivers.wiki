@@ -13,7 +13,7 @@ The following drivers should be available:
 
 *bluetooth_serial* for communication via Bluetooth-SPP
 
-*usbhost_serial_pl2303* for USB-to-serial adapters with pl2303 chipset
+*usbhost_serial_pl2303* for USB-to-serial adapters with pl2303 chipset using the usbhost feature of Android 3.2 and higher.
 
 In the far future there can also be
 
