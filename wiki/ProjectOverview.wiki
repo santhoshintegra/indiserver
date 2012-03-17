@@ -41,7 +41,7 @@ http://www.stargazing.net/astropc/
 = Status and tasks =
 
 || *Task* || *Priority* || *Status* ||
-||XML Parser||high||Not started, I need to extend my knowlegde about XML||
+||XML Parser||very high||Not started, I need to extend my knowlegde about XML||
 ||DeviceDrivers||high||I'm working on an example LX200-Driver||
 ||CommunicationDrivers||high||I'm working on a Bluetooth-SPP driver||
 ||[Server]||low||Will be started, when first drivers are ready||
