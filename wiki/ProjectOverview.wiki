@@ -26,8 +26,8 @@ Simple protocol layout:
 ||INDI XML-messages over tcp||
 || *[Server]* || relays messages to device drivers ||
 ||INDI XML-messages over methods/handlers ||
-|| *Device driver* || translate xml-messages to device-specific commands ||
-|| *Communication driver* || transport layer for specific interfaces ||
+|| *[DeviceDrivers]* || translate xml-messages to device-specific commands ||
+|| *[CommunicationDrivers]* || transport layer for specific interfaces ||
 || *Devices* || Telescopes, focusers, imagers etc. ||
 
 There are some well-known clients already using INDI:
