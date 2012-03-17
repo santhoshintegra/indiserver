@@ -18,3 +18,5 @@ This is comparable to a network-switch.
 The drawback is one must implement more logic into the server.
 
 For the beginning the simple type is suffient.
+
+The server should be started automatically by intent from other android apps or manually by the main activity. It should run as background service and the user should be notified through the notification-manager about connected clients/devices.
