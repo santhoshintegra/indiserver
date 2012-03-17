@@ -8,12 +8,12 @@ For details about INDI click here: http://indilib.org/
 
 = Details =
 
-I'd like to control my telescope with my Android-devices, specifically with SkyMap. INDI is an open-source hardware-independent control protocol for astronomical hardware. To implement a server it first requires development of telescope-drivers, as well as communication-drivers.
+I'd like to control my telescope with my Android-devices, specifically with SkyMap. INDI is an open-source hardware-independent control protocol for astronomical hardware. To implement a server it first requires development of device-drivers, as well as communication-drivers.
 
-The telescope-driver interfaces to the telescope itself via the com-driver.
-The INDI-Server then interfaces with the telescope-driver and listens on a network-port for clients to connect. 
+The device-driver interfaces to the hardware itself via the com-driver.
+The INDI-Server then interfaces with the device-driver and listens on a network-port for clients to connect. 
 
-The clients (such as SkyMap or SkEye) then send INDI-commands to the server and the server sends them via the drivers to the telescope.
+The clients (such as SkyMap or SkEye) then send INDI-commands to the server and the server sends them via the drivers to the hardware.
 
 INDI-messages are xml-messages, the server only relays them to the drivers.
 Xml-parsing itself must be done by the drivers.
