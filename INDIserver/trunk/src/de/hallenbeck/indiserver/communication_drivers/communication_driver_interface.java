@@ -7,23 +7,6 @@ package de.hallenbeck.indiserver.communication_drivers;
  */
 public interface communication_driver_interface {
 	
-	/**
-	 * List of possible com devices
-	 * @author atuschen
-	 *
-	 */
-	public class devicelist {
-		private String device;
-		private String name;
-		
-		public String getDevice() {
-			return device;
-		}
-		public String getName() {
-			return name;
-		}
-	}
-	
 	public int OK=0;
 	
 	public int ERR_DEVICE=1;
@@ -35,12 +18,6 @@ public interface communication_driver_interface {
 	 * @param timeout in ms
 	 */
 	public void setTimeout(int timeout);
-	
-	/**
-	 * Get array of devices
-	 * @return array of devicelist
-	 */
-	public devicelist[] getDeviceList();
 	
 	/**
 	 * Connect to device

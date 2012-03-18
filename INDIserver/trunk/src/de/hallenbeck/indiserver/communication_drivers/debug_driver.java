@@ -15,11 +15,6 @@ public class debug_driver implements communication_driver_interface {
 		Log.d(TAG,"Set timeout "+timeout);
 	}
 
-	public devicelist[] getDeviceList() {
-		Log.d(TAG,"Get devicelist");
-		return null;
-	}
-
 	public int connect(String device) {
 		Log.d(TAG,"Connect "+device);
 		return 0;

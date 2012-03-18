@@ -12,11 +12,6 @@ public class usbhost_canon_dslr implements communication_driver_interface {
 
 	}
 
-	public devicelist[] getDeviceList() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public int connect(String device) {
 		// TODO Auto-generated method stub
 		return 0;
