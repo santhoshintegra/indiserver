@@ -25,6 +25,8 @@
 
  * Canon EOS350D, unmodified
 
+For a complete remote controlable observatory there will be some secondary telescope for autoguiding with the LPI and some sort of focuser (self-buit), but not yet.
+
 ==Software==
 
 Debian Sid, KDE 4.7, Android SDK, Eclipse IDE with Subversive PlugIn
