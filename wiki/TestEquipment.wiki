@@ -9,16 +9,16 @@
 
 *Telescope*
 
-Meade LXD-75 mount with Autostar-Handbox, 150mm/1200mm Newton
+ * Meade LXD-75 mount with Autostar-Handbox, 150mm/1200mm Newton
 
 *Bluetooth-Adaptor*
 
-Sphinx Elektronik PicoPlug, Serial-Port 
+ * Sphinx Elektronik PicoPlug, Serial-Port 
 
 *Imager*
 
-Meade LPI, 640x480px, up to 16s exposure time with original Windows-driver
+ * Meade LPI, 640x480px, up to 16s exposure time with original Windows-driver
 
 *Camera*
 
-Canon EOS350D, unmodified
+ * Canon EOS350D, unmodified
