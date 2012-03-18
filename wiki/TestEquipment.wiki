@@ -19,7 +19,7 @@
 
 *Imager*
 
- * Meade LPI, 640x480px, up to 16s exposure time with original Windows-driver
+ * Meade LPI, CMOS 640x480px, up to 16s exposure time with original Windows-driver
 
 *Camera*
 
