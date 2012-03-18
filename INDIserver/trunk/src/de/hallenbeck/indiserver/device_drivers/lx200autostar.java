@@ -9,9 +9,9 @@ import android.os.Handler;
  */
 public class lx200autostar extends lx200generic implements device_driver_interface {
 
-	public lx200autostar(String driver, Handler mHandler) {
+	/*public lx200autostar(String driver, Handler mHandler) {
 		super(driver, mHandler);
 		// TODO Auto-generated constructor stub
-	}
+	}*/
 
 }

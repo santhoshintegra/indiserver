@@ -11,10 +11,10 @@ import android.os.Handler;
  */
 public class debug_telescope extends telescope implements device_driver_interface {
 
-	public debug_telescope(String driver, Handler mHandler) {
+	/*public debug_telescope(String driver, Handler mHandler) {
 		super(driver, mHandler, false);
-		// TODO Auto-generated constructor stub
-	}
+		
+	}*/
 
 	
 	public void sendINDImsg(String xmlcommand) {
