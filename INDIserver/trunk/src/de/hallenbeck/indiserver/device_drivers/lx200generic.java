@@ -1,6 +1,5 @@
 package de.hallenbeck.indiserver.device_drivers;
 
-import de.hallenbeck.indiserver.communication_drivers.communication_driver_interface;
 import android.os.Handler;
 
 /**
@@ -11,25 +10,24 @@ import android.os.Handler;
  */
 public class lx200generic extends telescope implements device_driver_interface {
 	
-	public lx200generic(String driver, Handler mHandler) {
+	/*public lx200generic(String driver, Handler mHandler) {
 		super(driver, mHandler, false);
 		// TODO Auto-generated constructor stub
-	}
+	}*/
 
 	private final int delay=200;
 
 	
 	public int connect() {
-		com_driver.setTimeout(500);
-		super.connect();
+		com_driver.connect("00:80:37:14:9F:E7");
 		get_firmware_info();
-		get_current_position();
+		//get_current_position();
 		return 0;
 	}
 
 	public int get_firmware_info() {
 		com_driver.sendCommand(":GVP#");
-		com_driver.wait(delay);
+		//com_driver.wait(delay);
 		com_driver.getAnswerString();
 		return 0;
 	}
@@ -105,9 +103,7 @@ public class lx200generic extends telescope implements device_driver_interface {
 		
 	}
 
-	public void set_communication_driver(communication_driver_interface driver) {
-		// TODO Auto-generated method stub
-		
-	}
 
+
+	
 }

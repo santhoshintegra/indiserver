@@ -31,7 +31,7 @@ public class bluetooth_serial extends serial implements communication_driver_int
 	public int connect(String device) {
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		btDevice = btAdapter.getRemoteDevice(device);
-        BluetoothSocket tmp = null;
+        
         
         // Get a BluetoothSocket for a connection with the
         // given BluetoothDevice
@@ -41,7 +41,18 @@ public class bluetooth_serial extends serial implements communication_driver_int
         	
         	Method m = btDevice.getClass().getMethod("createRfcommSocket",
                new Class[] { int.class });
-            tmp = (BluetoothSocket)m.invoke(btDevice, Integer.valueOf(1));
+            btSocket = (BluetoothSocket)m.invoke(btDevice, Integer.valueOf(1));
+            
+           // Always cancel discovery because it will slow down a connection
+            btAdapter.cancelDiscovery();
+
+            // This is a blocking call and will only return on a
+            // successful connection or an exception
+            btSocket.connect();
+            // Get the BluetoothSocket input and output streams
+            btInStream = btSocket.getInputStream();
+            btOutStream = btSocket.getOutputStream();
+  
         
         } catch (IllegalArgumentException e) {
 			e.printStackTrace();
@@ -53,30 +64,14 @@ public class bluetooth_serial extends serial implements communication_driver_int
 			e.printStackTrace();
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
+		} catch (IOException e) {
+			
+			e.printStackTrace();
 		}
-        btSocket = tmp;
         
-        // Always cancel discovery because it will slow down a connection
-        btAdapter.cancelDiscovery();
-
-        // Make a connection to the BluetoothSocket
-        try {
-            // This is a blocking call and will only return on a
-            // successful connection or an exception
-            btSocket.connect();
-            // Get the BluetoothSocket input and output streams
-            btInStream = btSocket.getInputStream();
-            btOutStream = btSocket.getOutputStream();
-            
-        } catch (IOException e) {
-            // Connection failed
-            // Close the socket
-            try {
-                btSocket.close();
-            } catch (IOException e2) {
-
-            }
-        }
+        
+        
+  
 		return 0;
 	}
 

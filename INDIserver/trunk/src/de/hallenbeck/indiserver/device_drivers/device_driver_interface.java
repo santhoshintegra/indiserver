@@ -1,7 +1,7 @@
 package de.hallenbeck.indiserver.device_drivers;
 
 import android.os.Handler;
-import de.hallenbeck.indiserver.communication_drivers.communication_driver_interface;
+
 
 /**
  * Generic interface definition for device drivers 
@@ -14,7 +14,7 @@ public interface device_driver_interface {
 	 * Set the driver for communication with the telecope
 	 * @param driver
 	 */
-	public void set_communication_driver (communication_driver_interface driver);
+	public void set_communication_driver (String driver);
 	
 	/**
 	 * Interface for sending INDI XML-messages to the driver
