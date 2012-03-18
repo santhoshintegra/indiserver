@@ -8,11 +8,7 @@ package de.hallenbeck.indiserver.communication_drivers;
 
 public class bluetooth_serial extends serial implements communication_driver_interface {
 
-	public devicelist[] getDeviceList() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
+
 	public int connect(String device) {
 		// TODO Auto-generated method stub
 		return 0;

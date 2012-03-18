@@ -14,11 +14,6 @@ public class usbhost_serial_pl2303 extends serial implements communication_drive
 
 	}
 
-	public devicelist[] getDeviceList() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public int connect(String device) {
 		// TODO Auto-generated method stub
 		return 0;
