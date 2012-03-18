@@ -1,5 +1,6 @@
 package de.hallenbeck.indiserver.device_drivers;
 
+import de.hallenbeck.indiserver.communication_drivers.communication_driver_interface;
 import android.os.Handler;
 
 /**
@@ -16,8 +17,7 @@ public class lx200generic extends telescope implements device_driver_interface {
 	}
 
 	private final int delay=200;
-	private boolean HighPrecision=false;
-	private boolean connected=false;
+
 	
 	public int connect() {
 		com_driver.setTimeout(500);
@@ -101,6 +101,11 @@ public class lx200generic extends telescope implements device_driver_interface {
 	}
 
 	public void set_msg_handler(Handler mHandler) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void set_communication_driver(communication_driver_interface driver) {
 		// TODO Auto-generated method stub
 		
 	}
