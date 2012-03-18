@@ -1,0 +1,24 @@
+=My testing equipment=
+
+*Android devices*
+
+* Vodafone 845 (Huawei 8120), Android 2.1, rooted with custom ROM
+* LG P350 OptimusMe, Android 2.2, rooted standard ROM
+* Archos 70H, Android 2.2, unrooted
+* Archos 101G9, Android 4.0.3, unrooted
+
+*Telescope*
+
+* Meade LXD-75 mount with Autostar-Handbox, 150mm/1200mm Newton
+
+*Bluetooth-Adaptor*
+
+* Sphinx Elektronik PicoPlug, Serial-Port 
+
+*Imager*
+
+* Meade LPI, 640x480px, up to 16s exposure time with original Windows-driver
+
+*Camera*
+
+* Canon EOS350D, unmodified
