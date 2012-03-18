@@ -27,4 +27,4 @@
 
 ==Software==
 
-Debian Sid, KDE 4.7, Android SDK, Eclipse IDE
+Debian Sid, KDE 4.7, Android SDK, Eclipse IDE with Subversive PlugIn
