@@ -1,5 +1,7 @@
 =My testing equipment=
 
+==Hardware==
+
 *Android devices*
 
  * Vodafone 845 (Huawei 8120), Android 2.1, rooted with custom ROM
@@ -22,3 +24,7 @@
 *Camera*
 
  * Canon EOS350D, unmodified
+
+==Software==
+
+Debian Sid, KDE 4.7, Android SDK, Eclipse IDE
