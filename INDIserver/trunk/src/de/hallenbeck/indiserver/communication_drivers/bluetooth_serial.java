@@ -1,5 +1,15 @@
 package de.hallenbeck.indiserver.communication_drivers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+
 /**
  * Bluetooth-Serial-Port-Profile driver for short-range wireless connection to telescope
  * @author atuschen
@@ -8,42 +18,115 @@ package de.hallenbeck.indiserver.communication_drivers;
 
 public class bluetooth_serial extends serial implements communication_driver_interface {
 
-
+	private BluetoothAdapter btAdapter;
+	private BluetoothSocket btSocket;
+    private BluetoothDevice btDevice;
+    private InputStream btInStream;
+    private OutputStream btOutStream;
+    
+    /**
+     * Connect to a bluetooth-device
+     * @param device: String containing the the device-address 
+     */
 	public int connect(String device) {
-		// TODO Auto-generated method stub
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
+		btDevice = btAdapter.getRemoteDevice(device);
+        BluetoothSocket tmp = null;
+        
+        // Get a BluetoothSocket for a connection with the
+        // given BluetoothDevice
+        try {
+        	// WORKAROUND, since no connection was possible on my Archos-Devices
+        	// with device.createRfcommSocketToServiceRecord(MY_UUID);
+        	
+        	Method m = btDevice.getClass().getMethod("createRfcommSocket",
+               new Class[] { int.class });
+            tmp = (BluetoothSocket)m.invoke(btDevice, Integer.valueOf(1));
+        
+        } catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		}
+        btSocket = tmp;
+        
+        // Always cancel discovery because it will slow down a connection
+        btAdapter.cancelDiscovery();
+
+        // Make a connection to the BluetoothSocket
+        try {
+            // This is a blocking call and will only return on a
+            // successful connection or an exception
+            btSocket.connect();
+            // Get the BluetoothSocket input and output streams
+            btInStream = btSocket.getInputStream();
+            btOutStream = btSocket.getOutputStream();
+            
+        } catch (IOException e) {
+            // Connection failed
+            // Close the socket
+            try {
+                btSocket.close();
+            } catch (IOException e2) {
+
+            }
+        }
 		return 0;
 	}
 
+	/**
+	 * Disconnect from bluetooth-device
+	 */
 	public int disconnect() {
-		// TODO Auto-generated method stub
+		try {
+			btInStream.close();
+			btOutStream.close();
+			btSocket.close();
+			
+		} catch (IOException e) {
+			
+			e.printStackTrace();
+		}
 		return 0;
 	}
 	
-	public void setTimeout(int timeout) {
-		// TODO Auto-generated method stub
-		
-	}
-
+	/**
+	 * Send a String to the device
+	 * @param command: String
+	 */
 	public int sendCommand(String command) {
-		// TODO Auto-generated method stub
+		byte[] buffer=command.getBytes();
+		try {
+			btOutStream.write(buffer);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+				
 		return 0;
 	}
-
-	public int getAnswerInt() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	public String getAnswerString() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public void wait(int delay) {
-		// TODO Auto-generated method stub
-		
-	}
-
 	
+	/**
+	 * Read from the device
+	 * @return String
+	 */
+	public String getAnswerString() {
+		int len=0;
+       	byte[] rcvbuffer = new byte[1024];
+       	
+        try {
+			len=btInStream.read(rcvbuffer);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        String tmp=new String(rcvbuffer,0,len);
+		return tmp;
+	}
+
 
 }
