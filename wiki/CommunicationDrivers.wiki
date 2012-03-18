@@ -5,7 +5,7 @@ Communication drivers are used to physicaly connect to the hardware
 
 = Details =
 
-Communication drivers act as a transport layer. They connect over a medium like bluetooth, usb, serial or network to the devices and present a standardized interface to the actual device drivers.
+Communication drivers act as a link layer. They connect over a medium like bluetooth, usb, serial or network to the devices and present a standardized interface to the actual device drivers.
 
 The following drivers should be available:
 
