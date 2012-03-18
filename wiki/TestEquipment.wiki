@@ -13,7 +13,7 @@
 
 *Bluetooth-Adaptor*
 
- * Sphinx Elektronik PicoPlug, Serial-Port 
+ * Sphinx Elektronik PicoPlug, Serial-Port-Profile
 
 *Imager*
 
