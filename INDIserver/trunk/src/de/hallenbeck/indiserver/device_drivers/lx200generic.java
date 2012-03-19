@@ -29,20 +29,23 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 * @param device: driver specific device address
 	 */
 	public void connect(String device) {
-		com_driver.set_delay(200);
+		// Set delay-before-read to 200ms 
+		// After some testing I found this a reliable value 
+		com_driver.set_delay(200); 
+		
 		super.connect(device);
 		get_firmware_info();
 		get_current_position();
 	}
 
 	/**
-	 * Interface for INDI xml-messages (send)
+	 * Interface for INDI xml-messages from server to device (send)
 	 */
 	public void sendINDImsg(String xmlcommand) {
 	}
 
 	/** 
-	 * Callback-Handler for INDI xml-messages (receive)
+	 * Callback-Handler for INDI xml-messages from device to server (receive)
 	 */
 	public void set_msg_handler(Handler mHandler) {
 	}
