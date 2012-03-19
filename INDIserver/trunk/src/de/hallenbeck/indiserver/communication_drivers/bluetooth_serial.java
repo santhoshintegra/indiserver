@@ -33,37 +33,41 @@ public class bluetooth_serial extends serial implements communication_driver_int
 		
 			btDevice = btAdapter.getRemoteDevice(device);
 
-			try {
-				// Get a BluetoothSocket for a connection with the
-				// given BluetoothDevice
+			if (btDevice != null) {
+				try {
+					// Get a BluetoothSocket for a connection with the
+					// given BluetoothDevice
 
-				// WORKAROUND, since no connection was possible on my Archos-Devices
-				// with device.createRfcommSocketToServiceRecord(MY_UUID);
-				Method m = btDevice.getClass().getMethod("createRfcommSocket",
-						new Class[] { int.class });
-				btSocket = (BluetoothSocket)m.invoke(btDevice, Integer.valueOf(1));
+					// WORKAROUND, since no connection was possible on my Archos-Devices
+					// with device.createRfcommSocketToServiceRecord(MY_UUID);
+					Method m = btDevice.getClass().getMethod("createRfcommSocket",
+							new Class[] { int.class });
+					btSocket = (BluetoothSocket)m.invoke(btDevice, Integer.valueOf(1));
 
-				// Always cancel discovery because it will slow down a connection
-				btAdapter.cancelDiscovery();
+					// Always cancel discovery because it will slow down a connection
+					btAdapter.cancelDiscovery();
 
-				// This is a blocking call and will only return on a
-				// successful connection or an exception
-				btSocket.connect();
+					// This is a blocking call and will only return on a
+					// successful connection or an exception
+					btSocket.connect();
 
-				// Get the BluetoothSocket input and output streams
-				InStream = btSocket.getInputStream();
-				OutStream = btSocket.getOutputStream();
+					// Get the BluetoothSocket input and output streams
+					InStream = btSocket.getInputStream();
+					OutStream = btSocket.getOutputStream();
 
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
-			} catch (SecurityException e) {
-				e.printStackTrace();
-			} catch (NoSuchMethodException e) {
-				e.printStackTrace();
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				} catch (InvocationTargetException e) {
+					e.printStackTrace();
+				} catch (SecurityException e) {
+					e.printStackTrace();
+				} catch (NoSuchMethodException e) {
+					e.printStackTrace();
+				}
+			} else {
+				throw new IOException("Remote device not available");
 			}
 		} else {
 			throw new IOException("Bluetooth disabled/not available");
