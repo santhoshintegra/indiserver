@@ -7,6 +7,14 @@ import android.os.Handler;
 /**
  * Driver for LX200 compatible telescopes, only covering the basic commandset.
  * Extended LX200-protocols should be derived from this class. 
+ * There are some errors in the official Meade LX200 protocol sheet.
+ * i.e. some answer-strings are localized (command ":P#" gives "HOCH PRAEZISION" or 
+ * "NIEDER PRAEZISION" on german Firmware 42Gg)
+ * 
+ * This class is based on my own tests with Autostar #497 Firmware 43Eg (english)
+ * No guarantee that this will work with the newer Autostar #497-EP models or 
+ * any other firmware version than 43Eg!
+ *   
  * @author atuschen
  *
  */
@@ -24,7 +32,7 @@ public class lx200generic extends telescope implements device_driver_interface {
 		com_driver.set_delay(200);
 		super.connect(device);
 		get_firmware_info();
-		//get_current_position();
+		get_current_position();
 	}
 
 	/**
@@ -45,8 +53,16 @@ public class lx200generic extends telescope implements device_driver_interface {
 	
 	protected int get_firmware_info() {
 		try {
+			information = new telescope_information();
+			// Get product name
 			com_driver.sendCommand(":GVP#");
-			com_driver.getAnswerString();
+			information.setDescription(com_driver.getAnswerString());
+			// Get version
+			com_driver.sendCommand(":GVN#");
+			information.setVersion(com_driver.getAnswerString());
+			// Get firmware date
+			com_driver.sendCommand(":GVD#");
+			information.setDateTime(com_driver.getAnswerString());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -58,6 +74,17 @@ public class lx200generic extends telescope implements device_driver_interface {
 	}
 
 	protected int get_current_position() {
+		pointing = new telescope_pointing();
+		try {
+			// Get RA
+			com_driver.sendCommand(":GR#");
+			pointing.setRA(RAtoFloat(com_driver.getAnswerString()));
+			// Get DEC
+			com_driver.sendCommand(":GD#");
+			pointing.setDEC(DECtoFloat(com_driver.getAnswerString()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		return 0;
 	}
 
@@ -106,6 +133,30 @@ public class lx200generic extends telescope implements device_driver_interface {
 	}
 
 	protected int move_to_target(int radec) {
+		return 0;
+	}
+	
+	/*
+	 * Auxillary functions (LX200 specific)
+	 */
+	
+	// Strip the # from end of strings
+	protected String stripChar(String str) {
+		return null;
+	}
+	
+	// Convert RA string to float value
+	// NOTE: Scope is always reporting "High precision" coords!
+	// Example: 13:17:12#
+	protected float RAtoFloat(String RA) {
+		return 0;
+	}
+	
+	// Convert DEC string to float value
+	// NOTE: Scope is always reporting "High precision" coords! 
+	// I get a ° (0xDF) instead of * as told by protocol-sheet
+	// Example: +89°59:59#
+	protected float DECtoFloat(String DEC) {
 		return 0;
 	}
 
