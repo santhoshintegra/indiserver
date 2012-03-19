@@ -29,12 +29,12 @@ public class bluetooth_serial extends serial implements communication_driver_int
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		btDevice = btAdapter.getRemoteDevice(device);
 
-        // Get a BluetoothSocket for a connection with the
-        // given BluetoothDevice
         try {
+            // Get a BluetoothSocket for a connection with the
+            // given BluetoothDevice
+
         	// WORKAROUND, since no connection was possible on my Archos-Devices
         	// with device.createRfcommSocketToServiceRecord(MY_UUID);
-        	
         	Method m = btDevice.getClass().getMethod("createRfcommSocket",
                new Class[] { int.class });
             btSocket = (BluetoothSocket)m.invoke(btDevice, Integer.valueOf(1));
