@@ -36,7 +36,11 @@ public class serial implements communication_driver_interface {
 	 */
 	public void sendCommand(String command) throws IOException {
 		byte[] buffer=command.getBytes();
-		OutStream.write(buffer);
+		if (OutStream != null) {
+			OutStream.write(buffer); 
+		} else {
+			throw new IOException("Not connected");
+		}
 	}
 
 	public int getAnswerInt() {
@@ -48,9 +52,13 @@ public class serial implements communication_driver_interface {
 	 * @return String
 	 */
 	public String getAnswerString() throws IOException {
-		Thread rThread = new recvThread();
-		String tmp = ((recvThread) rThread).read();
-		return tmp;
+		if (InStream !=null) {
+			Thread rThread = new recvThread();
+			String tmp = ((recvThread) rThread).read();
+			return tmp;
+		} else {
+			throw new IOException("Not connected");
+		}
 	}
 	
 	/**
