@@ -12,18 +12,16 @@ public class usbhost_lpi implements communication_driver_interface {
 
 	}
 
-	public int connect(String device) {
+	public void connect(String device) {
 		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	public void disconnect() {
 		// TODO Auto-generated method stub
 	}
 
-	public int sendCommand(String command) {
+	public void sendCommand(String command) {
 		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	public void set_delay(int delay) {

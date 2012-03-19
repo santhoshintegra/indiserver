@@ -1,5 +1,6 @@
 package de.hallenbeck.indiserver.activities;
 
+
 import de.hallenbeck.indiserver.device_drivers.lx200generic;
 import android.app.Activity;
 import android.os.Bundle;
@@ -25,6 +26,5 @@ public class main extends Activity {
 		telescope.connect("00:80:37:14:9F:E7");
 		
 	}
-	
 
 }
