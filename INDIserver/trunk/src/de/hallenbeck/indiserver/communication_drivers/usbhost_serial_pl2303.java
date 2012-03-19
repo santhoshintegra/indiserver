@@ -14,18 +14,16 @@ public class usbhost_serial_pl2303 extends serial implements communication_drive
 
 	}
 
-	public int connect(String device) {
+	public void connect(String device) {
 		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	public void disconnect() {
 		// TODO Auto-generated method stub
 	}
 
-	public int sendCommand(String command) {
+	public void sendCommand(String command) {
 		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	public void wait(int delay) {

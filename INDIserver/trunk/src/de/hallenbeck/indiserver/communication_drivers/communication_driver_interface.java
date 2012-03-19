@@ -1,5 +1,7 @@
 package de.hallenbeck.indiserver.communication_drivers;
 
+import java.io.IOException;
+
 /**
  * Generic interface definition for communication drivers
  * @author atuschen
@@ -7,13 +9,18 @@ package de.hallenbeck.indiserver.communication_drivers;
  */
 public interface communication_driver_interface {
 	
+	/**
+	 * Wait the specified amount of time before reading from device
+	 * @param delay in ms
+	 */
+	public void set_delay(int delay);
 	
 	/**
 	 * Connect to device
 	 * @param device
-	 * @return 0 success, -1 failed 
+	 * 
 	 */
-	public int connect(String device);
+	public void connect(String device) throws IOException;
 	
 	/**
 	 * Disconnect from device
@@ -24,26 +31,19 @@ public interface communication_driver_interface {
 	/**
 	 * Send command string to device
 	 * @param command
-	 * @return 0 success, -1 failed
 	 */
-	public int sendCommand(String command);
-	
-	/**
-	 * Wait the specified amount of time
-	 * @param delay in ms
-	 */
-	public void set_delay(int delay);
+	public void sendCommand(String command) throws IOException;
 	
 	/**
 	 * Read integer value from device
 	 * @return int
 	 */
-	public int getAnswerInt();
+	public int getAnswerInt() throws IOException;
 	
 	/**
 	 * Read string from device 
 	 * @return string
 	 */
-	public String getAnswerString();
+	public String getAnswerString() throws IOException;
 
 }

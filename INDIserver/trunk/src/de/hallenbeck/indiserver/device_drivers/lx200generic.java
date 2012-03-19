@@ -1,5 +1,7 @@
 package de.hallenbeck.indiserver.device_drivers;
 
+import java.io.IOException;
+
 import android.os.Handler;
 
 /**
@@ -10,88 +12,101 @@ import android.os.Handler;
  */
 public class lx200generic extends telescope implements device_driver_interface {
 	
-	/*public lx200generic(String driver, Handler mHandler) {
-		super(driver, mHandler, false);
-		// TODO Auto-generated constructor stub
-	}*/
-
-	public int connect(String device) {
-		com_driver.connect(device);
+	/*
+	 * Public interface methods 
+	 */
+	
+	/**
+	 * Connect to telescope 
+	 * @param device: driver specific device address
+	 */
+	public void connect(String device) {
 		com_driver.set_delay(200);
+		super.connect(device);
 		get_firmware_info();
 		//get_current_position();
+	}
+
+	/**
+	 * Interface for INDI xml-messages (send)
+	 */
+	public void sendINDImsg(String xmlcommand) {
+	}
+
+	/** 
+	 * Callback-Handler for INDI xml-messages (receive)
+	 */
+	public void set_msg_handler(Handler mHandler) {
+	}
+	
+	/*
+	 * Internal methods for LX200 and derived classes
+	 */
+	
+	protected int get_firmware_info() {
+		try {
+			com_driver.sendCommand(":GVP#");
+			com_driver.getAnswerString();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		return 0;
 	}
 
-	public int get_firmware_info() {
-		com_driver.sendCommand(":GVP#");
-		com_driver.getAnswerString();
+	protected int site_coords(int site) {
 		return 0;
 	}
 
-	public int site_coords(int site) {
+	protected int get_current_position() {
 		return 0;
 	}
 
-	public int get_current_position() {
+	protected int set_datetime(int datetime) {
 		return 0;
 	}
 
-	public int set_datetime(int datetime) {
+	protected int set_utc_offset(int offset) {
 		return 0;
 	}
 
-	public int set_utc_offset(int offset) {
-		return 0;
-	}
-
-	public int set_site_coords(int site, float longitude, float latitude,
+	protected int set_site_coords(int site, float longitude, float latitude,
 			String name) {
 		return 0;
 	}
 
-	public int set_slew_speed(int speed) {
+	protected int set_slew_speed(int speed) {
 		return 0;
 	}
 
-	public void move_north() {
+	protected void move_north() {
 	}
 
-	public void move_east() {
+	protected void move_east() {
 	}
 
-	public void move_south() {
+	protected void move_south() {
 	}
 
-	public void move_west() {
+	protected void move_west() {
 	}
 
-	public void cancel_all() {
+	protected void cancel_all() {
 	}
 
-	public void cancel_north() {
+	protected void cancel_north() {
 	}
 
-	public void cancel_east() {
+	protected void cancel_east() {
 	}
 
-	public void cancel_south() {
+	protected void cancel_south() {
 	}
 
-	public void cancel_west() {
+	protected void cancel_west() {
 	}
 
-	public int move_to_target(int radec) {
+	protected int move_to_target(int radec) {
 		return 0;
 	}
 
-	public void sendINDImsg(String xmlcommand) {
-	}
-
-	public String recvINDImsg() {
-		return null;
-	}
-
-	public void set_msg_handler(Handler mHandler) {
-	}
 }

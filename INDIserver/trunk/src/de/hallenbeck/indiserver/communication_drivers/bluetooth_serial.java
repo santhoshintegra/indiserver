@@ -25,45 +25,49 @@ public class bluetooth_serial extends serial implements communication_driver_int
      * Connect to a bluetooth-device
      * @param device: String containing the device-address 
      */
-	public int connect(String device) {
+	public void connect(String device) throws IOException {
+		
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
-		btDevice = btAdapter.getRemoteDevice(device);
 
-        try {
-            // Get a BluetoothSocket for a connection with the
-            // given BluetoothDevice
+		if (btAdapter != null) {
+		
+			btDevice = btAdapter.getRemoteDevice(device);
 
-        	// WORKAROUND, since no connection was possible on my Archos-Devices
-        	// with device.createRfcommSocketToServiceRecord(MY_UUID);
-        	Method m = btDevice.getClass().getMethod("createRfcommSocket",
-               new Class[] { int.class });
-            btSocket = (BluetoothSocket)m.invoke(btDevice, Integer.valueOf(1));
-            
-           // Always cancel discovery because it will slow down a connection
-            btAdapter.cancelDiscovery();
+			try {
+				// Get a BluetoothSocket for a connection with the
+				// given BluetoothDevice
 
-            // This is a blocking call and will only return on a
-            // successful connection or an exception
-            btSocket.connect();
-            
-            // Get the BluetoothSocket input and output streams
-            InStream = btSocket.getInputStream();
-            OutStream = btSocket.getOutputStream();
-            
-        } catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+				// WORKAROUND, since no connection was possible on my Archos-Devices
+				// with device.createRfcommSocketToServiceRecord(MY_UUID);
+				Method m = btDevice.getClass().getMethod("createRfcommSocket",
+						new Class[] { int.class });
+				btSocket = (BluetoothSocket)m.invoke(btDevice, Integer.valueOf(1));
+
+				// Always cancel discovery because it will slow down a connection
+				btAdapter.cancelDiscovery();
+
+				// This is a blocking call and will only return on a
+				// successful connection or an exception
+				btSocket.connect();
+
+				// Get the BluetoothSocket input and output streams
+				InStream = btSocket.getInputStream();
+				OutStream = btSocket.getOutputStream();
+
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				e.printStackTrace();
+			} catch (NoSuchMethodException e) {
+				e.printStackTrace();
+			}
+		} else {
+			throw new IOException("Bluetooth disabled/not available");
 		}
-		return 0;
 	}
 
 	/**

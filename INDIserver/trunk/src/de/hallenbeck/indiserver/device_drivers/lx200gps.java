@@ -1,6 +1,5 @@
 package de.hallenbeck.indiserver.device_drivers;
 
-import android.os.Handler;
 
 /**
  * Driver for LX200GPS devices, derived from lx200generic

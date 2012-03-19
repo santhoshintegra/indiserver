@@ -15,18 +15,16 @@ public class debug_driver implements communication_driver_interface {
 		Log.d(TAG,"Set timeout "+timeout);
 	}
 
-	public int connect(String device) {
+	public void connect(String device) {
 		Log.d(TAG,"Connect "+device);
-		return 0;
 	}
 
 	public void disconnect() {
 		Log.d(TAG,"Disconnect");
 	}
 
-	public int sendCommand(String command) {
+	public void sendCommand(String command) {
 		Log.d(TAG,"Send command "+command);
-		return 0;
 	}
 
 	public void set_delay(int delay) {

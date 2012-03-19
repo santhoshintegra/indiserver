@@ -13,35 +13,33 @@ import java.io.OutputStream;
 
 public class serial implements communication_driver_interface {
 
-	public InputStream InStream;
-    public OutputStream OutStream;
+	protected InputStream InStream;
+	protected OutputStream OutStream;
     private int sleeptime=0;
+
+	public void set_delay(int delay) {
+		sleeptime = delay;
+	}
     
-	public int connect(String device) {
-		// TODO Auto-generated method stub
-		return 0;
+    public void connect(String device) throws IOException {
+		// TODO Open serial device
+		
 	}
 
 	public void disconnect() {
-		// TODO Auto-generated method stub
+		// TODO Close serial device and in/outstreams
 	}
 
 	/**
 	 * Send a String to the device
 	 * @param command: String
 	 */
-	public int sendCommand(String command) {
+	public void sendCommand(String command) throws IOException {
 		byte[] buffer=command.getBytes();
-		try {
-			OutStream.write(buffer);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return 0;
+		OutStream.write(buffer);
 	}
 
 	public int getAnswerInt() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
@@ -49,7 +47,7 @@ public class serial implements communication_driver_interface {
 	 * Read from the device
 	 * @return String
 	 */
-	public String getAnswerString() {
+	public String getAnswerString() throws IOException {
 		Thread rThread = new recvThread();
 		String tmp = ((recvThread) rThread).read();
 		return tmp;
@@ -85,12 +83,6 @@ public class serial implements communication_driver_interface {
 	        String tmp=new String(rcvbuffer,0,len);
 			return tmp;
 		}
-	}
-
-
-	public void set_delay(int delay) {
-		sleeptime = delay;
-		
 	}
 
 }
