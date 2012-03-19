@@ -20,9 +20,8 @@ public class debug_driver implements communication_driver_interface {
 		return 0;
 	}
 
-	public int disconnect() {
+	public void disconnect() {
 		Log.d(TAG,"Disconnect");
-		return 0;
 	}
 
 	public int sendCommand(String command) {
@@ -30,7 +29,7 @@ public class debug_driver implements communication_driver_interface {
 		return 0;
 	}
 
-	public void wait(int delay) {
+	public void set_delay(int delay) {
 		Log.d(TAG,"Wait "+delay);
 	}
 

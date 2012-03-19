@@ -17,9 +17,8 @@ public class usbhost_canon_dslr implements communication_driver_interface {
 		return 0;
 	}
 
-	public int disconnect() {
+	public void disconnect() {
 		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	public int sendCommand(String command) {
@@ -27,7 +26,7 @@ public class usbhost_canon_dslr implements communication_driver_interface {
 		return 0;
 	}
 
-	public void wait(int delay) {
+	public void set_delay(int delay) {
 		// TODO Auto-generated method stub
 
 	}

@@ -19,9 +19,8 @@ public class usbhost_serial_pl2303 extends serial implements communication_drive
 		return 0;
 	}
 
-	public int disconnect() {
+	public void disconnect() {
 		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	public int sendCommand(String command) {
