@@ -15,11 +15,9 @@ public class lx200generic extends telescope implements device_driver_interface {
 		// TODO Auto-generated constructor stub
 	}*/
 
-	private final int delay=200;
-
-	
-	public int connect() {
-		com_driver.connect("00:80:37:14:9F:E7");
+	public int connect(String device) {
+		com_driver.connect(device);
+		com_driver.set_delay(200);
 		get_firmware_info();
 		//get_current_position();
 		return 0;
@@ -27,7 +25,6 @@ public class lx200generic extends telescope implements device_driver_interface {
 
 	public int get_firmware_info() {
 		com_driver.sendCommand(":GVP#");
-		//com_driver.wait(delay);
 		com_driver.getAnswerString();
 		return 0;
 	}
@@ -89,21 +86,12 @@ public class lx200generic extends telescope implements device_driver_interface {
 	}
 
 	public void sendINDImsg(String xmlcommand) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	public String recvINDImsg() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public void set_msg_handler(Handler mHandler) {
-		// TODO Auto-generated method stub
-		
 	}
-
-
-
-	
 }

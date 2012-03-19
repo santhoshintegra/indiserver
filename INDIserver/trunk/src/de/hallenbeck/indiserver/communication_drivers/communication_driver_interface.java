@@ -7,17 +7,6 @@ package de.hallenbeck.indiserver.communication_drivers;
  */
 public interface communication_driver_interface {
 	
-	public int OK=0;
-	
-	public int ERR_DEVICE=1;
-	
-	public int ERR_TIMEOUT=2;
-
-	/**
-	 * Set communication timeout 
-	 * @param timeout in ms
-	 */
-	public void setTimeout(int timeout);
 	
 	/**
 	 * Connect to device
@@ -28,9 +17,9 @@ public interface communication_driver_interface {
 	
 	/**
 	 * Disconnect from device
-	 * @return 0
+	 * 
 	 */
-	public int disconnect();
+	public void disconnect();
 	
 	/**
 	 * Send command string to device
@@ -43,7 +32,7 @@ public interface communication_driver_interface {
 	 * Wait the specified amount of time
 	 * @param delay in ms
 	 */
-	public void wait(int delay);
+	public void set_delay(int delay);
 	
 	/**
 	 * Read integer value from device
