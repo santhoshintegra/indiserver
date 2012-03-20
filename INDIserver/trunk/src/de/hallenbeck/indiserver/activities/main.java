@@ -1,6 +1,9 @@
 package de.hallenbeck.indiserver.activities;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+
 import de.hallenbeck.indiserver.device_drivers.lx200generic;
 import android.app.Activity;
 import android.os.Bundle;
@@ -15,6 +18,10 @@ import android.os.Bundle;
 public class main extends Activity {
 
 	public lx200generic telescope;
+	public ByteArrayOutputStream OutStream;
+	public ByteArrayInputStream InStream;
+	public byte[] buf;
+	
 
 
 	@Override
@@ -22,7 +29,10 @@ public class main extends Activity {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		
-		telescope = new lx200generic();
+		OutStream = new ByteArrayOutputStream();
+		InStream = new ByteArrayInputStream(buf);
+		
+		telescope = new lx200generic(InStream,OutStream);
 		telescope.set_communication_driver("de.hallenbeck.indiserver.communication_drivers.bluetooth_serial");
 		telescope.connect("00:80:37:14:9F:E7");
 		telescope.disconnect();

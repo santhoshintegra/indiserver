@@ -1,6 +1,21 @@
 package de.hallenbeck.indiserver.device_drivers;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Date;
+
+import laazotea.indi.Constants.PropertyPermissions;
+import laazotea.indi.Constants.PropertyStates;
+import laazotea.indi.driver.INDIBLOBElementAndValue;
+import laazotea.indi.driver.INDIBLOBProperty;
+import laazotea.indi.driver.INDINumberElementAndValue;
+import laazotea.indi.driver.INDINumberProperty;
+import laazotea.indi.driver.INDISwitchElementAndValue;
+import laazotea.indi.driver.INDISwitchProperty;
+import laazotea.indi.driver.INDITextElement;
+import laazotea.indi.driver.INDITextElementAndValue;
+import laazotea.indi.driver.INDITextProperty;
 
 import android.os.Handler;
 
@@ -20,9 +35,32 @@ import android.os.Handler;
  */
 public class lx200generic extends telescope implements device_driver_interface {
 	
+	private INDITextProperty telescopeInfoProp;
+	private INDITextElement telescopeInfoElem;
+	
+	/*
+	 * Constructor with input and outputstream for indi-xml-messages.
+	 * TODO: extend with com_driver and device interface string
+	 */
+	
+	public lx200generic(InputStream inputStream, OutputStream outputStream) {
+		super(inputStream, outputStream);
+	
+		// We add the default CONNECTION Property
+	    addConnectionProperty();
+	    
+	    // We create the Text Property for telescope info 
+	    telescopeInfoElem = new INDITextElement("TELESCOPE_INFO", "Telescope Info", "");
+	    telescopeInfoProp = new INDITextProperty(this, "TELESCOPE_INFO", "Telescope Info", "Firmware Information", PropertyStates.IDLE, PropertyPermissions.RO, 3);
+	    telescopeInfoProp.addElement(telescopeInfoElem);
+
+	    addProperty(telescopeInfoProp);
+	}
+
 	/*
 	 * Public interface methods 
 	 */
+	
 	
 	/**
 	 * Connect to telescope 
@@ -40,12 +78,14 @@ public class lx200generic extends telescope implements device_driver_interface {
 
 	/**
 	 * Interface for INDI xml-messages from server to device (send)
+	 * TODO: OBSOLETE! 
 	 */
 	public void sendINDImsg(String xmlcommand) {
 	}
 
 	/** 
 	 * Callback-Handler for INDI xml-messages from device to server (receive)
+	 * TODO: OBSOLETE!
 	 */
 	public void set_msg_handler(Handler mHandler) {
 	}
@@ -63,9 +103,17 @@ public class lx200generic extends telescope implements device_driver_interface {
 		// Get product name
 		information.setDescription(getDataString(":GVP#"));
 		// Get version
-		information.setDescription(getDataString(":GVN#"));
+		information.setVersion(getDataString(":GVN#"));
 		// Get firmware date
-		information.setDescription(getDataString(":GVD#"));
+		information.setDateTime(getDataString(":GVD#"));
+		
+		INDITextProperty pn = (INDITextProperty) getProperty("TELESCOPE_INFO");
+	    INDITextElement en = (INDITextElement) pn.getElement("TELESCOPE_INFO");
+	    en.setValue(information.getDescription());
+	    telescopeInfoProp.setState(PropertyStates.OK);
+        updateProperty(telescopeInfoProp);
+	    
+		
 	}
 
 	/**
@@ -248,6 +296,40 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 */
 	protected float DECtoFloat(String DEC) {
 		return 0;
+	}
+
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void processNewTextValue(INDITextProperty property, Date timestamp,
+			INDITextElementAndValue[] elementsAndValues) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void processNewSwitchValue(INDISwitchProperty property,
+			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void processNewNumberValue(INDINumberProperty property,
+			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
+			INDIBLOBElementAndValue[] elementsAndValues) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
