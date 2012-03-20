@@ -6,11 +6,12 @@ import java.io.IOException;
 import de.hallenbeck.indiserver.communication_drivers.communication_driver_interface;
 
 /**
- * Generic telescope-class with basic functions   
+ * Generic telescope-class with basic functions and basic INDI interface
+ * 
  * @author atuschen
  *
  */
-public abstract class telescope implements device_driver_interface {
+public abstract class telescope /* extends INDIDriver*/ implements device_driver_interface {
 	
 	protected communication_driver_interface com_driver=null;
 	protected boolean connected=false;
