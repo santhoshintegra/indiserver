@@ -1,0 +1,11 @@
+= Introduction =
+
+I'm 36 years and from Germany. I began coding mid of the 80s with Locomotive Basic on an Amstrad CPC464. After that I got my first x86 PC and began coding with Turbo Pascal (I had a hard time understanding OOP in TP6.0). This went on until Borland Delphi 7 with which I've done some job-related projects.
+Around 2004 my employer went bankrupt and in my new job coding was not needed.
+2012 I jumped into Android and Java, so my coding skills are a little bit rusty :) 
+
+This is my first own open-source project, but as Linux user since 1998 I'm very familiar with open-source in general. 
+
+I'd appreciate every comment, criticism or help.  
+
+Alex
