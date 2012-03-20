@@ -83,16 +83,10 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 */
 	protected int get_current_position() {
 		pointing = new telescope_pointing();
-		try {
-			// Get RA
-			com_driver.sendCommand(":GR#");
-			pointing.setRA(RAtoFloat(com_driver.getAnswerString()));
-			// Get DEC
-			com_driver.sendCommand(":GD#");
-			pointing.setDEC(DECtoFloat(com_driver.getAnswerString()));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		// Get RA
+		pointing.setRA(RAtoFloat(getDataString(":GR#")));
+		// Get DEC
+		pointing.setDEC(DECtoFloat(getDataString(":GD#")));
 		return 0;
 	}
 
