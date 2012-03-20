@@ -54,28 +54,33 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 * Internal methods for LX200 and derived classes
 	 */
 	
-	protected int get_firmware_info() {
-		try {
-			information = new telescope_information();
-			// Get product name
-			com_driver.sendCommand(":GVP#");
-			information.setDescription(com_driver.getAnswerString());
-			// Get version
-			com_driver.sendCommand(":GVN#");
-			information.setVersion(com_driver.getAnswerString());
-			// Get firmware date
-			com_driver.sendCommand(":GVD#");
-			information.setDateTime(com_driver.getAnswerString());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	/**
+	 * Get some information about the telescope
+	 * 
+	 */
+	protected void get_firmware_info() {
+		information = new telescope_information();
+		// Get product name
+		information.setDescription(getDataString(":GVP#"));
+		// Get version
+		information.setDescription(getDataString(":GVN#"));
+		// Get firmware date
+		information.setDescription(getDataString(":GVD#"));
+	}
+
+	/**
+	 * Get the long/lat of site # stored in telescope
+	 * @param site site#
+	 * @return 
+	 */
+	protected int get_site_coords(int site) {
 		return 0;
 	}
 
-	protected int site_coords(int site) {
-		return 0;
-	}
-
+	/**
+	 * Get the current RA/DEC the telescope is pointing at 
+	 * @return
+	 */
 	protected int get_current_position() {
 		pointing = new telescope_pointing();
 		try {
@@ -91,74 +96,162 @@ public class lx200generic extends telescope implements device_driver_interface {
 		return 0;
 	}
 
+	/**
+	 * Set the date and time
+	 * @param datetime
+	 * @return
+	 */
 	protected int set_datetime(int datetime) {
 		return 0;
 	}
 
+	/**
+	 * Set UTC offset
+	 * @param offset
+	 * @return
+	 */
 	protected int set_utc_offset(int offset) {
 		return 0;
 	}
 
+	/**
+	 * Set long/lat/name of site#
+	 * @param site
+	 * @param longitude
+	 * @param latitude
+	 * @param name
+	 * @return
+	 */
 	protected int set_site_coords(int site, float longitude, float latitude,
 			String name) {
 		return 0;
 	}
 
+	/**
+	 * Set slewing speed
+	 * @param speed
+	 * @return
+	 */
 	protected int set_slew_speed(int speed) {
 		return 0;
 	}
 
+	/* 
+	 * Simple movement commands for manual positioning
+	 * (scope returns nothing on these) 
+	 */
+	
 	protected void move_north() {
+		send(":Mn#");
 	}
 
 	protected void move_east() {
+		send(":Me#");
 	}
 
 	protected void move_south() {
+		send(":Ms#");
 	}
 
 	protected void move_west() {
+		send(":Mw#");
 	}
 
 	protected void cancel_all() {
+		send(":Q#");
 	}
 
 	protected void cancel_north() {
+		send(":Qn#");
 	}
 
 	protected void cancel_east() {
+		send(":Qe#");
 	}
 
 	protected void cancel_south() {
+		send(":Qs#");
 	}
 
 	protected void cancel_west() {
+		send(":Qw#");
 	}
 
+	/**
+	 * Move scope to target RA/DEC
+	 * @param radec
+	 * @return
+	 */
 	protected int move_to_target(int radec) {
 		return 0;
 	}
 	
+	
+	
 	/*
 	 * Auxillary functions (LX200 specific)
+	 * 
 	 */
 	
-	// Strip the # from end of strings
+	
+	
+	/**
+	 * Get a data string from the device as answer to a command string
+	 * @param command command string
+	 * @return string 
+	 */
+	protected String getDataString(String command) {
+		String tmp=null;
+		try {
+			com_driver.sendCommand(command);
+			tmp = com_driver.getAnswerString();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return tmp;
+	}
+	
+	/**
+	 * Just send a command to the device 
+	 * for some commands there is no return (i.e. movement)
+	 * @param command
+	 */
+	protected void send(String command) {
+		try {
+			com_driver.sendCommand(command);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 *  Strip the # from end of strings
+	 * @param str
+	 * @return
+	 */
 	protected String stripChar(String str) {
 		return null;
 	}
 	
-	// Convert RA string to float value
-	// NOTE: Scope is always reporting "High precision" coords!
-	// Example: 13:17:12#
+	/**
+	 * Convert RA string to float value
+	 * NOTE: Scope is always reporting "High precision" coords!
+	 * Example: 13:17:12#
+	 * @param RA
+	 * @return
+	 */
 	protected float RAtoFloat(String RA) {
 		return 0;
 	}
 	
-	// Convert DEC string to float value
-	// NOTE: Scope is always reporting "High precision" coords! 
-	// I get a ° (0xDF) instead of * as told by protocol-sheet
-	// Example: +89°59:59#
+	/**
+	 * Convert DEC string to float value
+	 * NOTE: Scope is always reporting "High precision" coords! 
+	 * I get a ° (0xDF) instead of * as told by protocol-sheet
+	 * Example: +89°59:59#
+	 * @param DEC
+	 * @return
+	 */
 	protected float DECtoFloat(String DEC) {
 		return 0;
 	}
