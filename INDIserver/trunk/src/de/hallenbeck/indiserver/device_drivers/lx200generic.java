@@ -76,14 +76,16 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 Timeout: 120 seconds.
 	*********************************************/
 	private INDINumberProperty EquatorialCoordsWNP;
-	private INDINumberElement EquatorialCoordsWN;
+	private INDINumberElement RAWN;
+	private INDINumberElement DECWN;
 	
 	/********************************************
 	 Property: Equatorial Coordinates JNow
 	 Perm: RO
 	*********************************************/
 	private INDINumberProperty EquatorialCoordsRNP;
-	private INDINumberElement EquatorialCoordsRN;
+	private INDINumberElement RARN;
+	private INDINumberElement DECRN;
 	
 	/********************************************
 	 Property: On Coord Set
@@ -262,6 +264,11 @@ public class lx200generic extends telescope implements device_driver_interface {
 	    AlignmentSP.addElement(AltAzS);
 	    AlignmentSP.addElement(LandS);
 	    addProperty(AlignmentSP);
+	    
+	    RAWN = new INDINumberElement("RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
+		DECWN = new INDINumberElement("DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
+		EquatorialCoordsWNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD_REQUEST", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.WO, 120);
+		addProperty(EquatorialCoordsWNP);    
 	    
 	}
 
