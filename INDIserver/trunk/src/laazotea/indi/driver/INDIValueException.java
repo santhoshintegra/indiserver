@@ -25,6 +25,7 @@ package laazotea.indi.driver;
  * @author S. Alonso (Zerjillo) [zerjio at zerjio.com]
  * @version 1.10, March 19, 2012
  */
+@SuppressWarnings("serial")
 public class INDIValueException extends Exception {
 
   /**

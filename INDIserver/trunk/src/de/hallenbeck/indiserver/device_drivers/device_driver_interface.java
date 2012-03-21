@@ -1,7 +1,5 @@
 package de.hallenbeck.indiserver.device_drivers;
 
-import android.os.Handler;
-
 
 /**
  * Generic interface definition for device drivers 
