@@ -35,7 +35,8 @@ public class INDIDriverRunner {
    * @param args the command line arguments. The first argument must be the complete name of the class of the <code>INDIDriver</code>. That class must be in the class path in order to be loaded.
    * @see INDIDriver
    */
-  public static void main(String[] args) {
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+public static void main(String[] args) {
     if (args.length != 1) {
       System.err.println("A INDIDriver class name must be supplied");
       System.exit(-1);

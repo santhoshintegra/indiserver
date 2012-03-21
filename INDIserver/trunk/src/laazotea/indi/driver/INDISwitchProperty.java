@@ -141,7 +141,8 @@ public class INDISwitchProperty extends INDIProperty {
    * with the Rule.
    * <code>false</code> otherwise.
    */
-  private boolean checkCorrectValues() {
+  @SuppressWarnings("unused")
+private boolean checkCorrectValues() {
     if (getState() == PropertyStates.OK) {
 
       int selectedCount = getSelectedCount();

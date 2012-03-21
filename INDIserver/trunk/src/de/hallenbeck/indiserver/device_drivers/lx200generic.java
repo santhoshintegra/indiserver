@@ -22,7 +22,6 @@ import laazotea.indi.driver.INDITextElement;
 import laazotea.indi.driver.INDITextElementAndValue;
 import laazotea.indi.driver.INDITextProperty;
 
-import android.os.Handler;
 
 /**
  * Driver for LX200 compatible telescopes, only covering the basic commandset.
@@ -43,10 +42,8 @@ public class lx200generic extends telescope implements device_driver_interface {
 	protected final static int LX200_TRACK	= 0;
 	protected final static int LX200_SYNC	= 1;
 	
-	/*
-	 * INDI Properties 
-	 */
-
+	/* INDI Properties */
+	
 	/**********************************************************************************************/
 	/************************************ GROUP: Communication ************************************/
 	/**********************************************************************************************/
@@ -239,15 +236,20 @@ public class lx200generic extends telescope implements device_driver_interface {
 	/**************************************** END PROPERTIES *********************************************/
 	/*****************************************************************************************************/
 
-	/*
+	/**
 	 * Constructor with input and outputstream for indi-xml-messages.
 	 * TODO: extend with com_driver and device interface string
 	 */
-	
 	public lx200generic(InputStream inputStream, OutputStream outputStream) {
 		super(inputStream, outputStream);
 
 	    addConnectionProperty();
+	
+	    /*
+		 * INDI Properties 
+		 * For compatibility reasons names/labels and settings of elements/properties are
+		 * the same as in lx200generic.cpp from original indilib. 
+		 */
 	    
 	    ConnectS = new INDISwitchElement("CONNECT" , "Connect" , SwitchStatus.OFF);
 	    DisconnectS = new INDISwitchElement("DISCONNECT" , "Disconnect" , SwitchStatus.ON);
@@ -311,7 +313,7 @@ public class lx200generic extends telescope implements device_driver_interface {
 		double value;
 		
 		
-		
+		return 0;
 	}
 	
 	/**
@@ -320,7 +322,7 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 * @return integer 
 	 */
 	protected int getCommandInt(String command){
-		
+		return 0;
 	}
 	
 	/**
