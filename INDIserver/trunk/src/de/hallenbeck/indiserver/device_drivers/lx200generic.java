@@ -39,7 +39,10 @@ import laazotea.indi.driver.INDITextProperty;
  */
 public class lx200generic extends telescope implements device_driver_interface {
 	
-	protected String DriverName	= "LX200generic";
+	private final String DriverName	= "LX200generic";
+	public final int majorVersion = 0;
+	public final int minorVersion = 0;
+	public final int buildVersion = 93; 
 	protected final static int LX200_TRACK	= 0;
 	protected final static int LX200_SYNC	= 1;
 	
