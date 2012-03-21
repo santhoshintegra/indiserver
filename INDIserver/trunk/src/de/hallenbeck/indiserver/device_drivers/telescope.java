@@ -17,86 +17,30 @@ import de.hallenbeck.indiserver.communication_drivers.communication_driver_inter
  */
 public abstract class telescope extends INDIDriver implements device_driver_interface {
 	
+	protected final static String COMM_GROUP = "Communication";
+	protected final static String BASIC_GROUP = "Main Control";
+	protected final static String MOTION_GROUP	= "Motion Control";
+	protected final static String DATETIME_GROUP = "Date/Time";
+	protected final static String SITE_GROUP = "Site Management";
+	protected final static String FOCUS_GROUP = "Focus Control";
+
+	/* Simulation Parameters */
+	protected final static int	SLEWRATE = 1;		/* slew rate, degrees/s */
+	protected final static double SIDRATE =	0.004178;	/* sidereal rate, degrees/s */
+
+	/* Handy Macros 
+	#define currentRA	EquatorialCoordsRN[0].value
+	#define currentDEC	EquatorialCoordsRN[1].value
+	#define targetRA	EquatorialCoordsWN[0].value
+	#define targetDEC	EquatorialCoordsWN[1].value
+	*/
+	
 	protected telescope(InputStream inputStream, OutputStream outputStream) {
 		super(inputStream, outputStream);
-		// TODO Auto-generated constructor stub
 	}
 
 	protected communication_driver_interface com_driver=null;
 	protected boolean connected=false;
-	protected telescope_information information;
-	protected telescope_pointing pointing;
-	
-	protected class telescope_information {
-		private String Description;
-		private String Version;
-		private String DateTime;
-		/**
-		 * @return the description
-		 */
-		public String getDescription() {
-			return Description;
-		}
-		/**
-		 * @param description the description to set
-		 */
-		public void setDescription(String description) {
-			Description = description;
-		}
-		/**
-		 * @return the version
-		 */
-		public String getVersion() {
-			return Version;
-		}
-		/**
-		 * @param version the version to set
-		 */
-		public void setVersion(String version) {
-			Version = version;
-		}
-		/**
-		 * @return the dateTime
-		 */
-		public String getDateTime() {
-			return DateTime;
-		}
-		/**
-		 * @param dateTime the dateTime to set
-		 */
-		public void setDateTime(String dateTime) {
-			DateTime = dateTime;
-		}
-	}
-	
-	protected class telescope_pointing {
-		private float RA;
-		private float DEC;
-		/**
-		 * @return the rA
-		 */
-		public float getRA() {
-			return RA;
-		}
-		/**
-		 * @param rA the rA to set
-		 */
-		public void setRA(float rA) {
-			RA = rA;
-		}
-		/**
-		 * @return the dEC
-		 */
-		public float getDEC() {
-			return DEC;
-		}
-		/**
-		 * @param dEC the dEC to set
-		 */
-		public void setDEC(float dEC) {
-			DEC = dEC;
-		}
-	}
 
 	/**
 	 * Set the driver for communication with the telescope

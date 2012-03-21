@@ -15,20 +15,4 @@ public interface device_driver_interface {
 	 * @param driver
 	 */
 	public void set_communication_driver (String driver);
-	
-	/**
-	 * TODO: OBSOLETE!
-	 * Interface for sending INDI XML-messages to the driver
-	 * @param xmlcommand
-	 */
-	public void sendINDImsg(String xmlcommand);
-	
-	/**
-	 * TODO: OBSOLETE!
-	 * Interface for receiving INDI XML-messages from the driver
-	 * 
-	 * a callback message-handler
-	 * @return
-	 */
-	public void set_msg_handler(Handler mHandler);
 }
