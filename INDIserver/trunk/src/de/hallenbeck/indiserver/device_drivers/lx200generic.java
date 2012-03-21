@@ -5,12 +5,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 
+import laazotea.indi.INDISexagesimalFormatter;
 import laazotea.indi.Constants.PropertyPermissions;
 import laazotea.indi.Constants.PropertyStates;
+import laazotea.indi.Constants.SwitchRules;
+import laazotea.indi.Constants.SwitchStatus;
 import laazotea.indi.driver.INDIBLOBElementAndValue;
 import laazotea.indi.driver.INDIBLOBProperty;
+import laazotea.indi.driver.INDINumberElement;
 import laazotea.indi.driver.INDINumberElementAndValue;
 import laazotea.indi.driver.INDINumberProperty;
+import laazotea.indi.driver.INDISwitchElement;
 import laazotea.indi.driver.INDISwitchElementAndValue;
 import laazotea.indi.driver.INDISwitchProperty;
 import laazotea.indi.driver.INDITextElement;
@@ -35,9 +40,203 @@ import android.os.Handler;
  */
 public class lx200generic extends telescope implements device_driver_interface {
 	
-	private INDITextProperty telescopeInfoProp;
-	private INDITextElement telescopeInfoElem;
+	protected final static int LX200_TRACK	= 0;
+	protected final static int LX200_SYNC	= 1;
 	
+	/*
+	 * INDI Properties 
+	 */
+
+	/**********************************************************************************************/
+	/************************************ GROUP: Communication ************************************/
+	/**********************************************************************************************/
+
+	/********************************************
+	 Property: Connection
+	*********************************************/
+	private INDISwitchProperty ConnectSP;
+	private INDISwitchElement ConnectS;
+	private INDISwitchElement DisconnectS;
+
+	/********************************************
+	 Property: Telescope Alignment Mode
+	*********************************************/
+	private INDISwitchProperty AlignmentSP;
+	private INDISwitchElement PolarS;
+	private INDISwitchElement AltAzS;
+	private INDISwitchElement LandS;
+	
+	/**********************************************************************************************/
+	/************************************ GROUP: Main Control *************************************/
+	/**********************************************************************************************/
+
+	/********************************************
+	 Property: Equatorial Coordinates JNow
+	 Perm: Transient WO.
+	 Timeout: 120 seconds.
+	*********************************************/
+	private INDINumberProperty EquatorialCoordsWNP;
+	private INDINumberElement EquatorialCoordsWN;
+	
+	/********************************************
+	 Property: Equatorial Coordinates JNow
+	 Perm: RO
+	*********************************************/
+	private INDINumberProperty EquatorialCoordsRNP;
+	private INDINumberElement EquatorialCoordsRN;
+	
+	/********************************************
+	 Property: On Coord Set
+	 Description: This property decides what happens
+	             when we receive a new equatorial coord
+	             value. We either track, or sync
+		     to the new coordinates.
+	*********************************************/
+	private INDISwitchProperty OnCoordSetSP;
+	private INDISwitchElement OnCoordSetS;
+	
+	/********************************************
+	 Property: Abort telescope motion
+	*********************************************/
+	private INDISwitchProperty AbortSlewSP;
+	private INDISwitchElement AbortSlewS;
+	
+	/**********************************************************************************************/
+	/************************************** GROUP: Motion *****************************************/
+	/**********************************************************************************************/
+
+	/********************************************
+	 Property: Slew Speed
+	*********************************************/
+	private INDISwitchProperty SlewModeSP;
+	private INDISwitchElement SlewModeS;
+	
+	/********************************************
+	 Property: Tracking Mode
+	*********************************************/
+	private INDISwitchProperty TrackModeSP;
+	private INDISwitchElement TrackModeS;
+	
+	/********************************************
+	 Property: Tracking Frequency
+	*********************************************/
+	private INDINumberProperty TrackFreqNP;
+	private INDINumberElement TrackFreqN;
+	
+	/********************************************
+	 Property: Movement (Arrow keys on handset). North/South
+	*********************************************/
+	private INDISwitchProperty MovementNSSP;
+	private INDISwitchElement MovementS;
+	
+	/********************************************
+	 Property: Movement (Arrow keys on handset). West/East
+	*********************************************/
+	private INDISwitchProperty MovementWESP;
+	private INDISwitchElement MovementWES;
+
+	/********************************************
+	 Property: Timed Guide movement. North/South
+	*********************************************/
+	private INDINumberProperty GuideNSNP;
+	private INDINumberElement GuideNSN;
+	
+	/********************************************
+	 Property: Timed Guide movement. West/East
+	*********************************************/
+	private INDINumberProperty GuideWENP;
+	private INDINumberElement GuideWEN;
+	
+	/********************************************
+	 Property: Slew Accuracy
+	 Desciption: How close the scope have to be with
+		     respect to the requested coords for 
+		     the tracking operation to be successull
+		     i.e. returns OK
+	*********************************************/
+	private INDINumberProperty SlewAccuracyNP;
+	private INDINumberElement SlewAccuracyN;
+	
+	/********************************************
+	 Property: Use pulse-guide commands
+	 Desciption: Set to on if this mount can support
+	             pulse guide commands.  There appears to
+	             be no way to query this information from
+	             the mount
+	*********************************************/
+	private INDISwitchProperty UsePulseCommandSP;
+	private INDISwitchElement UsePulseCommandS;
+
+	/**********************************************************************************************/
+	/************************************** GROUP: Focus ******************************************/
+	/**********************************************************************************************/
+
+	/********************************************
+	 Property: Focus Direction
+	*********************************************/
+	private INDISwitchProperty FocusMotionSP;
+	private INDISwitchElement FocusMotionS;
+
+	/********************************************
+	 Property: Focus Timer
+	*********************************************/
+	private INDINumberProperty FocusTimerNP;
+	private INDINumberElement FocusTimerN;
+	
+	/********************************************
+	 Property: Focus Mode
+	*********************************************/
+	private INDISwitchProperty FocusModesSP;
+	private INDISwitchElement FocusModesS;
+
+	/**********************************************************************************************/
+	/*********************************** GROUP: Date & Time ***************************************/
+	/**********************************************************************************************/
+
+	/********************************************
+	 Property: UTC Time
+	*********************************************/
+	private INDITextProperty TimeTP;
+	private INDITextElement TimeT;
+
+	/********************************************
+	 Property: DST Corrected UTC Offfset
+	*********************************************/
+	private INDINumberProperty UTCOffsetNP;
+	private INDINumberElement UTCOffsetN;
+
+	/********************************************
+	 Property: Sidereal Time
+	*********************************************/
+	private INDINumberProperty SDTimeNP;
+	private INDINumberElement SDTimeN;
+
+	/**********************************************************************************************/
+	/************************************* GROUP: Sites *******************************************/
+	/**********************************************************************************************/
+
+	/********************************************
+	 Property: Site Management
+	*********************************************/
+	private INDISwitchProperty SitesSP;
+	private INDISwitchElement SitesS;
+
+	/********************************************
+	 Property: Site Name
+	*********************************************/
+	private INDITextProperty SiteNameTP;
+	private INDITextElement SiteNameT;
+
+	/********************************************
+	 Property: Geographical Location
+	*********************************************/
+	private INDINumberProperty GeoNP;
+	private INDINumberElement GeoN;
+
+	/*****************************************************************************************************/
+	/**************************************** END PROPERTIES *********************************************/
+	/*****************************************************************************************************/
+
 	/*
 	 * Constructor with input and outputstream for indi-xml-messages.
 	 * TODO: extend with com_driver and device interface string
@@ -45,16 +244,25 @@ public class lx200generic extends telescope implements device_driver_interface {
 	
 	public lx200generic(InputStream inputStream, OutputStream outputStream) {
 		super(inputStream, outputStream);
-	
-		// We add the default CONNECTION Property
+
 	    addConnectionProperty();
 	    
-	    // We create the Text Property for telescope info 
-	    telescopeInfoElem = new INDITextElement("TELESCOPE_INFO", "Telescope Info", "");
-	    telescopeInfoProp = new INDITextProperty(this, "TELESCOPE_INFO", "Telescope Info", "Firmware Information", PropertyStates.IDLE, PropertyPermissions.RO, 3);
-	    telescopeInfoProp.addElement(telescopeInfoElem);
-
-	    addProperty(telescopeInfoProp);
+	    ConnectS = new INDISwitchElement("CONNECT" , "Connect" , SwitchStatus.OFF);
+	    DisconnectS = new INDISwitchElement("DISCONNECT" , "Disconnect" , SwitchStatus.ON);
+	    ConnectSP = new INDISwitchProperty(this, "CONNECTION", "Connection", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	    ConnectSP.addElement(ConnectS);
+	    ConnectSP.addElement(DisconnectS);
+	    addProperty(ConnectSP);
+	    
+	    PolarS = new INDISwitchElement("POLAR" , "Polar" , SwitchStatus.ON);
+	    AltAzS = new INDISwitchElement("ALTAZ" , "AltAz" , SwitchStatus.OFF);
+	    LandS = new INDISwitchElement("LAND" , "Land" , SwitchStatus.OFF);
+	    AlignmentSP = new INDISwitchProperty(this, "ALIGNMENT", "Alignment", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	    AlignmentSP.addElement(PolarS);
+	    AlignmentSP.addElement(AltAzS);
+	    AlignmentSP.addElement(LandS);
+	    addProperty(AlignmentSP);
+	    
 	}
 
 	/*
@@ -70,163 +278,14 @@ public class lx200generic extends telescope implements device_driver_interface {
 		// Set delay-before-read to 200ms 
 		// After some testing I found this a reliable value 
 		com_driver.set_delay(200); 
-		
 		super.connect(device);
-		get_firmware_info();
-		get_current_position();
 	}
 
-	/**
-	 * Interface for INDI xml-messages from server to device (send)
-	 * TODO: OBSOLETE! 
-	 */
-	public void sendINDImsg(String xmlcommand) {
-	}
-
-	/** 
-	 * Callback-Handler for INDI xml-messages from device to server (receive)
-	 * TODO: OBSOLETE!
-	 */
-	public void set_msg_handler(Handler mHandler) {
-	}
-	
 	/*
 	 * Internal methods for LX200 and derived classes
 	 */
 	
-	/**
-	 * Get some information about the telescope
-	 * 
-	 */
-	protected void get_firmware_info() {
-		information = new telescope_information();
-		// Get product name
-		information.setDescription(getDataString(":GVP#"));
-		// Get version
-		information.setVersion(getDataString(":GVN#"));
-		// Get firmware date
-		information.setDateTime(getDataString(":GVD#"));
-		
-		INDITextProperty pn = (INDITextProperty) getProperty("TELESCOPE_INFO");
-	    INDITextElement en = (INDITextElement) pn.getElement("TELESCOPE_INFO");
-	    en.setValue(information.getDescription());
-	    telescopeInfoProp.setState(PropertyStates.OK);
-        updateProperty(telescopeInfoProp);
-	    
-		
-	}
 
-	/**
-	 * Get the long/lat of site # stored in telescope
-	 * @param site site#
-	 * @return 
-	 */
-	protected int get_site_coords(int site) {
-		return 0;
-	}
-
-	/**
-	 * Get the current RA/DEC the telescope is pointing at 
-	 * @return
-	 */
-	protected int get_current_position() {
-		pointing = new telescope_pointing();
-		// Get RA
-		pointing.setRA(RAtoFloat(getDataString(":GR#")));
-		// Get DEC
-		pointing.setDEC(DECtoFloat(getDataString(":GD#")));
-		return 0;
-	}
-
-	/**
-	 * Set the date and time
-	 * @param datetime
-	 * @return
-	 */
-	protected int set_datetime(int datetime) {
-		return 0;
-	}
-
-	/**
-	 * Set UTC offset
-	 * @param offset
-	 * @return
-	 */
-	protected int set_utc_offset(int offset) {
-		return 0;
-	}
-
-	/**
-	 * Set long/lat/name of site#
-	 * @param site
-	 * @param longitude
-	 * @param latitude
-	 * @param name
-	 * @return
-	 */
-	protected int set_site_coords(int site, float longitude, float latitude,
-			String name) {
-		return 0;
-	}
-
-	/**
-	 * Set slewing speed
-	 * @param speed
-	 * @return
-	 */
-	protected int set_slew_speed(int speed) {
-		return 0;
-	}
-
-	/* 
-	 * Simple movement commands for manual positioning
-	 * (scope returns nothing on these) 
-	 */
-	
-	protected void move_north() {
-		send(":Mn#");
-	}
-
-	protected void move_east() {
-		send(":Me#");
-	}
-
-	protected void move_south() {
-		send(":Ms#");
-	}
-
-	protected void move_west() {
-		send(":Mw#");
-	}
-
-	protected void cancel_all() {
-		send(":Q#");
-	}
-
-	protected void cancel_north() {
-		send(":Qn#");
-	}
-
-	protected void cancel_east() {
-		send(":Qe#");
-	}
-
-	protected void cancel_south() {
-		send(":Qs#");
-	}
-
-	protected void cancel_west() {
-		send(":Qw#");
-	}
-
-	/**
-	 * Move scope to target RA/DEC
-	 * @param radec
-	 * @return
-	 */
-	protected int move_to_target(int radec) {
-		return 0;
-	}
 	
 	
 	
@@ -235,18 +294,39 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 * 
 	 */
 	
-	
+	/**
+	 * Get a converted sexagesimal value from the device 
+	 * @param command
+	 * @return double
+	 */
+	protected double getCommandSexa(String command){
+		String tmpStr;
+		double value;
+		
+		
+		
+	}
 	
 	/**
-	 * Get a data string from the device as answer to a command string
+	 * Get an integer from the device 
+	 * @param command
+	 * @return integer 
+	 */
+	protected int getCommandInt(String command){
+		
+	}
+	
+	/**
+	 * Get a string from the device
 	 * @param command command string
 	 * @return string 
 	 */
-	protected String getDataString(String command) {
+	protected String getCommandString(String command) {
 		String tmp=null;
 		try {
 			com_driver.sendCommand(command);
 			tmp = com_driver.getAnswerString();
+			tmp = tmp.substring(0, tmp.indexOf("#")-1);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -258,7 +338,7 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 * for some commands there is no return (i.e. movement)
 	 * @param command
 	 */
-	protected void send(String command) {
+	protected void sendCommand(String command) {
 		try {
 			com_driver.sendCommand(command);
 		} catch (IOException e) {
@@ -266,37 +346,6 @@ public class lx200generic extends telescope implements device_driver_interface {
 		}
 	}
 	
-	/**
-	 *  Strip the # from end of strings
-	 * @param str
-	 * @return
-	 */
-	protected String stripChar(String str) {
-		return null;
-	}
-	
-	/**
-	 * Convert RA string to float value
-	 * NOTE: Scope is always reporting "High precision" coords!
-	 * Example: 13:17:12#
-	 * @param RA
-	 * @return
-	 */
-	protected float RAtoFloat(String RA) {
-		return 0;
-	}
-	
-	/**
-	 * Convert DEC string to float value
-	 * NOTE: Scope is always reporting "High precision" coords! 
-	 * I get a ° (0xDF) instead of * as told by protocol-sheet
-	 * Example: +89°59:59#
-	 * @param DEC
-	 * @return
-	 */
-	protected float DECtoFloat(String DEC) {
-		return 0;
-	}
 
 	@Override
 	public String getName() {
