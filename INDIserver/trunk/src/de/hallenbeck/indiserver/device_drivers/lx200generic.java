@@ -39,6 +39,7 @@ import laazotea.indi.driver.INDITextProperty;
  */
 public class lx200generic extends telescope implements device_driver_interface {
 	
+	protected String DriverName	= "LX200generic";
 	protected final static int LX200_TRACK	= 0;
 	protected final static int LX200_SYNC	= 1;
 	
@@ -51,17 +52,17 @@ public class lx200generic extends telescope implements device_driver_interface {
 	/********************************************
 	 Property: Connection
 	*********************************************/
-	private INDISwitchProperty ConnectSP;
-	private INDISwitchElement ConnectS;
-	private INDISwitchElement DisconnectS;
+	protected INDISwitchProperty ConnectSP;
+	protected INDISwitchElement ConnectS;
+	protected INDISwitchElement DisconnectS;
 
 	/********************************************
 	 Property: Telescope Alignment Mode
 	*********************************************/
-	private INDISwitchProperty AlignmentSP;
-	private INDISwitchElement PolarS;
-	private INDISwitchElement AltAzS;
-	private INDISwitchElement LandS;
+	protected INDISwitchProperty AlignmentSP;
+	protected INDISwitchElement PolarS;
+	protected INDISwitchElement AltAzS;
+	protected INDISwitchElement LandS;
 	
 	/**********************************************************************************************/
 	/************************************ GROUP: Main Control *************************************/
@@ -72,17 +73,17 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 Perm: Transient WO.
 	 Timeout: 120 seconds.
 	*********************************************/
-	private INDINumberProperty EquatorialCoordsWNP;
-	private INDINumberElement RAWN;
-	private INDINumberElement DECWN;
+	protected INDINumberProperty EquatorialCoordsWNP;
+	protected INDINumberElement RAWN;
+	protected INDINumberElement DECWN;
 	
 	/********************************************
 	 Property: Equatorial Coordinates JNow
 	 Perm: RO
 	*********************************************/
-	private INDINumberProperty EquatorialCoordsRNP;
-	private INDINumberElement RARN;
-	private INDINumberElement DECRN;
+	protected INDINumberProperty EquatorialCoordsRNP;
+	protected INDINumberElement RARN;
+	protected INDINumberElement DECRN;
 	
 	/********************************************
 	 Property: On Coord Set
@@ -91,14 +92,14 @@ public class lx200generic extends telescope implements device_driver_interface {
 	             value. We either track, or sync
 		     to the new coordinates.
 	*********************************************/
-	private INDISwitchProperty OnCoordSetSP;
-	private INDISwitchElement OnCoordSetS;
+	protected INDISwitchProperty OnCoordSetSP;
+	protected INDISwitchElement OnCoordSetS;
 	
 	/********************************************
 	 Property: Abort telescope motion
 	*********************************************/
-	private INDISwitchProperty AbortSlewSP;
-	private INDISwitchElement AbortSlewS;
+	protected INDISwitchProperty AbortSlewSP;
+	protected INDISwitchElement AbortSlewS;
 	
 	/**********************************************************************************************/
 	/************************************** GROUP: Motion *****************************************/
@@ -107,44 +108,44 @@ public class lx200generic extends telescope implements device_driver_interface {
 	/********************************************
 	 Property: Slew Speed
 	*********************************************/
-	private INDISwitchProperty SlewModeSP;
-	private INDISwitchElement SlewModeS;
+	protected INDISwitchProperty SlewModeSP;
+	protected INDISwitchElement SlewModeS;
 	
 	/********************************************
 	 Property: Tracking Mode
 	*********************************************/
-	private INDISwitchProperty TrackModeSP;
-	private INDISwitchElement TrackModeS;
+	protected INDISwitchProperty TrackModeSP;
+	protected INDISwitchElement TrackModeS;
 	
 	/********************************************
 	 Property: Tracking Frequency
 	*********************************************/
-	private INDINumberProperty TrackFreqNP;
-	private INDINumberElement TrackFreqN;
+	protected INDINumberProperty TrackFreqNP;
+	protected INDINumberElement TrackFreqN;
 	
 	/********************************************
 	 Property: Movement (Arrow keys on handset). North/South
 	*********************************************/
-	private INDISwitchProperty MovementNSSP;
-	private INDISwitchElement MovementS;
+	protected INDISwitchProperty MovementNSSP;
+	protected INDISwitchElement MovementS;
 	
 	/********************************************
 	 Property: Movement (Arrow keys on handset). West/East
 	*********************************************/
-	private INDISwitchProperty MovementWESP;
-	private INDISwitchElement MovementWES;
+	protected INDISwitchProperty MovementWESP;
+	protected INDISwitchElement MovementWES;
 
 	/********************************************
 	 Property: Timed Guide movement. North/South
 	*********************************************/
-	private INDINumberProperty GuideNSNP;
-	private INDINumberElement GuideNSN;
+	protected INDINumberProperty GuideNSNP;
+	protected INDINumberElement GuideNSN;
 	
 	/********************************************
 	 Property: Timed Guide movement. West/East
 	*********************************************/
-	private INDINumberProperty GuideWENP;
-	private INDINumberElement GuideWEN;
+	protected INDINumberProperty GuideWENP;
+	protected INDINumberElement GuideWEN;
 	
 	/********************************************
 	 Property: Slew Accuracy
@@ -153,8 +154,8 @@ public class lx200generic extends telescope implements device_driver_interface {
 		     the tracking operation to be successull
 		     i.e. returns OK
 	*********************************************/
-	private INDINumberProperty SlewAccuracyNP;
-	private INDINumberElement SlewAccuracyN;
+	protected INDINumberProperty SlewAccuracyNP;
+	protected INDINumberElement SlewAccuracyN;
 	
 	/********************************************
 	 Property: Use pulse-guide commands
@@ -163,8 +164,8 @@ public class lx200generic extends telescope implements device_driver_interface {
 	             be no way to query this information from
 	             the mount
 	*********************************************/
-	private INDISwitchProperty UsePulseCommandSP;
-	private INDISwitchElement UsePulseCommandS;
+	protected INDISwitchProperty UsePulseCommandSP;
+	protected INDISwitchElement UsePulseCommandS;
 
 	/**********************************************************************************************/
 	/************************************** GROUP: Focus ******************************************/
@@ -173,20 +174,20 @@ public class lx200generic extends telescope implements device_driver_interface {
 	/********************************************
 	 Property: Focus Direction
 	*********************************************/
-	private INDISwitchProperty FocusMotionSP;
-	private INDISwitchElement FocusMotionS;
+	protected INDISwitchProperty FocusMotionSP;
+	protected INDISwitchElement FocusMotionS;
 
 	/********************************************
 	 Property: Focus Timer
 	*********************************************/
-	private INDINumberProperty FocusTimerNP;
-	private INDINumberElement FocusTimerN;
+	protected INDINumberProperty FocusTimerNP;
+	protected INDINumberElement FocusTimerN;
 	
 	/********************************************
 	 Property: Focus Mode
 	*********************************************/
-	private INDISwitchProperty FocusModesSP;
-	private INDISwitchElement FocusModesS;
+	protected INDISwitchProperty FocusModesSP;
+	protected INDISwitchElement FocusModesS;
 
 	/**********************************************************************************************/
 	/*********************************** GROUP: Date & Time ***************************************/
@@ -195,20 +196,20 @@ public class lx200generic extends telescope implements device_driver_interface {
 	/********************************************
 	 Property: UTC Time
 	*********************************************/
-	private INDITextProperty TimeTP;
-	private INDITextElement TimeT;
+	protected INDITextProperty TimeTP;
+	protected INDITextElement TimeT;
 
 	/********************************************
 	 Property: DST Corrected UTC Offfset
 	*********************************************/
-	private INDINumberProperty UTCOffsetNP;
-	private INDINumberElement UTCOffsetN;
+	protected INDINumberProperty UTCOffsetNP;
+	protected INDINumberElement UTCOffsetN;
 
 	/********************************************
 	 Property: Sidereal Time
 	*********************************************/
-	private INDINumberProperty SDTimeNP;
-	private INDINumberElement SDTimeN;
+	protected INDINumberProperty SDTimeNP;
+	protected INDINumberElement SDTimeN;
 
 	/**********************************************************************************************/
 	/************************************* GROUP: Sites *******************************************/
@@ -217,20 +218,20 @@ public class lx200generic extends telescope implements device_driver_interface {
 	/********************************************
 	 Property: Site Management
 	*********************************************/
-	private INDISwitchProperty SitesSP;
-	private INDISwitchElement SitesS;
+	protected INDISwitchProperty SitesSP;
+	protected INDISwitchElement SitesS;
 
 	/********************************************
 	 Property: Site Name
 	*********************************************/
-	private INDITextProperty SiteNameTP;
-	private INDITextElement SiteNameT;
+	protected INDITextProperty SiteNameTP;
+	protected INDITextElement SiteNameT;
 
 	/********************************************
 	 Property: Geographical Location
 	*********************************************/
-	private INDINumberProperty GeoNP;
-	private INDINumberElement GeoN;
+	protected INDINumberProperty GeoNP;
+	protected INDINumberElement GeoN;
 
 	/*****************************************************************************************************/
 	/**************************************** END PROPERTIES *********************************************/
@@ -294,13 +295,8 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 * Internal methods for LX200 and derived classes
 	 */
 	
-
-	
-	
-	
 	/*
 	 * Auxillary functions (LX200 specific)
-	 * 
 	 */
 	
 	/**
@@ -309,10 +305,6 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 * @return double
 	 */
 	protected double getCommandSexa(String command){
-		String tmpStr;
-		double value;
-		
-		
 		return 0;
 	}
 	
@@ -327,7 +319,7 @@ public class lx200generic extends telescope implements device_driver_interface {
 	
 	/**
 	 * Get a string from the device
-	 * @param command command string
+	 * @param command 
 	 * @return string 
 	 */
 	protected String getCommandString(String command) {
@@ -355,39 +347,34 @@ public class lx200generic extends telescope implements device_driver_interface {
 		}
 	}
 	
+	/*
+	 * INDI Driver methods
+	 * @see laazotea.indi.driver.INDIDriver
+	 */
 
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return DriverName;
 	}
 
 	@Override
 	public void processNewTextValue(INDITextProperty property, Date timestamp,
 			INDITextElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void processNewNumberValue(INDINumberProperty property,
 			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
 			INDIBLOBElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }
