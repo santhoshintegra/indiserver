@@ -10,7 +10,7 @@ import laazotea.indi.driver.INDIDriver;
 import de.hallenbeck.indiserver.communication_drivers.communication_driver_interface;
 
 /**
- * Generic telescope-class with basic functions and basic INDI interface
+ * Abstract telescope-class with basic functions and basic INDI interface
  * 
  * @author atuschen
  *

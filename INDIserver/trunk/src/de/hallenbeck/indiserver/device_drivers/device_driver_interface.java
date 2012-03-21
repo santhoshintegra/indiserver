@@ -8,6 +8,8 @@ package de.hallenbeck.indiserver.device_drivers;
  */
 public interface device_driver_interface {
 	
+	
+	
 	/**
 	 * Set the driver for communication with the telecope
 	 * @param driver
