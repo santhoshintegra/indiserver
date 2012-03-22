@@ -4,7 +4,7 @@ package de.hallenbeck.indiserver.activities;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-import de.hallenbeck.indiserver.device_drivers.lx200generic;
+import de.hallenbeck.indiserver.device_drivers.lx200basic;
 import android.app.Activity;
 import android.os.Bundle;
 
@@ -17,7 +17,7 @@ import android.os.Bundle;
  */
 public class main extends Activity {
 
-	public lx200generic telescope;
+	public lx200basic telescope;
 	public ByteArrayOutputStream OutStream;
 	public ByteArrayInputStream InStream;
 	public byte[] buf;
@@ -32,7 +32,7 @@ public class main extends Activity {
 		OutStream = new ByteArrayOutputStream();
 		InStream = new ByteArrayInputStream(buf);
 		
-		telescope = new lx200generic(InStream,OutStream);
+		telescope = new lx200basic(InStream,OutStream);
 		telescope.set_communication_driver("de.hallenbeck.indiserver.communication_drivers.bluetooth_serial");
 		telescope.connect("00:80:37:14:9F:E7");
 		telescope.disconnect();

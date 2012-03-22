@@ -10,7 +10,7 @@ import java.io.OutputStream;
  * @author atuschen
  *
  */
-public class lx200autostar extends lx200generic implements device_driver_interface {
+public class lx200autostar extends lx200basic implements device_driver_interface {
 
 	protected lx200autostar(InputStream inputStream, OutputStream outputStream) {
 		super(inputStream, outputStream);
