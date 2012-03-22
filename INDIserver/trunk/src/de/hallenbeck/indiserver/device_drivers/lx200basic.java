@@ -37,9 +37,9 @@ import laazotea.indi.driver.INDITextProperty;
  * @author atuschen
  *
  */
-public class lx200generic extends telescope implements device_driver_interface {
+public class lx200basic extends telescope implements device_driver_interface {
 	
-	private final String DriverName	= "LX200generic";
+	private final String DriverName	= "LX200basic";
 	public final int majorVersion = 0;
 	public final int minorVersion = 0;
 	public final int buildVersion = 93; 
@@ -96,7 +96,8 @@ public class lx200generic extends telescope implements device_driver_interface {
 		     to the new coordinates.
 	*********************************************/
 	protected INDISwitchProperty OnCoordSetSP;
-	protected INDISwitchElement OnCoordSetS;
+	protected INDISwitchElement SlewS;
+	protected INDISwitchElement SyncS;
 	
 	/********************************************
 	 Property: Abort telescope motion
@@ -112,13 +113,18 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 Property: Slew Speed
 	*********************************************/
 	protected INDISwitchProperty SlewModeSP;
-	protected INDISwitchElement SlewModeS;
+	protected INDISwitchElement MaxS;
+	protected INDISwitchElement FindS;
+	protected INDISwitchElement CenteringS;
+	protected INDISwitchElement GuideS;
 	
 	/********************************************
 	 Property: Tracking Mode
 	*********************************************/
 	protected INDISwitchProperty TrackModeSP;
-	protected INDISwitchElement TrackModeS;
+	protected INDISwitchElement DefaultModeS;
+	protected INDISwitchElement LunarModeS;
+	protected INDISwitchElement ManualModeS;
 	
 	/********************************************
 	 Property: Tracking Frequency
@@ -130,25 +136,29 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 Property: Movement (Arrow keys on handset). North/South
 	*********************************************/
 	protected INDISwitchProperty MovementNSSP;
-	protected INDISwitchElement MovementS;
+	protected INDISwitchElement MoveNorthS;
+	protected INDISwitchElement MoveSouthS;
 	
 	/********************************************
 	 Property: Movement (Arrow keys on handset). West/East
 	*********************************************/
 	protected INDISwitchProperty MovementWESP;
-	protected INDISwitchElement MovementWES;
+	protected INDISwitchElement MoveWestS;
+	protected INDISwitchElement MoveEastS;
 
 	/********************************************
 	 Property: Timed Guide movement. North/South
 	*********************************************/
 	protected INDINumberProperty GuideNSNP;
-	protected INDINumberElement GuideNSN;
+	protected INDINumberElement GuideNorthN;
+	protected INDINumberElement GuideSouthN;
 	
 	/********************************************
 	 Property: Timed Guide movement. West/East
 	*********************************************/
 	protected INDINumberProperty GuideWENP;
-	protected INDINumberElement GuideWEN;
+	protected INDINumberElement GuideWestN;
+	protected INDINumberElement GuideEastN;
 	
 	/********************************************
 	 Property: Slew Accuracy
@@ -158,7 +168,8 @@ public class lx200generic extends telescope implements device_driver_interface {
 		     i.e. returns OK
 	*********************************************/
 	protected INDINumberProperty SlewAccuracyNP;
-	protected INDINumberElement SlewAccuracyN;
+	protected INDINumberElement SlewAccuracyRAN;
+	protected INDINumberElement SlewAccuracyDECN;
 	
 	/********************************************
 	 Property: Use pulse-guide commands
@@ -168,7 +179,8 @@ public class lx200generic extends telescope implements device_driver_interface {
 	             the mount
 	*********************************************/
 	protected INDISwitchProperty UsePulseCommandSP;
-	protected INDISwitchElement UsePulseCommandS;
+	protected INDISwitchElement UsePulseCommandOnS;
+	protected INDISwitchElement UsePulseCommandOffS;
 
 	/**********************************************************************************************/
 	/************************************** GROUP: Focus ******************************************/
@@ -178,7 +190,8 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 Property: Focus Direction
 	*********************************************/
 	protected INDISwitchProperty FocusMotionSP;
-	protected INDISwitchElement FocusMotionS;
+	protected INDISwitchElement FocusInS;
+	protected INDISwitchElement FocusOutS;
 
 	/********************************************
 	 Property: Focus Timer
@@ -190,7 +203,9 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 Property: Focus Mode
 	*********************************************/
 	protected INDISwitchProperty FocusModesSP;
-	protected INDISwitchElement FocusModesS;
+	protected INDISwitchElement FocusHaltS;
+	protected INDISwitchElement FocusSlowS;
+	protected INDISwitchElement FocusFastS;
 
 	/**********************************************************************************************/
 	/*********************************** GROUP: Date & Time ***************************************/
@@ -222,7 +237,10 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 Property: Site Management
 	*********************************************/
 	protected INDISwitchProperty SitesSP;
-	protected INDISwitchElement SitesS;
+	protected INDISwitchElement Sites1S;
+	protected INDISwitchElement Sites2S;
+	protected INDISwitchElement Sites3S;
+	protected INDISwitchElement Sites4S;
 
 	/********************************************
 	 Property: Site Name
@@ -234,7 +252,9 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 Property: Geographical Location
 	*********************************************/
 	protected INDINumberProperty GeoNP;
-	protected INDINumberElement GeoN;
+	protected INDINumberElement GeoLatN;
+	protected INDINumberElement GeoLongN;
+	protected INDINumberElement GeoHeightN;
 
 	/*****************************************************************************************************/
 	/**************************************** END PROPERTIES *********************************************/
@@ -244,7 +264,7 @@ public class lx200generic extends telescope implements device_driver_interface {
 	 * Constructor with input and outputstream for indi-xml-messages.
 	 * TODO: extend with com_driver and device interface string
 	 */
-	public lx200generic(InputStream inputStream, OutputStream outputStream) {
+	public lx200basic(InputStream inputStream, OutputStream outputStream) {
 		super(inputStream, outputStream);
 
 	    addConnectionProperty();
@@ -275,14 +295,26 @@ public class lx200generic extends telescope implements device_driver_interface {
 		DECWN = new INDINumberElement("DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
 		EquatorialCoordsWNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD_REQUEST", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.WO, 120);
 		addProperty(EquatorialCoordsWNP);    
-	    
+		
+		RARN = new INDINumberElement("RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
+		DECRN = new INDINumberElement("DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
+		EquatorialCoordsRNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD_REQUEST", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.RO, 120);
+		addProperty(EquatorialCoordsRNP);
+		
+		SlewS = new INDISwitchElement("SLEW", "Slew", SwitchStatus.ON);
+		SyncS = new INDISwitchElement("SYNC", "Sync", SwitchStatus.OFF);
+		OnCoordSetSP = new INDISwitchProperty(this, "ON_COORD_SET", "On Set", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+		addProperty(OnCoordSetSP);
+		
+		AbortSlewS = new INDISwitchElement("ABORT", "Abort", SwitchStatus.OFF);
+		AbortSlewSP = new INDISwitchProperty(this, "TELESCOPE_ABORT_MOTION", "Abort Slew", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+		addProperty(AbortSlewSP);
 	}
 
 	/*
 	 * Public interface methods 
 	 */
-	
-	
+		
 	/**
 	 * Connect to telescope 
 	 * @param device: driver specific device address
@@ -295,8 +327,35 @@ public class lx200generic extends telescope implements device_driver_interface {
 	}
 
 	/*
-	 * Internal methods for LX200 and derived classes
+	 * INDI Driver methods
+	 * @see laazotea.indi.driver.INDIDriver
 	 */
+
+	@Override
+	public String getName() {
+		return DriverName;
+	}
+
+	@Override
+	public void processNewTextValue(INDITextProperty property, Date timestamp,
+			INDITextElementAndValue[] elementsAndValues) {
+	}
+
+	@Override
+	public void processNewSwitchValue(INDISwitchProperty property,
+			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
+	}
+
+	@Override
+	public void processNewNumberValue(INDINumberProperty property,
+			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
+	}
+
+	@Override
+	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
+			INDIBLOBElementAndValue[] elementsAndValues) {
+	}
+
 	
 	/*
 	 * Auxillary functions (LX200 specific)
@@ -350,34 +409,6 @@ public class lx200generic extends telescope implements device_driver_interface {
 		}
 	}
 	
-	/*
-	 * INDI Driver methods
-	 * @see laazotea.indi.driver.INDIDriver
-	 */
-
-	@Override
-	public String getName() {
-		return DriverName;
-	}
-
-	@Override
-	public void processNewTextValue(INDITextProperty property, Date timestamp,
-			INDITextElementAndValue[] elementsAndValues) {
-	}
-
-	@Override
-	public void processNewSwitchValue(INDISwitchProperty property,
-			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
-	}
-
-	@Override
-	public void processNewNumberValue(INDINumberProperty property,
-			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
-	}
-
-	@Override
-	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
-			INDIBLOBElementAndValue[] elementsAndValues) {
-	}
+	
 
 }
