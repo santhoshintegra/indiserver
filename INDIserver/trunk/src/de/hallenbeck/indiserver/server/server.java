@@ -22,13 +22,13 @@ package de.hallenbeck.indiserver.server;
  * 3. Set the appropriate communication-driver (either via constructor of the device-driver
  *    or via public method device_driver_interface.set_communication_driver(drivername) )
  * 4. call the device_driver_interface.connect() method (may be omited if using constructor?)
- * 5. give the driver a callback-handler for receiving messages from the telescope 
+ * 5. OBSOLETE since INDIforJava uses Streams: give the driver a callback-handler for receiving messages from the telescope 
  *    (also via constructor or device_driver_interface.set_msg_handler(handler) method )
- * 5. open a listening socket on port tcp/7624 for clients to connect (one thread for each client)
- * 6. Notify the user of running background service and number of connected clients via notification-manager 
- * 7. when clients connect keep an array of connected clients
- * 8. relay messages between clients and driver in both directions
- * 9. when last client disconnects stop/destroy service and clear notification of running service 
+ * 6. open a listening socket on port tcp/7624 for clients to connect (one thread for each client)
+ * 7. Notify the user of running background service and number of connected clients via notification-manager 
+ * 8. when clients connect keep an array of connected clients
+ * 9. relay messages between clients and driver in both directions
+ * 10. when last client disconnects stop/destroy service and clear notification of running service 
  *  
  * Exception-handling:
  * 
