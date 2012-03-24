@@ -452,7 +452,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	
 	/*
 	 * Auxillary functions (LX200 specific)
-	 * As communication with Autostar is synchronous, it will only reply on commands.
+	 * As communication with Autostar is synchronous, it will only respond on commands.
 	 * It never sends anything on it's own. There are some inconsistencies in the command
 	 * protocol: Most returned strings end with a # character, but sadly not all.
 	 * Most replys of a 0 indicate success and a 1 indicates a failure, but there are some 
@@ -478,7 +478,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	}
 	
 	/**
-	 * Get a string from the device
+	 * Get a string from the device without the #-suffix
 	 * @param command 
 	 * @return string 
 	 */
