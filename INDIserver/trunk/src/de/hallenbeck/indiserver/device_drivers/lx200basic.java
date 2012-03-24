@@ -41,9 +41,9 @@ import laazotea.indi.driver.INDITextProperty;
 public class lx200basic extends telescope implements device_driver_interface {
 	
 	private final String DriverName	= "LX200basic";
-	public final int majorVersion = 0;
-	public final int minorVersion = 0;
-	public final int buildVersion = 99; 
+	private final int majorVersion = 0;
+	private final int minorVersion = 0;
+	private final int buildVersion = 99; 
 	protected final static int LX200_TRACK	= 0;
 	protected final static int LX200_SYNC	= 1;
 	
@@ -272,8 +272,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 	
 	    /*
 		 * INDI Properties 
-		 * For compatibility reasons names, labels and settings of elements/properties are
-		 * the same as in lx200generic.cpp from original indilib. 
+		 * For compatibility reasons all names, labels and settings of elements/properties are
+		 * the same as in lx200generic.cpp from the original indilib. 
 		 */
 	    
 	    /**********************************************************************************************/
@@ -441,6 +441,11 @@ public class lx200basic extends telescope implements device_driver_interface {
 	
 	/*
 	 * Auxillary functions (LX200 specific)
+	 * As communication with Autostar is synchronous, it will only reply on commands.
+	 * It never sends anything on it's own. There are some inconsistencies in the command
+	 * protocol: Most returned strings end with a # character, but sadly not all.
+	 * Most replys of a 0 indicate success and a 1 indicates a failure, but there are some 
+	 * commands where it's vice-versa (at least according to the protocol-sheet). 
 	 */
 	
 	/**
