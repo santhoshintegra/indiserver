@@ -296,7 +296,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 		DECWN = new INDINumberElement("DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
 		EquatorialCoordsWNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD_REQUEST", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.WO, 120);
 		EquatorialCoordsWNP.addElement(RAWN);
-		EquatorialCoordsWNP.addElemant(DECWN);
+		EquatorialCoordsWNP.addElement(DECWN);
 		addProperty(EquatorialCoordsWNP);    
 		
 		RARN = new INDINumberElement("RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
