@@ -24,17 +24,6 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	protected final static String SITE_GROUP = "Site Management";
 	protected final static String FOCUS_GROUP = "Focus Control";
 
-	/* Simulation Parameters */
-	protected final static int	SLEWRATE = 1;		/* slew rate, degrees/s */
-	protected final static double SIDRATE =	0.004178;	/* sidereal rate, degrees/s */
-
-	/* Handy Macros 
-	#define currentRA	EquatorialCoordsRN[0].value
-	#define currentDEC	EquatorialCoordsRN[1].value
-	#define targetRA	EquatorialCoordsWN[0].value
-	#define targetDEC	EquatorialCoordsWN[1].value
-	*/
-	
 	protected telescope(InputStream inputStream, OutputStream outputStream) {
 		super(inputStream, outputStream);
 	}
