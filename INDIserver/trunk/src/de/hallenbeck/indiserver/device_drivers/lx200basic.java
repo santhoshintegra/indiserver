@@ -60,6 +60,13 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected INDISwitchElement ConnectS;			// suffix S = SwitchElement
 	protected INDISwitchElement DisconnectS;		
 
+	/**
+	 * The device-interface property isn't implemented.
+	 * It's up to the server-app to set right interface for the device, not the remote client(s).
+	 *   
+	 */
+	
+	
 	/********************************************
 	 Property: Telescope Alignment Mode
 	*********************************************/
