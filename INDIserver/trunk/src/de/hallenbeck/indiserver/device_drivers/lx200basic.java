@@ -30,11 +30,12 @@ import laazotea.indi.driver.INDITextProperty;
  * i.e. some answer-strings are localized (command ":P#" gives "HOCH PRAEZISION" or 
  * "NIEDER PRAEZISION" on german Firmware 42Gg)
  * 
- * This class is based on my own tests with Autostar #497 Firmware 43Eg (english)
+ * This class is based on lx200generic.cpp of indilib and my own tests with 
+ * Autostar #497 Firmware 43Eg (english)
  * No guarantee that this will work with the newer Autostar #497-EP models or 
  * any other firmware version than 43Eg!
  *   
- * @author atuschen
+ * @author atuschen75@gmail.com
  *
  */
 public class lx200basic extends telescope implements device_driver_interface {
@@ -271,7 +272,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	
 	    /*
 		 * INDI Properties 
-		 * For compatibility reasons names/labels and settings of elements/properties are
+		 * For compatibility reasons names, labels and settings of elements/properties are
 		 * the same as in lx200generic.cpp from original indilib. 
 		 */
 	    
@@ -294,20 +295,27 @@ public class lx200basic extends telescope implements device_driver_interface {
 	    RAWN = new INDINumberElement("RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
 		DECWN = new INDINumberElement("DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
 		EquatorialCoordsWNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD_REQUEST", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.WO, 120);
+		EquatorialCoordsWNP.addElement(RAWN);
+		EquatorialCoordsWNP.addElemant(DECWN);
 		addProperty(EquatorialCoordsWNP);    
 		
 		RARN = new INDINumberElement("RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
 		DECRN = new INDINumberElement("DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
 		EquatorialCoordsRNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD_REQUEST", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.RO, 120);
+		EquatorialCoordsRNP.addElement(RARN);
+		EquatorialCoordsRNP.addElement(DECRN);
 		addProperty(EquatorialCoordsRNP);
 		
 		SlewS = new INDISwitchElement("SLEW", "Slew", SwitchStatus.ON);
 		SyncS = new INDISwitchElement("SYNC", "Sync", SwitchStatus.OFF);
 		OnCoordSetSP = new INDISwitchProperty(this, "ON_COORD_SET", "On Set", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+		OnCoordSetSP.addElement(SlewS);
+		OnCoordSetSP.addElement(SyncS);
 		addProperty(OnCoordSetSP);
 		
 		AbortSlewS = new INDISwitchElement("ABORT", "Abort", SwitchStatus.OFF);
 		AbortSlewSP = new INDISwitchProperty(this, "TELESCOPE_ABORT_MOTION", "Abort Slew", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+		AbortSlewSP.addElement(AbortSlewS);
 		addProperty(AbortSlewSP);
 	}
 
