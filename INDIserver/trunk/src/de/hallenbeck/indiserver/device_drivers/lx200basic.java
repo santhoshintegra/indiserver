@@ -411,6 +411,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 	public void connect(String device) {
 		// Set delay-before-read to 200ms 
 		// After some testing I found this a reliable value 
+		// I'm not sure if it relies on the bluetooth connection, because
+		// after looking into lx200generic.cpp it seems that on direct-serial
+		// connections this delay isn't neccessary.
 		com_driver.set_delay(200); 
 		super.connect(device);
 	}
