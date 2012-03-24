@@ -32,8 +32,8 @@ package de.hallenbeck.indiserver.server;
  *  
  * Exception-handling:
  * 
- * 1. Connection to telescope lost (raised by the driver)
- * 2. Connection to client(s) lost (raised by the server)
+ * 1. Connection to telescope lost (thrown by the driver)
+ * 2. Connection to client(s) lost (thrown by the server)
  * 
  * In the far future:
  * Support other devices like focusers/imagers/cameras etc.
