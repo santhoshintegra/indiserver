@@ -56,9 +56,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 	/********************************************
 	 Property: Connection
 	*********************************************/
-	protected INDISwitchProperty ConnectSP;
-	protected INDISwitchElement ConnectS;
-	protected INDISwitchElement DisconnectS;
+	protected INDISwitchProperty ConnectSP;			// suffix SP = SwitchProperty
+	protected INDISwitchElement ConnectS;			// suffix S = SwitchElement
+	protected INDISwitchElement DisconnectS;		
 
 	/********************************************
 	 Property: Telescope Alignment Mode
@@ -77,8 +77,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 Perm: Transient WO.
 	 Timeout: 120 seconds.
 	*********************************************/
-	protected INDINumberProperty EquatorialCoordsWNP;
-	protected INDINumberElement RAWN;
+	protected INDINumberProperty EquatorialCoordsWNP;	// suffix NP = NumberProperty
+	protected INDINumberElement RAWN;					// suffix N = NumberElement
 	protected INDINumberElement DECWN;
 	
 	/********************************************
@@ -215,8 +215,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 	/********************************************
 	 Property: UTC Time
 	*********************************************/
-	protected INDITextProperty TimeTP;
-	protected INDITextElement TimeT;
+	protected INDITextProperty TimeTP;				// suffix TP = TextProperty
+	protected INDITextElement TimeT;				// suffix T = TextElement
 
 	/********************************************
 	 Property: DST Corrected UTC Offfset
@@ -436,6 +436,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	@Override
 	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
 			INDIBLOBElementAndValue[] elementsAndValues) {
+		// Leave empty here, not needed. 
 	}
 
 	
