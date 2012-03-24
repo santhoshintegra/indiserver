@@ -35,7 +35,7 @@ import laazotea.indi.driver.INDITextProperty;
  * No guarantee that this will work with the newer Autostar #497-EP models or 
  * any other firmware version than 43Eg!
  *   
- * @author atuschen75@gmail.com
+ * @author atuschen75 at gmail.com
  *
  */
 public class lx200basic extends telescope implements device_driver_interface {
@@ -276,6 +276,10 @@ public class lx200basic extends telescope implements device_driver_interface {
 		 * the same as in lx200generic.cpp from original indilib. 
 		 */
 	    
+	    /**********************************************************************************************/
+		/************************************ GROUP: Communication ************************************/
+		/**********************************************************************************************/
+
 	    ConnectS = new INDISwitchElement("CONNECT" , "Connect" , SwitchStatus.OFF);
 	    DisconnectS = new INDISwitchElement("DISCONNECT" , "Disconnect" , SwitchStatus.ON);
 	    ConnectSP = new INDISwitchProperty(this, "CONNECTION", "Connection", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
@@ -291,6 +295,10 @@ public class lx200basic extends telescope implements device_driver_interface {
 	    AlignmentSP.addElement(AltAzS);
 	    AlignmentSP.addElement(LandS);
 	    addProperty(AlignmentSP);
+	    
+	    /**********************************************************************************************/
+		/************************************ GROUP: Main Control *************************************/
+		/**********************************************************************************************/
 	    
 	    RAWN = new INDINumberElement("RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
 		DECWN = new INDINumberElement("DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
@@ -317,6 +325,72 @@ public class lx200basic extends telescope implements device_driver_interface {
 		AbortSlewSP = new INDISwitchProperty(this, "TELESCOPE_ABORT_MOTION", "Abort Slew", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
 		AbortSlewSP.addElement(AbortSlewS);
 		addProperty(AbortSlewSP);
+		
+		/**********************************************************************************************/
+		/************************************** GROUP: Motion *****************************************/
+		/**********************************************************************************************/
+		
+		MaxS = new INDISwitchElement("MAX", "Max", SwitchStatus.ON);
+		FindS = new INDISwitchElement("FIND", "Find", SwitchStatus.OFF);
+		CenteringS = new INDISwitchElement("CENTERING", "Centering", SwitchStatus.OFF);
+		GuideS = new INDISwitchElement("GUIDE", "Guide", SwitchStatus.OFF);
+		SlewModeSP = new INDISwitchProperty(this,"SLEW_RATE","Slew rate", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+		SlewModeSP.addElement(MaxS);
+		SlewModeSP.addElement(FindS);
+		SlewModeSP.addElement(CenteringS);
+		SlewModeSP.addElement(GuideS);
+		addProperty(SlewModeSP);
+		
+		DefaultModeS = new INDISwitchElement("DEFAULT", "Default", SwitchStatus.ON);
+		LunarModeS = new INDISwitchElement("LUNAR", "Lunar", SwitchStatus.OFF);
+		ManualModeS = new INDISwitchElement("MANUAL", "Manual", SwitchStatus.OFF);
+		TrackModeSP = new INDISwitchProperty(this,"TRACKING_MODE", "Tracking Mode", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ANY_OF_MANY);
+		TrackModeSP.addElement(DefaultModeS);
+		TrackModeSP.addElement(LunarModeS);
+		TrackModeSP.addElement(ManualModeS);
+		addProperty(TrackModeSP);
+		
+		TrackFreqN = new INDINumberElement("TRACK_FREQ", "Freq", 60.1, 56.4, 60.1, 0.1, "%g");
+		TrackFreqNP = new INDINumberProperty(this,"TRACKING_FREQ", "Tracking Frequency", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		TrackFreqNP.addElement(TrackFreqN);
+		addProperty(TrackFreqNP);
+		/*
+		MoveNorthS = new INDISwitchElement
+		MoveSouthS = new INDISwitchElement
+		MovementNSSP = new INDISwitchProperty
+		
+		MoveWestS = new INDISwitchElement
+		MoveEastS = new INDISwitchElement
+		Movement WESP = new INDISwitchProperty
+		
+		GuideNorthN = new INDINumberElement
+		GuideSouthN = new INDINumberElement
+		GuideNSNP = new INDINumberProperty
+		
+		GuideWestN = new INDINumberElement
+		GuideEastN = new INDINumberElement
+		GuideWENP = new INDINumberProperty
+		
+		SlewAccuracyRAN = new INDINumberElement
+		SlewAccuracyDECN = new INDINumberElement
+		SlewAcuuracyNP = new INDINumberProperty
+		
+		UsePulseCommandOnS = new INDISwitchElement
+		UsePulseCommandOffS = new INDISwitchElement
+		UsePulseCommandSP = new INDISwitchProperty */
+
+		/**********************************************************************************************/
+		/************************************** GROUP: Focus ******************************************/
+		/**********************************************************************************************/
+
+		/**********************************************************************************************/
+		/*********************************** GROUP: Date & Time ***************************************/
+		/**********************************************************************************************/
+
+		/**********************************************************************************************/
+		/************************************* GROUP: Sites *******************************************/
+		/**********************************************************************************************/
+
 	}
 
 	/*
@@ -417,6 +491,4 @@ public class lx200basic extends telescope implements device_driver_interface {
 		}
 	}
 	
-	
-
 }
