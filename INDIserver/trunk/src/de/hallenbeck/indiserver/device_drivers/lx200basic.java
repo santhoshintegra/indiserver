@@ -43,7 +43,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	private final String DriverName	= "LX200basic";
 	public final int majorVersion = 0;
 	public final int minorVersion = 0;
-	public final int buildVersion = 93; 
+	public final int buildVersion = 99; 
 	protected final static int LX200_TRACK	= 0;
 	protected final static int LX200_SYNC	= 1;
 	
