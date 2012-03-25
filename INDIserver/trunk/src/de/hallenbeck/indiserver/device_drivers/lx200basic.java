@@ -391,8 +391,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 		GuideWENP.addElement(GuideEastN);
 		addProperty(GuideWENP);
 		
-		SlewAccuracyRAN = new INDINumberElement("SlewRA",  "RA (arcmin)", 3, 0, 60, 1, "%g");
-		SlewAccuracyDECN = new INDINumberElement("SlewkDEC", "Dec (arcmin)", 3, 0, 60, 1, "%g");
+		SlewAccuracyRAN = new INDINumberElement("SLEW_RA",  "RA (arcmin)", 3, 0, 60, 1, "%g");
+		SlewAccuracyDECN = new INDINumberElement("SLEW_DEC", "Dec (arcmin)", 3, 0, 60, 1, "%g");
 		SlewAccuracyNP = new INDINumberProperty(this,"SLEW_ACCURACY", "Slew Accuracy", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
 		SlewAccuracyNP.addElement(SlewAccuracyRAN);
 		SlewAccuracyNP.addElement(SlewAccuracyDECN);
@@ -455,8 +455,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 		SitesSP.addElement(Sites4S);
 		addProperty(SitesSP);
 
-		SiteNameT = new INDITextElement("Name", "Name", "");
-		SiteNameTP = new INDITextProperty(this,  "Site Name", "Site Name", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		SiteNameT = new INDITextElement("NAME", "Name", "");
+		SiteNameTP = new INDITextProperty(this,  "SITE_NAME", "Site Name", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
 		SiteNameTP.addElement(SiteNameT);
 		addProperty(SiteNameTP);
 
@@ -672,7 +672,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * As communication with Autostar is synchronous, it will only respond on commands.
 	 * It never sends anything on it's own. There are some inconsistencies in the command
 	 * protocol: Most returned strings end with a # character, but sadly not all.
-	 * Most replys of a 0 indicate success and a 1 indicates a failure, but there are some 
+	 * Most replys of a 1 indicate success and a 0 indicates a failure, but there are some 
 	 * commands where it's vice-versa (at least according to the protocol-sheet). 
 	 */
 	
