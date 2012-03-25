@@ -3,9 +3,11 @@ package de.hallenbeck.indiserver.device_drivers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import laazotea.indi.INDISexagesimalFormatter;
+import laazotea.indi.INDIDateFormat;
 import laazotea.indi.Constants.PropertyPermissions;
 import laazotea.indi.Constants.PropertyStates;
 import laazotea.indi.Constants.SwitchRules;
@@ -453,8 +455,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 		SitesSP.addElement(Sites4S);
 		addProperty(SitesSP);
 
-		SiteNameT = new INDITextElement("NAME", "Name", "");
-		SiteNameTP = new INDITextProperty(this,  "SITE_NAME", "Site Name", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		SiteNameT = new INDITextElement("Name", "Name", "");
+		SiteNameTP = new INDITextProperty(this,  "Site Name", "Site Name", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
 		SiteNameTP.addElement(SiteNameT);
 		addProperty(SiteNameTP);
 
@@ -490,10 +492,23 @@ public class lx200basic extends telescope implements device_driver_interface {
 			DisconnectS.setValue(SwitchStatus.OFF);
 			ConnectSP.setState(PropertyStates.OK);
 			updateProperty(ConnectSP,"Connected to telescope");
-			
+			getAlignment();
 		}
+		String tmp=getCommandString("#:GVP#");
+		int test=tmp.hashCode();
 	}
 
+	public void disconnect() {
+		super.disconnect();
+		if (!isConnected()) {
+			ConnectS.setValue(SwitchStatus.OFF);
+			DisconnectS.setValue(SwitchStatus.ON);
+			ConnectSP.setState(PropertyStates.IDLE);
+			updateProperty(ConnectSP,"Disconnected from telescope");
+		}
+	}
+	
+	
 	/*
 	 * INDI Driver methods
 	 * @see laazotea.indi.driver.INDIDriver
@@ -507,37 +522,61 @@ public class lx200basic extends telescope implements device_driver_interface {
 	@Override
 	public void processNewTextValue(INDITextProperty property, Date timestamp,
 			INDITextElementAndValue[] elementsAndValues) {
+		
+		if (property==TimeTP) {
+			Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
+			String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
+			String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
+			if ((getCommandInt("#:SL"+timeStr+"#")==1)&&(getCommandInt("#:SC"+dateStr+"#")==1)) TimeTP.setState(PropertyStates.OK);
+		}
+		updateProperty(property);
 	}
 
 	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
 		
+		// Get the Element
+		INDISwitchElement elem = elementsAndValues[0].getElement();
+		
+		/**
+		 * Connect Property
+		 */
 		if (property==ConnectSP) {
-			INDISwitchElement stat = elementsAndValues[0].getElement();
-			if (stat.getName()=="DISCONNECT") {
-				disconnect();
-				if (!isConnected()) {
-					ConnectS.setValue(SwitchStatus.OFF);
-					DisconnectS.setValue(SwitchStatus.ON);
-					property.setState(PropertyStates.IDLE);
-					updateProperty(property,"Disconnected from telescope");
-				}
-			}
-			if (stat.getName()=="CONNECT") {
-				connect();
-			}
-			
+			if (elem == DisconnectS) disconnect();
+			if (elem == ConnectS) connect();
 		}
 		
-		
-		
-		
+		/**
+		 * Alignment Property
+		 */
+		if (property==AlignmentSP) {
+			if (elem==AltAzS) sendCommand("#:AA#");
+			if (elem==PolarS) sendCommand("#:AP#");
+			if (elem==LandS) sendCommand("#:AL#");
+			getAlignment();
+		}
+
 	}
 
 	@Override
 	public void processNewNumberValue(INDINumberProperty property,
 			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
+		
+		if (property==UTCOffsetNP) {
+			// Get the value
+			double val = elementsAndValues[0].getValue();
+			// Standard "String.format" doesn't work, we need a string like "+02.0"
+			String sign = "-";
+			if (val<0) sign = "+";
+			String tmp=String.format("%s%02d.%01d", sign, (int) val, (int) (val % 1));
+			if (getCommandInt("#:SG"+tmp+"#")==1) UTCOffsetNP.setState(PropertyStates.OK);	
+		}
+		
+		if (property==GeoNP) {
+			GeoNP.setState(PropertyStates.OK);
+		}
+		updateProperty(property);
 	}
 
 	@Override
@@ -546,6 +585,44 @@ public class lx200basic extends telescope implements device_driver_interface {
 		// Leave empty here, not needed. 
 	}
 
+	
+	protected void getAlignment() {
+		if (isConnected()) {
+			char tmp = 6;
+			String stmp=null;
+			switch (getCommandChar(String.valueOf(tmp))) {
+			case 'A': 
+				AltAzS.setValue(SwitchStatus.ON);
+				LandS.setValue(SwitchStatus.OFF);
+				PolarS.setValue(SwitchStatus.OFF);
+				AlignmentSP.setState(PropertyStates.OK);
+				stmp="AltAz";
+				break;
+			case 'D': 
+				stmp="WARNING: DOWNLOADER ACTIVE! DISCONNECTING...";
+				AlignmentSP.setState(PropertyStates.ALERT);
+				disconnect();
+				break;
+			case 'L':
+				AltAzS.setValue(SwitchStatus.OFF);
+				LandS.setValue(SwitchStatus.ON);
+				PolarS.setValue(SwitchStatus.OFF);
+				AlignmentSP.setState(PropertyStates.OK);
+				stmp="Land";
+				break;	
+			case 'P': 
+				AltAzS.setValue(SwitchStatus.OFF);
+				LandS.setValue(SwitchStatus.OFF);
+				PolarS.setValue(SwitchStatus.ON);
+				AlignmentSP.setState(PropertyStates.OK);
+				stmp="Polar";
+				break;
+			}
+			updateProperty(AlignmentSP,"Alignment "+stmp);
+		}
+	}
+	
+	
 	
 	/*
 	 * Auxillary functions (LX200 specific)
@@ -571,7 +648,18 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @return integer 
 	 */
 	protected int getCommandInt(String command){
-		return 0;
+		int tmp = Integer.parseInt(getCommandString(command).substring(0, 1));
+		return tmp;
+	}
+	
+	/**
+	 * Get a char from the device
+	 * @param command
+	 * @return char
+	 */
+	protected char getCommandChar(String command) {
+		char tmp = getCommandString(command).charAt(0);
+		return tmp;
 	}
 	
 	/**
@@ -584,7 +672,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 		try {
 			com_driver.sendCommand(command);
 			tmp = com_driver.getAnswerString();
-			tmp = tmp.substring(0, tmp.indexOf("#")-1);
+			int idx = tmp.indexOf("#");
+			if (idx>-1) tmp = tmp.substring(0, idx);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

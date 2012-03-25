@@ -68,7 +68,7 @@ public class main extends Activity {
 			telescope = new lx200basic(InStream,OutStream);
 			telescope.set_communication_driver("de.hallenbeck.indiserver.communication_drivers.bluetooth_serial");
 			telescope.set_device("00:80:37:14:9F:E7");
-			telescope.connect();
+			//telescope.connect();
 			telescope.startListening();
 				
 		}
