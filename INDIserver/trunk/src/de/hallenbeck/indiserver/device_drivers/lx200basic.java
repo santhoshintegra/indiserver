@@ -476,9 +476,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 */
 		
 	/**
-	 * Connect to telescope 
-	 * @param device: driver specific device address
-	 */
+	 * Connect to telescope and update INDI-Properties
+	 */ 
 	public void connect() {
 		// Set delay-before-read to 200ms 
 		// After some testing I found this a reliable value 
@@ -486,7 +485,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 		// after looking into lx200generic.cpp it seems that on direct-serial
 		// connections this delay isn't necessary.
 		com_driver.set_delay(200); 
+		
 		super.connect();
+		
 		if (isConnected()) {
 			ConnectS.setValue(SwitchStatus.ON);
 			DisconnectS.setValue(SwitchStatus.OFF);
@@ -494,12 +495,16 @@ public class lx200basic extends telescope implements device_driver_interface {
 			updateProperty(ConnectSP,"Connected to telescope");
 			getAlignment();
 		}
-		String tmp=getCommandString("#:GVP#");
-		int test=tmp.hashCode();
+		
 	}
 
+	/**
+	 * Disconnect from telescope and update INDI-Properties
+	 */
 	public void disconnect() {
+		
 		super.disconnect();
+		
 		if (!isConnected()) {
 			ConnectS.setValue(SwitchStatus.OFF);
 			DisconnectS.setValue(SwitchStatus.ON);
@@ -514,24 +519,41 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @see laazotea.indi.driver.INDIDriver
 	 */
 
+	/**
+	 * return the DriverName
+	 */
 	@Override
 	public String getName() {
+		
 		return DriverName;
+		
 	}
 
+	/**
+	 * Set new text-values received from clients
+	 */
 	@Override
 	public void processNewTextValue(INDITextProperty property, Date timestamp,
 			INDITextElementAndValue[] elementsAndValues) {
 		
+		/**
+		 * Time Property
+		 */
 		if (property==TimeTP) {
 			Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
 			String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
 			String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
 			if ((getCommandInt("#:SL"+timeStr+"#")==1)&&(getCommandInt("#:SC"+dateStr+"#")==1)) TimeTP.setState(PropertyStates.OK);
 		}
+		
 		updateProperty(property);
+		
 	}
 
+	
+	/**
+	 * Set new switch-values received from clients
+	 */
 	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
@@ -559,10 +581,16 @@ public class lx200basic extends telescope implements device_driver_interface {
 
 	}
 
+	/**
+	 * Set new number-values received from clients 
+	 */
 	@Override
 	public void processNewNumberValue(INDINumberProperty property,
 			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
 		
+		/**
+		 * UTC-Offset Property
+		 */
 		if (property==UTCOffsetNP) {
 			// Get the value
 			double val = elementsAndValues[0].getValue();
@@ -577,25 +605,34 @@ public class lx200basic extends telescope implements device_driver_interface {
 			if (getCommandInt("#:SG"+tmp+"#")==1) UTCOffsetNP.setState(PropertyStates.OK);	
 		}
 		
+		/**
+		 * Geolocation Property
+		 */
 		if (property==GeoNP) {
 			GeoNP.setState(PropertyStates.OK);
 		}
+		
 		updateProperty(property);
 	}
 
+	/**
+	 * Not needed, telescope doesn't use BLOBs
+	 */
 	@Override
 	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
 			INDIBLOBElementAndValue[] elementsAndValues) {
 		// Leave empty here, not needed. 
 	}
 
-	
+	/**
+	 * Get the Alignment-Mode from the telescope
+	 */
 	protected void getAlignment() {
 		if (isConnected()) {
-			char tmp = 6;
+			char tmp = 6;		//ASCII-Char ACK
 			String stmp=null;
 			switch (getCommandChar(String.valueOf(tmp))) {
-			case 'A': 
+			case 'A': 			
 				AltAzS.setValue(SwitchStatus.ON);
 				LandS.setValue(SwitchStatus.OFF);
 				PolarS.setValue(SwitchStatus.OFF);
@@ -603,6 +640,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 				stmp="AltAz";
 				break;
 			case 'D': 
+				// Not tested! But I doubt that sending data to the
+				// Handbox while it's in download-mode is very healthy...
 				stmp="WARNING: DOWNLOADER ACTIVE! DISCONNECTING...";
 				AlignmentSP.setState(PropertyStates.ALERT);
 				disconnect();
