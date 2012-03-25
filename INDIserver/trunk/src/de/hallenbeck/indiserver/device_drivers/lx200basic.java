@@ -567,6 +567,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 			// Get the value
 			double val = elementsAndValues[0].getValue();
 			// Standard "String.format" doesn't work, we need a string like "+02.0"
+			// Additionally we have to change +/-, because Autostar needs a value to YIELD UTC
+			// KStars sends the Offset (+02.0) but Autostar needs (-02.0) to get the right time.
+			// WTF??? Who designed this? 
 			String sign = "-";
 			if (val<0) sign = "+";
 			String tmp=String.format("%s%02d.%01d", sign, (int) val, (int) (val % 1));
