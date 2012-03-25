@@ -29,6 +29,7 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	}
 
 	protected communication_driver_interface com_driver=null;
+	protected String device=null;
 	protected boolean connected=false;
 
 	/**
@@ -48,10 +49,14 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 		}
 	}
 	
+	public void set_device(String sdevice) {
+		device = sdevice;
+	}
+	
 	/**
 	 * Connect to the telescope
 	 */
-	public void connect(String device) {
+	public void connect() {
 		try {
 			com_driver.connect(device);
 			connected=true;

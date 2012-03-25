@@ -275,8 +275,6 @@ public class lx200basic extends telescope implements device_driver_interface {
 	public lx200basic(InputStream inputStream, OutputStream outputStream) {
 		super(inputStream, outputStream);
 
-	    //addConnectionProperty();
-	
 	    /*
 		 * INDI Properties 
 		 * For compatibility reasons all names, labels and settings of elements/properties are
@@ -349,7 +347,6 @@ public class lx200basic extends telescope implements device_driver_interface {
 		SlewModeSP.addElement(GuideS);
 		addProperty(SlewModeSP);
 		
-		
 		DefaultModeS = new INDISwitchElement("DEFAULT", "Default", SwitchStatus.ON);
 		LunarModeS = new INDISwitchElement("LUNAR", "Lunar", SwitchStatus.OFF);
 		ManualModeS = new INDISwitchElement("MANUAL", "Manual", SwitchStatus.OFF);
@@ -363,42 +360,112 @@ public class lx200basic extends telescope implements device_driver_interface {
 		TrackFreqNP = new INDINumberProperty(this,"TRACKING_FREQ", "Tracking Frequency", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
 		TrackFreqNP.addElement(TrackFreqN);
 		addProperty(TrackFreqNP);
-		/*
-		MoveNorthS = new INDISwitchElement
-		MoveSouthS = new INDISwitchElement
-		MovementNSSP = new INDISwitchProperty
 		
-		MoveWestS = new INDISwitchElement
-		MoveEastS = new INDISwitchElement
-		Movement WESP = new INDISwitchProperty
+		MoveNorthS = new INDISwitchElement("MOTION_NORTH", "North", SwitchStatus.OFF);
+		MoveSouthS = new INDISwitchElement("MOTION_SOUTH", "South", SwitchStatus.OFF);
+		MovementNSSP = new INDISwitchProperty(this,"TELESCOPE_MOTION_NS", "North/South", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+		MovementNSSP.addElement(MoveNorthS);
+		MovementNSSP.addElement(MoveSouthS);
+		addProperty(MovementNSSP);
 		
-		GuideNorthN = new INDINumberElement
-		GuideSouthN = new INDINumberElement
-		GuideNSNP = new INDINumberProperty
+		MoveWestS = new INDISwitchElement("MOTION_WEST", "West", SwitchStatus.OFF);
+		MoveEastS = new INDISwitchElement("MOTION_EAST", "East", SwitchStatus.OFF);
+		MovementWESP = new INDISwitchProperty(this,"TELESCOPE_MOTION_WE", "West/East", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+		MovementWESP.addElement(MoveWestS);
+		MovementWESP.addElement(MoveEastS);
+		addProperty(MovementWESP);
 		
-		GuideWestN = new INDINumberElement
-		GuideEastN = new INDINumberElement
-		GuideWENP = new INDINumberProperty
+		GuideNorthN = new INDINumberElement("TIMED_GUIDE_N", "North (sec)", 0, 0, 10, 0.001, "%g");
+		GuideSouthN = new INDINumberElement("TIMED_GUIDE_S", "South (sec)", 0, 0, 10, 0.001, "%g");
+		GuideNSNP = new INDINumberProperty(this,"TELESCOPE_TIMED_GUIDE_NS", "Guide North/South", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		GuideNSNP.addElement(GuideNorthN);
+		GuideNSNP.addElement(GuideSouthN);
+		addProperty(GuideNSNP);
 		
-		SlewAccuracyRAN = new INDINumberElement
-		SlewAccuracyDECN = new INDINumberElement
-		SlewAcuuracyNP = new INDINumberProperty
+		GuideWestN = new INDINumberElement("TIMED_GUIDE_W", "West (sec)", 0, 0, 10, 0.001, "%g");
+		GuideEastN = new INDINumberElement("TIMED_GUIDE_E", "East (sec)", 0, 0, 10, 0.001, "%g");
+		GuideWENP = new INDINumberProperty(this,"TELESCOPE_TIMED_GUIDE_WE", "Guide West/East", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		GuideWENP.addElement(GuideWestN);
+		GuideWENP.addElement(GuideEastN);
+		addProperty(GuideWENP);
 		
-		UsePulseCommandOnS = new INDISwitchElement
-		UsePulseCommandOffS = new INDISwitchElement
-		UsePulseCommandSP = new INDISwitchProperty */
+		SlewAccuracyRAN = new INDINumberElement("SlewRA",  "RA (arcmin)", 3, 0, 60, 1, "%g");
+		SlewAccuracyDECN = new INDINumberElement("SlewkDEC", "Dec (arcmin)", 3, 0, 60, 1, "%g");
+		SlewAccuracyNP = new INDINumberProperty(this,"SLEW_ACCURACY", "Slew Accuracy", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		SlewAccuracyNP.addElement(SlewAccuracyRAN);
+		SlewAccuracyNP.addElement(SlewAccuracyDECN);
+		addProperty(SlewAccuracyNP);
+		
+		UsePulseCommandOnS = new INDISwitchElement("PULSE_ON", "On", SwitchStatus.OFF);
+		UsePulseCommandOffS = new INDISwitchElement("PULSE_OFF", "Off", SwitchStatus.ON);
+		UsePulseCommandSP = new INDISwitchProperty(this,"USE_PULSE_CMD", "Use PulseCMd", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+		UsePulseCommandSP.addElement(UsePulseCommandOnS);
+		UsePulseCommandSP.addElement(UsePulseCommandOffS);
+		addProperty(UsePulseCommandSP);
 		
 		/**********************************************************************************************/
 		/************************************** GROUP: Focus ******************************************/
 		/**********************************************************************************************/
-
+		
+		FocusInS = new INDISwitchElement("IN", "Focus in", SwitchStatus.OFF);
+		FocusOutS = new INDISwitchElement("OUT", "Focus out", SwitchStatus.OFF);
+		FocusMotionSP = new INDISwitchProperty(this,"FOCUS_MOTION", "Motion", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+		
+		FocusTimerN = new INDINumberElement("TIMER", "Timer (ms)", 50, 0, 10000, 1000, "%g");
+		FocusTimerNP = new INDINumberProperty(this,"FOCUS_TIMER", "Focus Timer", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		
+		FocusHaltS = new INDISwitchElement("FOCUS_HALT", "Halt", SwitchStatus.ON);
+		FocusSlowS = new INDISwitchElement("FOCUS_SLOW", "Slow", SwitchStatus.OFF);
+		FocusFastS = new INDISwitchElement("FOCUS_FAST", "Fast", SwitchStatus.OFF);
+		FocusModesSP = new INDISwitchProperty(this,"FOCUS_MODE", "Mode", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+		
 		/**********************************************************************************************/
 		/*********************************** GROUP: Date & Time ***************************************/
 		/**********************************************************************************************/
+		
+		TimeT = new INDITextElement("UTC", "UTC", "0");
+		TimeTP = new INDITextProperty(this,  "TIME_UTC", "UTC Time", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		TimeTP.addElement(TimeT);
+		addProperty(TimeTP);
 
+		UTCOffsetN = new INDINumberElement("OFFSET", "Offset", 0, -12, 12, 0.5, "%0.3g");
+		UTCOffsetNP = new INDINumberProperty(this, "TIME_UTC_OFFSET", "UTC Offset", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		UTCOffsetNP.addElement(UTCOffsetN);
+		addProperty(UTCOffsetNP);
+
+		SDTimeN = new INDINumberElement("LST", "Sidereal time", 0, 0, 24, 0, "%10.6m");
+		SDTimeNP = new INDINumberProperty(this,"TIME_LST", "Sidereal Time", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		SDTimeNP.addElement(SDTimeN);
+		addProperty(SDTimeNP);
+		
 		/**********************************************************************************************/
 		/************************************* GROUP: Sites *******************************************/
 		/**********************************************************************************************/
+		
+		Sites1S = new INDISwitchElement("SITE1", "Site 1", SwitchStatus.ON);
+		Sites2S = new INDISwitchElement("SITE2", "Site 2", SwitchStatus.OFF);
+		Sites3S = new INDISwitchElement("SITE3", "Site 3", SwitchStatus.OFF);
+		Sites4S = new INDISwitchElement("SITE4", "Site 4", SwitchStatus.OFF);
+		SitesSP = new INDISwitchProperty(this,"SITES", "Sites", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+		SitesSP.addElement(Sites1S);
+		SitesSP.addElement(Sites2S);
+		SitesSP.addElement(Sites3S);
+		SitesSP.addElement(Sites4S);
+		addProperty(SitesSP);
+
+		SiteNameT = new INDITextElement("NAME", "Name", "");
+		SiteNameTP = new INDITextProperty(this,  "SITE_NAME", "Site Name", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		SiteNameTP.addElement(SiteNameT);
+		addProperty(SiteNameTP);
+
+		GeoLatN = new INDINumberElement("LAT",  "Lat.  D:M:S +N", 0, -90, 90, 0, "%10.6m");
+		GeoLongN = new INDINumberElement("LONG",  "Long. D:M:S +E", 0, 0, 360, 0, "%10.6m");
+		GeoHeightN  = new INDINumberElement("HEIGHT",  "Height m", 610, -300, 6000, 0, "%10.2f");
+		GeoNP = new INDINumberProperty(this,"GEOGRAPHIC_COORD", "Geographic Location", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		GeoNP.addElement(GeoLatN);
+		GeoNP.addElement(GeoLongN);
+		GeoNP.addElement(GeoHeightN);
+		addProperty(GeoNP);
 		
 	}
 
@@ -410,14 +477,21 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * Connect to telescope 
 	 * @param device: driver specific device address
 	 */
-	public void connect(String device) {
+	public void connect() {
 		// Set delay-before-read to 200ms 
 		// After some testing I found this a reliable value 
 		// I'm not sure if it relies on the bluetooth connection, because
 		// after looking into lx200generic.cpp it seems that on direct-serial
 		// connections this delay isn't necessary.
 		com_driver.set_delay(200); 
-		super.connect(device);
+		super.connect();
+		if (isConnected()) {
+			ConnectS.setValue(SwitchStatus.ON);
+			DisconnectS.setValue(SwitchStatus.OFF);
+			ConnectSP.setState(PropertyStates.OK);
+			updateProperty(ConnectSP,"Connected to telescope");
+			
+		}
 	}
 
 	/*
@@ -438,7 +512,27 @@ public class lx200basic extends telescope implements device_driver_interface {
 	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
-		updateProperty(property);
+		
+		if (property==ConnectSP) {
+			INDISwitchElement stat = elementsAndValues[0].getElement();
+			if (stat.getName()=="DISCONNECT") {
+				disconnect();
+				if (!isConnected()) {
+					ConnectS.setValue(SwitchStatus.OFF);
+					DisconnectS.setValue(SwitchStatus.ON);
+					property.setState(PropertyStates.IDLE);
+					updateProperty(property,"Disconnected from telescope");
+				}
+			}
+			if (stat.getName()=="CONNECT") {
+				connect();
+			}
+			
+		}
+		
+		
+		
+		
 	}
 
 	@Override
