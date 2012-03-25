@@ -280,7 +280,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 	    /*
 		 * INDI Properties 
 		 * For compatibility reasons all names, labels and settings of elements/properties are
-		 * the same as in lx200generic.cpp from the original indilib. 
+		 * the same as in lx200generic.cpp from the original indilib.
+		 * TODO: localize labels with a string-ressource 
 		 */
 	    
 	    /**********************************************************************************************/
@@ -386,7 +387,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 		UsePulseCommandOnS = new INDISwitchElement
 		UsePulseCommandOffS = new INDISwitchElement
 		UsePulseCommandSP = new INDISwitchProperty */
-
+		
 		/**********************************************************************************************/
 		/************************************** GROUP: Focus ******************************************/
 		/**********************************************************************************************/
@@ -414,7 +415,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 		// After some testing I found this a reliable value 
 		// I'm not sure if it relies on the bluetooth connection, because
 		// after looking into lx200generic.cpp it seems that on direct-serial
-		// connections this delay isn't neccessary.
+		// connections this delay isn't necessary.
 		com_driver.set_delay(200); 
 		super.connect(device);
 	}
