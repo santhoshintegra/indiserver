@@ -29,4 +29,4 @@ For a complete remote controlable observatory there will be some secondary teles
 
 ==Software==
 
-Debian Sid, KDE 4.7, Android SDK, Eclipse IDE with Subversive PlugIn
+Debian Sid, KDE 4.7, Android SDK, Eclipse IDE with Subversive PlugIn, KStars 2.0.0 
