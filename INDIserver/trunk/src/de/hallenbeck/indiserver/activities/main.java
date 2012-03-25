@@ -36,6 +36,7 @@ public class main extends Activity {
 	/** TESTING ONLY **/
 	class ServerThread extends Thread {
 		public void run() {
+			
 			try {
 				Sock = new ServerSocket(7624);
 			} catch (IOException e) {
@@ -67,6 +68,7 @@ public class main extends Activity {
 			telescope = new lx200basic(InStream,OutStream);
 			telescope.set_communication_driver("de.hallenbeck.indiserver.communication_drivers.bluetooth_serial");
 			telescope.connect("00:80:37:14:9F:E7");
+			telescope.startListening();
 				
 		}
 	}

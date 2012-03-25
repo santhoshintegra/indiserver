@@ -430,7 +430,12 @@ public abstract class INDIDriver {
    * @param property The Property to be added.
    */
   protected void addProperty(INDIProperty property) {
-    addProperty(property, null);
+    //addProperty(property, null);
+	//TODO: not send anything to the clients on initial creation
+	//KStars crashes on connect
+    if (!properties.containsValue(property)) {
+        properties.put(property.getName(), property);
+    }
   }
 
   /**

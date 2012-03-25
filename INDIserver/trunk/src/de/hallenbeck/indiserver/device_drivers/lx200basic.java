@@ -275,7 +275,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	public lx200basic(InputStream inputStream, OutputStream outputStream) {
 		super(inputStream, outputStream);
 
-	    addConnectionProperty();
+	    //addConnectionProperty();
 	
 	    /*
 		 * INDI Properties 
@@ -316,7 +316,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 		
 		RARN = new INDINumberElement("RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
 		DECRN = new INDINumberElement("DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
-		EquatorialCoordsRNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD_REQUEST", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.RO, 120);
+		EquatorialCoordsRNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.RO, 120);
 		EquatorialCoordsRNP.addElement(RARN);
 		EquatorialCoordsRNP.addElement(DECRN);
 		addProperty(EquatorialCoordsRNP);
@@ -348,10 +348,11 @@ public class lx200basic extends telescope implements device_driver_interface {
 		SlewModeSP.addElement(GuideS);
 		addProperty(SlewModeSP);
 		
+		
 		DefaultModeS = new INDISwitchElement("DEFAULT", "Default", SwitchStatus.ON);
 		LunarModeS = new INDISwitchElement("LUNAR", "Lunar", SwitchStatus.OFF);
 		ManualModeS = new INDISwitchElement("MANUAL", "Manual", SwitchStatus.OFF);
-		TrackModeSP = new INDISwitchProperty(this,"TRACKING_MODE", "Tracking Mode", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ANY_OF_MANY);
+		TrackModeSP = new INDISwitchProperty(this,"TRACKING_MODE", "Tracking Mode", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
 		TrackModeSP.addElement(DefaultModeS);
 		TrackModeSP.addElement(LunarModeS);
 		TrackModeSP.addElement(ManualModeS);
@@ -397,7 +398,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 		/**********************************************************************************************/
 		/************************************* GROUP: Sites *******************************************/
 		/**********************************************************************************************/
-
+		
 	}
 
 	/*
@@ -436,6 +437,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
+		updateProperty(property);
 	}
 
 	@Override
