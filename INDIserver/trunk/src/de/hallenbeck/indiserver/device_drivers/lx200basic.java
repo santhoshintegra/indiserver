@@ -569,6 +569,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			// Standard "String.format" doesn't work, we need a string like "+02.0"
 			// Additionally we have to change +/-, because Autostar needs a value to YIELD UTC
 			// KStars sends the Offset (+02.0) but Autostar needs (-02.0) to get the right time.
+			// The Handbox only displays the correct timezone +02.0 if we send -02.0 to it. 
 			// WTF??? Who designed this? 
 			String sign = "-";
 			if (val<0) sign = "+";
