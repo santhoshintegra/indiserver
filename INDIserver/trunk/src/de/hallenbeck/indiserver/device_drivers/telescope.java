@@ -57,12 +57,14 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	 * Connect to the telescope
 	 */
 	public void connect() {
+		if (!connected) {
 		try {
 			com_driver.connect(device);
 			connected=true;
 		} catch (IOException e) {
 			e.printStackTrace();
 			connected=false;
+		}
 		}
 	}
 	
@@ -78,8 +80,10 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	 * Disconnect from telescope
 	 */
 	public void disconnect() {
+		if (connected) {
 		connected=false;
 		com_driver.disconnect();
+		}
 	}
 
 }
