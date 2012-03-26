@@ -623,9 +623,10 @@ public class lx200basic extends telescope implements device_driver_interface {
 		if (property==GeoNP) {
 			double geolat = elementsAndValues[0].getValue();
 			double geolong = elementsAndValues[1].getValue();
+			//TODO: Geo height if send, but Autostar #497 doesn't care about it
 			
-				GeoNP.setState(PropertyStates.OK);
-			}
+			GeoNP.setState(PropertyStates.OK);
+			
 			
 		}
 		

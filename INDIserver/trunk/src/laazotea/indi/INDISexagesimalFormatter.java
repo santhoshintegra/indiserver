@@ -187,14 +187,16 @@ public class INDISexagesimalFormatter {
 
     number = number.replace(' ', ':');
     number = number.replace(';', ':');
+
+    //TODO: delete all chars other than 0..9, :, ; or space 
     number = number.replaceAll("°", "");
     number = number.replaceAll("'", "");
     number = number.replaceAll("\"", "");
     
 
-    int charCount = number.length() - number.replaceAll(".", "").length();
+    int charCount = number.length() - number.replaceAll(":", "").length();
 
-    if (charCount > 9) {
+    if (charCount > 2) {
       throw new IllegalArgumentException("Too many components for the sexagesimal formatter");
     }
 
