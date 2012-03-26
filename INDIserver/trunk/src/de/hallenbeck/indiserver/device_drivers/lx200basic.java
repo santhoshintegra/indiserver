@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import laazotea.indi.INDISexagesimalFormatter;
@@ -44,8 +45,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 	
 	private final String DriverName	= "LX200basic";
 	private final int majorVersion = 0;
-	private final int minorVersion = 0;
-	private final int buildVersion = 99; 
+	private final int minorVersion = 1;
+	private final int buildVersion = 122; 
 	protected final static int LX200_TRACK	= 0;
 	protected final static int LX200_SYNC	= 1;
 	
@@ -537,14 +538,25 @@ public class lx200basic extends telescope implements device_driver_interface {
 			INDITextElementAndValue[] elementsAndValues) {
 		
 		/**
-		 * Time Property
+		 * UTC Time Property
 		 */
 		if (property==TimeTP) {
+			// Clients send UTC
 			Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
+			// Autostar expects local time!
+			// TODO: We have to add the UTC-Offset to get the local time
+						
 			String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
 			String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
 			if ((getCommandInt("#:SL"+timeStr+"#")==1)&&(getCommandInt("#:SC"+dateStr+"#")==1)) TimeTP.setState(PropertyStates.OK);
 		}
+		
+		/**
+		 * Geolocation Property
+		 */
+
+			
+
 		
 		updateProperty(property);
 		
@@ -609,7 +621,12 @@ public class lx200basic extends telescope implements device_driver_interface {
 		 * Geolocation Property
 		 */
 		if (property==GeoNP) {
-			GeoNP.setState(PropertyStates.OK);
+			double geolat = elementsAndValues[0].getValue();
+			double geolong = elementsAndValues[1].getValue();
+			
+				GeoNP.setState(PropertyStates.OK);
+			}
+			
 		}
 		
 		updateProperty(property);
@@ -682,6 +699,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @return double
 	 */
 	protected double getCommandSexa(String command){
+		
 		return 0;
 	}
 	

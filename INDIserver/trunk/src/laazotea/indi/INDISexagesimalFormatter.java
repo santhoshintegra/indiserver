@@ -187,10 +187,14 @@ public class INDISexagesimalFormatter {
 
     number = number.replace(' ', ':');
     number = number.replace(';', ':');
+    number = number.replaceAll("°", "");
+    number = number.replaceAll("'", "");
+    number = number.replaceAll("\"", "");
+    
 
     int charCount = number.length() - number.replaceAll(".", "").length();
 
-    if (charCount > 2) {
+    if (charCount > 9) {
       throw new IllegalArgumentException("Too many components for the sexagesimal formatter");
     }
 
