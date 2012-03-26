@@ -3,6 +3,7 @@ package de.hallenbeck.indiserver.device_drivers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -49,6 +50,37 @@ public class lx200basic extends telescope implements device_driver_interface {
 	private final int buildVersion = 122; 
 	protected final static int LX200_TRACK	= 0;
 	protected final static int LX200_SYNC	= 1;
+	
+	/* Meade LX200 Commands */
+	
+	protected final static String getAlignmentCmd = String.valueOf((char)6); //Get Alignment
+	protected final static String getAlignmentStatusCmd = "#:GW#"; //Get Alignment Status
+	protected final static String setAlignmentAltAzCmd = "#:AA#"; //Set Alignment to AltAz
+	protected final static String setAlignmentPolarCmd = "#:AP#"; //Set Alignment to Polar
+	protected final static String setAlignmentLandCmd = "#:AL#"; //Set Alignment to Land
+	
+	protected final static String getDateCmd = "#:GC#"; //Get Local Date
+	protected final static String getTimeCmd = "#:GL#"; //Get Local Time
+	protected final static String getUTCHoursCmd = "#:GG#"; //Get Hours to yield UTC from Local Time
+	protected final static String setDateCmd = "#:SC%s#"; //Set Local Date to %s (MM/DD/YY)
+	protected final static String setTimeCmd = "#:SL%s#"; //Set Local Time to %s (HH:MM:SS)
+	protected final static String setUTCHoursCmd = "#:SG%s#"; //Set Hours to yield UTC from Local Time
+	
+	protected final static String getSite1NameCmd = "#:GM#"; //Get Name of Site 1
+	protected final static String getSite2NameCmd = "#:GN#"; //Get Name of Site 2
+	protected final static String getSite3NameCmd = "#:GO#"; //Get Name of Site 3
+	protected final static String getSite4NameCmd = "#:GP#"; //Get Name of Site 4
+	protected final static String getSiteLatCmd = "#:Gt#"; //Get Latitude of selected site
+	protected final static String getSiteLongCmd = "#:Gg#"; //Get Longitude of selected site 
+	protected final static String setSite1NameCmd = "#:SM%s#"; //Set Name of Site 1 to %s
+	protected final static String setSite2NameCmd = "#:SN%s#"; //Set Name of Site 2 to %s
+	protected final static String setSite3NameCmd = "#:SO%s#"; //Set Name of Site 3 to %s 
+	protected final static String setSite4NameCmd = "#:SP%s#"; //Set Name of Site 1 to %s
+	protected final static String setSiteLatCmd = "#:St%s#"; //Set Latitude of selected site to %s (sDD*MM) North=positive
+	protected final static String setSiteLongCmd = "#:Sg%s#"; //Set Longitude of selected site to %s (sDDD*MM) West=positive 
+	
+	protected final static String getCurrentRACmd = "#:GR#"; //Get current RA
+	protected final static String getCurrentDECCmd = "#:GD#"; //Get current DEC
 	
 	/* INDI Properties */
 	
@@ -265,7 +297,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected INDINumberProperty GeoNP;
 	protected INDINumberElement GeoLatN;
 	protected INDINumberElement GeoLongN;
-	protected INDINumberElement GeoHeightN;
+	// Not used // protected INDINumberElement GeoHeightN;
 
 	/*****************************************************************************************************/
 	/**************************************** END PROPERTIES *********************************************/
@@ -462,12 +494,12 @@ public class lx200basic extends telescope implements device_driver_interface {
 		addProperty(SiteNameTP);
 
 		GeoLatN = new INDINumberElement("LAT",  "Lat.  D:M:S +N", 0, -90, 90, 0, "%10.6m");
-		GeoLongN = new INDINumberElement("LONG",  "Long. D:M:S +E", 0, 0, 360, 0, "%10.6m");
-		GeoHeightN  = new INDINumberElement("HEIGHT",  "Height m", 610, -300, 6000, 0, "%10.2f");
+		GeoLongN = new INDINumberElement("LONG",  "Long. D:M:S", 0, 0, 360, 0, "%10.6m");
+		// Not used // GeoHeightN  = new INDINumberElement("HEIGHT",  "Height m", 610, -300, 6000, 0, "%10.2f");
 		GeoNP = new INDINumberProperty(this,"GEOGRAPHIC_COORD", "Geographic Location", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
 		GeoNP.addElement(GeoLatN);
 		GeoNP.addElement(GeoLongN);
-		GeoNP.addElement(GeoHeightN);
+		// Not used // GeoNP.addElement(GeoHeightN);
 		addProperty(GeoNP);
 		
 	}
@@ -495,6 +527,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			ConnectSP.setState(PropertyStates.OK);
 			updateProperty(ConnectSP,"Connected to telescope");
 			getAlignment();
+			getEqCoords();
 		}
 		
 	}
@@ -541,25 +574,33 @@ public class lx200basic extends telescope implements device_driver_interface {
 		 * UTC Time Property
 		 */
 		if (property==TimeTP) {
-			// Clients send UTC
 			Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
-			// Autostar expects local time!
-			// TODO: We have to add the UTC-Offset to get the local time
+			// Autostar expects local time, but clients send UTC!
+			// We have to add the UTC-Offset to get the local time
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(date);
+			cal.add(Calendar.HOUR, UTCOffsetN.getValue().intValue());
+			cal.add(Calendar.MINUTE, (int) ((UTCOffsetN.getValue()%1)*60));
+			date = cal.getTime();
 						
 			String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
 			String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
-			if ((getCommandInt("#:SL"+timeStr+"#")==1)&&(getCommandInt("#:SC"+dateStr+"#")==1)) TimeTP.setState(PropertyStates.OK);
+			String DateCmd = String.format(setDateCmd, dateStr);
+			String TimeCmd = String.format(setTimeCmd, timeStr);
+			
+			//After setting Date & Time the Autostar is recomputing planetary objects, just wait a little longer 
+			com_driver.set_delay(500);  
+			getCommandInt(TimeCmd);
+			getCommandInt(DateCmd);
+			
+			getDateTime();
+			com_driver.set_delay(200);
 		}
 		
 		/**
 		 * Geolocation Property
 		 */
 
-			
-
-		
-		updateProperty(property);
-		
 	}
 
 	
@@ -585,9 +626,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 		 * Alignment Property
 		 */
 		if (property==AlignmentSP) {
-			if (elem==AltAzS) sendCommand("#:AA#");
-			if (elem==PolarS) sendCommand("#:AP#");
-			if (elem==LandS) sendCommand("#:AL#");
+			if (elem==AltAzS) sendCommand(setAlignmentAltAzCmd);
+			if (elem==PolarS) sendCommand(setAlignmentPolarCmd);
+			if (elem==LandS) sendCommand(setAlignmentLandCmd);
 			getAlignment();
 		}
 
@@ -614,7 +655,10 @@ public class lx200basic extends telescope implements device_driver_interface {
 			String sign = "-";
 			if (val<0) sign = "+";
 			String tmp=String.format("%s%02d.%01d", sign, (int) val, (int) (val % 1));
-			if (getCommandInt("#:SG"+tmp+"#")==1) UTCOffsetNP.setState(PropertyStates.OK);	
+			String UTCHoursCmd=String.format(setUTCHoursCmd, tmp);
+			if (getCommandInt(UTCHoursCmd)==1) UTCOffsetNP.setState(PropertyStates.OK);	
+			UTCOffsetN.setValue(val);
+			updateProperty(property, "Set LocalTime to UTC difference to "+tmp+"h");
 		}
 		
 		/**
@@ -622,15 +666,24 @@ public class lx200basic extends telescope implements device_driver_interface {
 		 */
 		if (property==GeoNP) {
 			double geolat = elementsAndValues[0].getValue();
+			String sign = "+";
+			if (geolat<0) sign ="-";
+			//TODO: Instead of truncating doubles with (int) we should round them 
+			String tmp = String.format("%s%02d*%02d", sign, (int) geolat, (int) ((geolat % 1)*60) );
+			String GeolatCmd = String.format(setSiteLatCmd, tmp);
+			getCommandInt(GeolatCmd);
+			
 			double geolong = elementsAndValues[1].getValue();
-			//TODO: Geo height if send, but Autostar #497 doesn't care about it
+			sign = "-";
+			if (geolong<0) sign ="+";
+			//TODO: Instead of truncating doubles with (int) we should round them 
+			String tmp2 = String.format("%s%03d*%02d", sign, (int) geolong, (int) ((geolong % 1)*60) ); 
+			String GeolongCmd = String.format(setSiteLongCmd, tmp2);
+			getCommandInt(GeolongCmd);
 			
-			GeoNP.setState(PropertyStates.OK);
-			
-			
+			getGeolocation();
 		}
-		
-		updateProperty(property);
+
 	}
 
 	/**
@@ -643,19 +696,18 @@ public class lx200basic extends telescope implements device_driver_interface {
 	}
 
 	/**
-	 * Get the Alignment-Mode from the telescope
+	 * Get the Alignment-Mode and status from the telescope
 	 */
 	protected void getAlignment() {
 		if (isConnected()) {
-			char tmp = 6;		//ASCII-Char ACK
 			String stmp=null;
-			switch (getCommandChar(String.valueOf(tmp))) {
+			switch (getCommandChar(getAlignmentCmd)) {
 			case 'A': 			
 				AltAzS.setValue(SwitchStatus.ON);
 				LandS.setValue(SwitchStatus.OFF);
 				PolarS.setValue(SwitchStatus.OFF);
 				AlignmentSP.setState(PropertyStates.OK);
-				stmp="AltAz";
+				stmp="AltAz alignment";
 				break;
 			case 'D': 
 				// Not tested! But I doubt that sending data to the
@@ -669,20 +721,97 @@ public class lx200basic extends telescope implements device_driver_interface {
 				LandS.setValue(SwitchStatus.ON);
 				PolarS.setValue(SwitchStatus.OFF);
 				AlignmentSP.setState(PropertyStates.OK);
-				stmp="Land";
+				stmp="Land alignment";
 				break;	
 			case 'P': 
 				AltAzS.setValue(SwitchStatus.OFF);
 				LandS.setValue(SwitchStatus.OFF);
 				PolarS.setValue(SwitchStatus.ON);
 				AlignmentSP.setState(PropertyStates.OK);
-				stmp="Polar";
+				stmp="Polar alignment";
+				break;
+				
+			}
+			
+			String tmp = getCommandString(getAlignmentStatusCmd);
+			String stmp2 = null;
+			String stmp3 = null;
+			String stmp4 = null;
+			switch (tmp.charAt(0)) {
+			case 'A':
+				stmp2 = ", AzEl mount";
+				break;
+			case 'P':
+				stmp2 = ", Eq mount";
+				break;
+			case 'G':
+				stmp2 = ", German Eq mount";
 				break;
 			}
-			updateProperty(AlignmentSP,"Alignment "+stmp);
+			
+			switch (tmp.charAt(1)) {
+			case 'T':
+				stmp3 = ", Tracking";
+				break;
+			case 'N':
+				stmp3 = ", not Tracking";
+				break;
+			}
+			
+			switch (tmp.charAt(2)) {
+			case '0':
+				stmp4 = ", NOT aligned!";
+				break;
+			case '1':
+				stmp4 = ", one-star aligned";
+				break;
+			case '2':
+				stmp4 = ", two-star aligned";
+				break;
+			case '3':
+				stmp4 = ", three-star aligned";
+				break;
+			}
+			
+			updateProperty(AlignmentSP,stmp+stmp2+stmp3+stmp4);
 		}
 	}
+
+	protected void getDateTime() {
+		String dateStr = getCommandString(getTimeCmd)+" "+getCommandString(getDateCmd);
+		try {
+			Date date = new SimpleDateFormat("kk:mm:ss MM/dd/yy").parse(dateStr);
+			TimeT.setValue(INDIDateFormat.formatTimestamp(date));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		TimeTP.setState(PropertyStates.OK);
+		updateProperty(TimeTP, "Set local time to "+dateStr);
 	
+	}
+	
+	
+	protected void getGeolocation() {
+		GeoLatN.setValue(getCommandSexa(getSiteLatCmd));
+		GeoLongN.setValue(360-getCommandSexa(getSiteLongCmd));
+		GeoNP.setState(PropertyStates.OK);
+		updateProperty(GeoNP, "Set Geolocation to Lat: "+GeoLatN.getValueAsString()+" Long: "+GeoLongN.getValueAsString());
+	}
+	
+	/**
+	 * Get the current RA/DEC of the scope
+	 */
+	protected void getEqCoords() {
+		INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
+		double RA = sexa.parseSexagesimal(getCommandString(getCurrentRACmd));
+		double DEC = sexa.parseSexagesimal(getCommandString(getCurrentDECCmd));
+		RARN.setValue(RA);
+		DECRN.setValue(DEC);
+		EquatorialCoordsRNP.setState(PropertyStates.OK);
+		updateProperty(EquatorialCoordsRNP,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
+	}
 	
 	
 	/*
@@ -700,8 +829,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @return double
 	 */
 	protected double getCommandSexa(String command){
-		
-		return 0;
+		INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
+		double tmp = sexa.parseSexagesimal(getCommandString(command));
+		return tmp;
 	}
 	
 	/**

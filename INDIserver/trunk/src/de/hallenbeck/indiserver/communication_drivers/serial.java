@@ -88,6 +88,12 @@ public class serial implements communication_driver_interface {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+	        
+	        //WORKAROUND FOR AUTOSTAR "Degree-Sign" (-33) WTF???
+	        for (int i = 0; i <= len-1; i++) {
+	        	if (rcvbuffer[i]==-33) rcvbuffer[i]=42;
+	        }
+	        
 	        String tmp=new String(rcvbuffer,0,len);
 			return tmp;
 		}

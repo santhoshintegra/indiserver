@@ -187,6 +187,9 @@ public class INDISexagesimalFormatter {
 
     number = number.replace(' ', ':');
     number = number.replace(';', ':');
+    number = number.replace('*', ':');
+    number = number.replace((char) -33, ':');
+    
 
     //TODO: delete all chars other than 0..9, :, ; or space 
     number = number.replaceAll("°", "");
@@ -347,6 +350,7 @@ public class INDISexagesimalFormatter {
    * @return The padded <code>String</code>
    */
   private String padLeft(String s, int n) {
-    return String.format("%1$#" + n + "s", s);
+    // return String.format("%1$#" + n + "s", s);
+	  return s;  
   }
 }

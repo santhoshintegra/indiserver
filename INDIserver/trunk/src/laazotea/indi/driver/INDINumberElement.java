@@ -362,7 +362,14 @@ public class INDINumberElement extends INDIElement {
 
   @Override
   public String getXMLOneElement() {
-    String xml = "<oneNumber name=\"" + this.getName() + "\">" + value + "</oneNumber>";
+	String xml = null;
+	if (numberFormat.endsWith("m")) {
+		//WORKAROUND
+		xml = "<oneNumber name=\"" + this.getName() + "\">" + sFormatter.format(value) + "</oneNumber>";
+	} else {
+		xml = "<oneNumber name=\"" + this.getName() + "\">" + value + "</oneNumber>";
+	}
+    
 
     return xml;
   }
