@@ -46,10 +46,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	
 	private final String DriverName	= "LX200basic";
 	private final int majorVersion = 0;
-	private final int minorVersion = 1;
-	private final int buildVersion = 122; 
-	protected final static int LX200_TRACK	= 0;
-	protected final static int LX200_SYNC	= 1;
+	private final int minorVersion = 1;	
 	
 	/* Meade LX200 Commands */
 	
@@ -593,7 +590,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 				String TimeCmd = String.format(setTimeCmd, timeStr);
 
 				//After setting Date & Time the Autostar is recomputing planetary objects, just wait a little longer 
-				com_driver.set_delay(500);  
+				com_driver.set_delay(300);  
 				getCommandInt(TimeCmd);
 				getCommandInt(DateCmd);
 
@@ -869,7 +866,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * Get Name of Site site#
 	 */
 	protected void getSiteName(int site) {
-		//com_driver.set_delay(300);
+		com_driver.set_delay(300); //Again Autostar is too slow 
 		switch (site) {
 		case 1: 
 			SiteNameT.setValue(getCommandString(getSite1NameCmd));
@@ -884,7 +881,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			SiteNameT.setValue(getCommandString(getSite4NameCmd));
 			break;
 		}
-		//com_driver.set_delay(200);
+		com_driver.set_delay(200);
 		SiteNameTP.setState(PropertyStates.OK);
 		updateProperty(SiteNameTP,"Site Name: "+SiteNameT.getValue());
 	}
