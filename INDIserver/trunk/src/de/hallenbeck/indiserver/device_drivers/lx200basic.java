@@ -75,10 +75,11 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected final static String setSite1NameCmd = "#:SM%s#"; //Set Name of Site 1 to %s
 	protected final static String setSite2NameCmd = "#:SN%s#"; //Set Name of Site 2 to %s
 	protected final static String setSite3NameCmd = "#:SO%s#"; //Set Name of Site 3 to %s 
-	protected final static String setSite4NameCmd = "#:SP%s#"; //Set Name of Site 1 to %s
+	protected final static String setSite4NameCmd = "#:SP%s#"; //Set Name of Site 4 to %s
 	protected final static String setSiteLatCmd = "#:St%s#"; //Set Latitude of selected site to %s (sDD*MM) North=positive
 	protected final static String setSiteLongCmd = "#:Sg%s#"; //Set Longitude of selected site to %s (sDDD*MM) West=positive 
-	
+	protected final static String setCurrentSiteCmd = "#:W%01d#;"; // Set current site to %01d (1..4) 
+			
 	protected final static String getCurrentRACmd = "#:GR#"; //Get current RA
 	protected final static String getCurrentDECCmd = "#:GD#"; //Get current DEC
 	
@@ -527,6 +528,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			ConnectSP.setState(PropertyStates.OK);
 			updateProperty(ConnectSP,"Connected to telescope");
 			getAlignment();
+			getSiteName(1);
 			getEqCoords();
 		}
 		
@@ -570,37 +572,42 @@ public class lx200basic extends telescope implements device_driver_interface {
 	public void processNewTextValue(INDITextProperty property, Date timestamp,
 			INDITextElementAndValue[] elementsAndValues) {
 		
-		/**
-		 * UTC Time Property
-		 */
-		if (property==TimeTP) {
-			Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
-			// Autostar expects local time, but clients send UTC!
-			// We have to add the UTC-Offset to get the local time
-			Calendar cal = Calendar.getInstance();
-			cal.setTime(date);
-			cal.add(Calendar.HOUR, UTCOffsetN.getValue().intValue());
-			cal.add(Calendar.MINUTE, (int) ((UTCOffsetN.getValue()%1)*60));
-			date = cal.getTime();
-						
-			String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
-			String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
-			String DateCmd = String.format(setDateCmd, dateStr);
-			String TimeCmd = String.format(setTimeCmd, timeStr);
-			
-			//After setting Date & Time the Autostar is recomputing planetary objects, just wait a little longer 
-			com_driver.set_delay(500);  
-			getCommandInt(TimeCmd);
-			getCommandInt(DateCmd);
-			
-			getDateTime();
-			com_driver.set_delay(200);
-		}
+		if (isConnected()) {
 		
-		/**
-		 * Geolocation Property
-		 */
+			/**
+			 * UTC Time Property
+			 */
+			if (property==TimeTP) {
+				Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
+				// Autostar expects local time, but clients send UTC!
+				// We have to add the UTC-Offset to get the local time
+				Calendar cal = Calendar.getInstance();
+				cal.setTime(date);
+				cal.add(Calendar.HOUR, UTCOffsetN.getValue().intValue());
+				cal.add(Calendar.MINUTE, (int) ((UTCOffsetN.getValue()%1)*60));
+				date = cal.getTime();
 
+				String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
+				String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
+				String DateCmd = String.format(setDateCmd, dateStr);
+				String TimeCmd = String.format(setTimeCmd, timeStr);
+
+				//After setting Date & Time the Autostar is recomputing planetary objects, just wait a little longer 
+				com_driver.set_delay(500);  
+				getCommandInt(TimeCmd);
+				getCommandInt(DateCmd);
+
+				getDateTime();
+				com_driver.set_delay(200);
+			}
+
+			/**
+			 * Geolocation Property
+			 */
+
+		} else {
+			updateProperty(property,"Not connected");
+		}
 	}
 
 	
@@ -615,23 +622,71 @@ public class lx200basic extends telescope implements device_driver_interface {
 		INDISwitchElement elem = elementsAndValues[0].getElement();
 		
 		/**
-		 * Connect Property
+		 * Connect Property always available
 		 */
 		if (property==ConnectSP) {
 			if (elem == DisconnectS) disconnect();
 			if (elem == ConnectS) connect();
 		}
 		
-		/**
-		 * Alignment Property
-		 */
-		if (property==AlignmentSP) {
-			if (elem==AltAzS) sendCommand(setAlignmentAltAzCmd);
-			if (elem==PolarS) sendCommand(setAlignmentPolarCmd);
-			if (elem==LandS) sendCommand(setAlignmentLandCmd);
-			getAlignment();
-		}
+		// All other Properties not available if not connected to telescope!
+		
+		if (isConnected()) {
+			
+			/**
+			 * Alignment Property
+			 */
+			if (property==AlignmentSP) {
+				if (elem==AltAzS) sendCommand(setAlignmentAltAzCmd);
+				if (elem==PolarS) sendCommand(setAlignmentPolarCmd);
+				if (elem==LandS) sendCommand(setAlignmentLandCmd);
+				getAlignment();
+			}
 
+			/**
+			 * SiteSwitch Property
+			 */
+			if (property==SitesSP) {
+				int site=0;
+				SiteNameTP.setState(PropertyStates.BUSY);
+				updateProperty(SiteNameTP);
+				if (elem==Sites1S) {
+					site=1;
+					Sites1S.setValue(SwitchStatus.ON);
+					Sites2S.setValue(SwitchStatus.OFF);
+					Sites3S.setValue(SwitchStatus.OFF);
+					Sites4S.setValue(SwitchStatus.OFF);
+				}
+				if (elem==Sites2S) {
+					site=2;
+					Sites1S.setValue(SwitchStatus.OFF);
+					Sites2S.setValue(SwitchStatus.ON);
+					Sites3S.setValue(SwitchStatus.OFF);
+					Sites4S.setValue(SwitchStatus.OFF);
+				}
+				if (elem==Sites3S){
+					site=3;
+					Sites1S.setValue(SwitchStatus.OFF);
+					Sites2S.setValue(SwitchStatus.OFF);
+					Sites3S.setValue(SwitchStatus.ON);
+					Sites4S.setValue(SwitchStatus.OFF);
+				}
+				if (elem==Sites4S){
+					site=4;
+					Sites1S.setValue(SwitchStatus.OFF);
+					Sites2S.setValue(SwitchStatus.OFF);
+					Sites3S.setValue(SwitchStatus.OFF);
+					Sites4S.setValue(SwitchStatus.ON);
+				}
+				sendCommand(String.format(setCurrentSiteCmd,site));
+				getSiteName(site);
+				getGeolocation();
+				SitesSP.setState(PropertyStates.OK);
+				updateProperty(SitesSP,"Selected Site #"+site);
+			}
+		} else {
+			updateProperty(property,"Not connected");
+		}
 	}
 
 	/**
@@ -641,49 +696,54 @@ public class lx200basic extends telescope implements device_driver_interface {
 	public void processNewNumberValue(INDINumberProperty property,
 			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
 		
-		/**
-		 * UTC-Offset Property
-		 */
-		if (property==UTCOffsetNP) {
-			// Get the value
-			double val = elementsAndValues[0].getValue();
-			// Standard "String.format" doesn't work, we need a string like "+02.0"
-			// Additionally we have to change +/-, because Autostar needs a value to YIELD UTC
-			// KStars sends the Offset (+02.0) but Autostar needs (-02.0) to get the right time.
-			// The Handbox only displays the correct timezone +02.0 if we send -02.0 to it. 
-			// WTF??? Who designed this? 
-			String sign = "-";
-			if (val<0) sign = "+";
-			String tmp=String.format("%s%02d.%01d", sign, (int) val, (int) (val % 1));
-			String UTCHoursCmd=String.format(setUTCHoursCmd, tmp);
-			if (getCommandInt(UTCHoursCmd)==1) UTCOffsetNP.setState(PropertyStates.OK);	
-			UTCOffsetN.setValue(val);
-			updateProperty(property, "Set LocalTime to UTC difference to "+tmp+"h");
-		}
-		
-		/**
-		 * Geolocation Property
-		 */
-		if (property==GeoNP) {
-			double geolat = elementsAndValues[0].getValue();
-			String sign = "+";
-			if (geolat<0) sign ="-";
-			//TODO: Instead of truncating doubles with (int) we should round them 
-			String tmp = String.format("%s%02d*%02d", sign, (int) geolat, (int) ((geolat % 1)*60) );
-			String GeolatCmd = String.format(setSiteLatCmd, tmp);
-			getCommandInt(GeolatCmd);
+		if (isConnected()) {
 			
-			double geolong = elementsAndValues[1].getValue();
-			sign = "-";
-			if (geolong<0) sign ="+";
-			//TODO: Instead of truncating doubles with (int) we should round them 
-			String tmp2 = String.format("%s%03d*%02d", sign, (int) geolong, (int) ((geolong % 1)*60) ); 
-			String GeolongCmd = String.format(setSiteLongCmd, tmp2);
-			getCommandInt(GeolongCmd);
-			
-			getGeolocation();
-		}
+			/**
+			 * UTC-Offset Property
+			 */
+			if (property==UTCOffsetNP) {
+				// Get the value
+				double val = elementsAndValues[0].getValue();
+				// Standard "String.format" doesn't work, we need a string like "+02.0"
+				// Additionally we have to change +/-, because Autostar needs a value to YIELD UTC
+				// KStars sends the Offset (+02.0) but Autostar needs (-02.0) to get the right time.
+				// The Handbox only displays the correct timezone +02.0 if we send -02.0 to it. 
+				// WTF??? Who designed this? 
+				String sign = "-";
+				if (val<0) sign = "+";
+				String tmp=String.format("%s%02d.%01d", sign, (int) val, (int) (val % 1));
+				String UTCHoursCmd=String.format(setUTCHoursCmd, tmp);
+				if (getCommandInt(UTCHoursCmd)==1) UTCOffsetNP.setState(PropertyStates.OK);	
+				UTCOffsetN.setValue(val);
+				updateProperty(property, "Set LocalTime to UTC difference to "+tmp+"h");
+			}
 
+			/**
+			 * Geolocation Property
+			 */
+			if (property==GeoNP) {
+				double geolat = elementsAndValues[0].getValue();
+				String sign = "+";
+				if (geolat<0) sign ="-";
+				//TODO: Instead of truncating doubles with (int) we should round them 
+				String tmp = String.format("%s%02d*%02d", sign, (int) geolat, (int) ((geolat % 1)*60) );
+				String GeolatCmd = String.format(setSiteLatCmd, tmp);
+				getCommandInt(GeolatCmd);
+
+				double geolong = elementsAndValues[1].getValue();
+				sign = "-";
+				if (geolong<0) sign ="+";
+				//TODO: Instead of truncating doubles with (int) we should round them 
+				String tmp2 = String.format("%s%03d*%02d", sign, (int) geolong, (int) ((geolong % 1)*60) ); 
+				String GeolongCmd = String.format(setSiteLongCmd, tmp2);
+				getCommandInt(GeolongCmd);
+
+				getGeolocation();
+			}
+		
+		} else {
+			updateProperty(property,"Not connected");
+		}
 	}
 
 	/**
@@ -777,6 +837,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 		}
 	}
 
+	/**
+	 * Get the current Date/Time
+	 */
 	protected void getDateTime() {
 		String dateStr = getCommandString(getTimeCmd)+" "+getCommandString(getDateCmd);
 		try {
@@ -792,12 +855,38 @@ public class lx200basic extends telescope implements device_driver_interface {
 	
 	}
 	
-	
+	/**
+	 * Get the current Geolocation
+	 */
 	protected void getGeolocation() {
 		GeoLatN.setValue(getCommandSexa(getSiteLatCmd));
 		GeoLongN.setValue(360-getCommandSexa(getSiteLongCmd));
 		GeoNP.setState(PropertyStates.OK);
 		updateProperty(GeoNP, "Set Geolocation to Lat: "+GeoLatN.getValueAsString()+" Long: "+GeoLongN.getValueAsString());
+	}
+	
+	/** 
+	 * Get Name of Site site#
+	 */
+	protected void getSiteName(int site) {
+		//com_driver.set_delay(300);
+		switch (site) {
+		case 1: 
+			SiteNameT.setValue(getCommandString(getSite1NameCmd));
+			break;
+		case 2: 
+			SiteNameT.setValue(getCommandString(getSite2NameCmd));
+			break;
+		case 3: 
+			SiteNameT.setValue(getCommandString(getSite3NameCmd));
+			break;
+		case 4: 
+			SiteNameT.setValue(getCommandString(getSite4NameCmd));
+			break;
+		}
+		//com_driver.set_delay(200);
+		SiteNameTP.setState(PropertyStates.OK);
+		updateProperty(SiteNameTP,"Site Name: "+SiteNameT.getValue());
 	}
 	
 	/**
@@ -812,6 +901,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 		EquatorialCoordsRNP.setState(PropertyStates.OK);
 		updateProperty(EquatorialCoordsRNP,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
 	}
+	
+	
 	
 	
 	/*
@@ -855,7 +946,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	}
 	
 	/**
-	 * Get a string from the device without the #-suffix
+	 * Get a string from the device without the #-suffix an < >
 	 * @param command 
 	 * @return string 
 	 */
@@ -864,8 +955,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 		try {
 			com_driver.sendCommand(command);
 			tmp = com_driver.getAnswerString();
-			int idx = tmp.indexOf("#");
-			if (idx>-1) tmp = tmp.substring(0, idx);
+			tmp = tmp.replaceAll("#", "");
+			tmp = tmp.replaceAll("<", "");
+			tmp = tmp.replaceAll(">", "");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
