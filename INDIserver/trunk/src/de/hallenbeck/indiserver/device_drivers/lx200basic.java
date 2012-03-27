@@ -48,7 +48,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	private final int majorVersion = 0;
 	private final int minorVersion = 1;	
 	
-	/* Meade LX200 Commands */
+	/* Meade LX200 Commands according to official protocol sheet */
 	
 	protected final static String getAlignmentCmd = String.valueOf((char)6); //Get Alignment
 	protected final static String getAlignmentStatusCmd = "#:GW#"; //Get Alignment Status
@@ -79,6 +79,21 @@ public class lx200basic extends telescope implements device_driver_interface {
 			
 	protected final static String getCurrentRACmd = "#:GR#"; //Get current RA
 	protected final static String getCurrentDECCmd = "#:GD#"; //Get current DEC
+	
+	/* Undocumented commands, use with caution! */
+	/* :ED# 	Get current display message (localized)
+	 * :EK9# 	MODE Key
+	 * :EK13#	ENTER Key
+	 * :EK 71#	GOTO Key
+	 * :EK 48#  0 Key
+	 * :EK 49#  1 Key
+	 * :EK 50#	2 Key
+	 * :EK 51#  3 Key ... and so on until
+	 * :EK 57#  9 Key
+	 * EK9 and EK13 without space! 
+	 * Before using any key, check the actual display-message! 
+	 * One can accidentally navigate to the Download-Function, which can result in a need to reflash the Autostar  
+	 */
 	
 	/* INDI Properties */
 	
@@ -310,7 +325,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 
 	    /*
 		 * INDI Properties 
-		 * For compatibility reasons all names, labels and settings of elements/properties are
+		 * For compatibility reasons names, labels and settings of elements/properties are
 		 * the same as in lx200generic.cpp from the original indilib.
 		 * TODO: localize labels with a string-ressource 
 		 */
