@@ -16,7 +16,7 @@ public class serial implements communication_driver_interface {
 	protected InputStream InStream;
 	protected OutputStream OutStream;
     private int sleeptime=0;
-
+ 
 	public void set_delay(int delay) {
 		sleeptime = delay;
 	}
@@ -64,6 +64,7 @@ public class serial implements communication_driver_interface {
 	/**
 	 * Receive-Thread only necessary because some devices (i.e. Autostar) need time to answer
 	 * Therefore the sleep() instruction.
+	 * TODO: complete rewrite! This code is crap! Use InputStreamReader/BufferedReader
 	 * @author atuschen
 	 *
 	 */
@@ -85,11 +86,12 @@ public class serial implements communication_driver_interface {
 	       	
 	        try {
 				len=InStream.read(rcvbuffer);
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 	        
-	        //WORKAROUND FOR AUTOSTAR "Degree-Sign" (-33) WTF???
+	        //WORKAROUND FOR AUTOSTAR "Degree-Sign" (byte-value: -33)
 	        for (int i = 0; i <= len-1; i++) {
 	        	if (rcvbuffer[i]==-33) rcvbuffer[i]=42;
 	        }
