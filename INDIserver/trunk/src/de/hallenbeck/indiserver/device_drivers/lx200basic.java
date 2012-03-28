@@ -52,9 +52,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 	
 	/* A - Alignment Commands */
 	protected final static String AlignmentModeCmd = String.valueOf((char)6); //Get Alignment Mode; Returns A,P,D or L
-	protected final static String AlignmentAltAzCmd = "#:AA#"; //Set Alignment to AltAz
-	protected final static String AlignmentPolarCmd = "#:AP#"; //Set Alignment to Polar
-	protected final static String AlignmentLandCmd = "#:AL#"; //Set Alignment to Land
+	protected final static String AlignmentAltAzCmd = "#:AA#"; //Set Alignment Mode to AltAz
+	protected final static String AlignmentPolarCmd = "#:AP#"; //Set Alignment Mode to Polar
+	protected final static String AlignmentLandCmd = "#:AL#"; //Set Alignment Mode to Land
 	
 	/* D - Get Distance Bars */
 	protected final static String DistanceBarsCmd = "#:D#"; //String containing one bar until a slew is complete, then a null string is returned
@@ -63,9 +63,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected final static String FocuserMoveInward = "#:F+#"; //Start Focuser moving inward (toward objective)
 	protected final static String FocuserMoveOutward = "#:F-#"; //Start Focuser moving outward (away from objective)
 	protected final static String FocuserHaltMotion = "#:FQ#"; //Halt Focuser Motion
-	protected final static String FocuserSpeedFast = "#:FF#"; //Set Focus speed to fastest setting
-	protected final static String FocuserSpeedSlow = "#:FS#"; //Set Focus speed to slowest setting
-	protected final static String FocuserSpeed = "#:F%1d#"; //Set Focus speed to %1d (1..4)
+	protected final static String FocuserSpeedFast = "#:FF#"; //Set Focuser speed to fastest setting
+	protected final static String FocuserSpeedSlow = "#:FS#"; //Set Focuser speed to slowest setting
+	protected final static String FocuserSpeed = "#:F%1d#"; //Set Focuser speed to %1d (1..4)
 	
 	/* G - Get Telescope Information */
 	protected final static String getDateCmd = "#:GC#"; //Get current local Date; Returns: MM/DD/YY#
@@ -97,7 +97,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected final static String MoveNorthCmd = "#:Mn#"; //Move Telescope North at current slew rate until ":Qn#" or ":Q#" is send
 	protected final static String MoveSouthCmd = "#:Ms#"; //Move Telescope South at current slew rate until ":Qs#" or ":Q#" is send
 	protected final static String MoveWestCmd = "#:Mw#"; //Move Telescope West at current slew rate until ":Qw#" or ":Q#" is send
-	protected final static String MoveToTargetCmd = "#:MS#"; //Move Telescope to target coords; Returns: 0 Slew is Possible, 1<string># Object Below Horizon, 2<string># Object Below Higher
+	protected final static String MoveToTargetCmd = "#:MS#"; //Move Telescope to target object; Returns: 0 Slew is Possible, 1<string># Object Below Horizon, 2<string># Object Below Higher
 	
 	/* Q - Stop Movement Commands */
 	protected final static String StopAllMovementCmd = "#:Q#"; 
@@ -130,7 +130,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected final static String PrecisionToggleCmd = "#:U#"; //Toggle between low/hi precision in DEC/RA
 
 	/* W - Site select */
-	protected final static String SiteSelectCmd = "#:W%1d#"; // Set current site to %1d (1..4)
+	protected final static String SiteSelectCmd = "#:W%1d#"; //Set current site to %1d (1..4)
 	
 	/* Undocumented commands, use with caution! */
 	/* :ED# 	Get current display message (localized)
@@ -162,7 +162,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 
 	/**
 	 * The device-interface property isn't implemented.
-	 * It's up to the server-app to set right interface for the device, not the remote client(s).
+	 * It's up to the server-app to set the right interface for the device, not the remote client(s).
 	 *   
 	 */
 	
@@ -379,7 +379,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 		 * INDI Properties 
 		 * For compatibility reasons names, labels and settings of elements/properties are
 		 * the same as in lx200generic.cpp from the original indilib.
-		 * TODO: localize labels with a string-ressource 
+		 * TODO: localize labels with an Android string-ressource 
 		 */
 	    
 	    /**********************************************************************************************/
@@ -554,7 +554,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 		addProperty(SitesSP);
 
 		SiteNameT = new INDITextElement("NAME", "Name", "");
-		SiteNameTP = new INDITextProperty(this,  "SITE_NAME", "Site Name", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+		SiteNameTP = new INDITextProperty(this,  "SITE NAME", "Site Name", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
 		SiteNameTP.addElement(SiteNameT);
 		addProperty(SiteNameTP);
 
@@ -630,9 +630,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 */
 	@Override
 	public String getName() {
-		
 		return DriverName;
-		
 	}
 
 	/**
@@ -662,17 +660,20 @@ public class lx200basic extends telescope implements device_driver_interface {
 				// assemble Autostar-format date/time 
 				String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
 				String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
-				
-				// send to Autostar 
 				String DateCmd = String.format(setDateCmd, dateStr);
 				String TimeCmd = String.format(setTimeCmd, timeStr);
 
 				// After setting Date & Time Autostar is recomputing planetary objects, just wait a little longer 
 				com_driver.set_delay(300);  
+
+				// send to Autostar
 				getCommandInt(TimeCmd);
 				getCommandInt(DateCmd);
-
+				
+				// Verify by read and update Properties
 				getDateTime();
+				
+				// Back to normal Delay
 				com_driver.set_delay(200);
 			}
 
@@ -801,7 +802,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			 */
 			if (property==GeoNP) {
 				double geolat = elementsAndValues[0].getValue();
-				// Assemble a Autostar Latitude format
+				// Assemble an Autostar Latitude format
 				// Positive = North, Negative = South  Example: "+50*01"
 				String sign = "+";
 				if (geolat<0) sign ="-";
@@ -813,18 +814,16 @@ public class lx200basic extends telescope implements device_driver_interface {
 				// Set latitude
 				getCommandInt(GeolatCmd);
 
-				double geolong = elementsAndValues[1].getValue();
+				double geolong = 360-elementsAndValues[1].getValue();
 				// Assemble an Autostar longitude format
-				// Positive= West, Negative = East  Example: "-008*34" 
-				sign = "-"; 
-				if (geolong<0) sign ="+";
 				// TODO: Instead of truncating doubles with (int) we should round them 
-				tmp = String.format("%s%03d*%02d", sign, (int) geolong, (int) ((geolong % 1)*60) ); 
+				tmp = String.format("%03d*%02d", (int) geolong, (int) ((geolong % 1)*60) ); 
 				String GeolongCmd = String.format(setSiteLongCmd, tmp);
 				
 				// Set longitude
 				getCommandInt(GeolongCmd);
-
+				
+				//Verify by read and update Properties
 				getGeolocation();
 			}
 		
