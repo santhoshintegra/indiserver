@@ -14,7 +14,6 @@ public interface communication_driver_interface {
 	 * @param delay in ms
 	 * @deprecated
 	 */
-	public void set_delay(int delay);
 	
 	/**
 	 * set global timeout for read/write operations
@@ -55,21 +54,7 @@ public interface communication_driver_interface {
 	 * @throws IOException timeout
 	 */
 	public void write(byte command) throws IOException;
-	
-	/**
-	 * Read integer value from device
-	 * @return int
-	 * @deprecated
-	 */
-	public int getAnswerInt() throws IOException;
-	
-	/**
-	 * Read string from device 
-	 * @return string
-	 * @deprecated
-	 */
-	public String getAnswerString() throws IOException;
-	
+
 	/**
 	 * Try to read from device until stopchar is detected
 	 * @param stopchar 
@@ -87,9 +72,8 @@ public interface communication_driver_interface {
 	public String read(int bytes) throws IOException;
 	
 	/**
-	 * Try to read from device until timeout 
+	 * Try to read from device until timeout occurs
 	 * @return String
-	 * @throws IOException timeout
 	 */
 	public String read() throws IOException;
 
