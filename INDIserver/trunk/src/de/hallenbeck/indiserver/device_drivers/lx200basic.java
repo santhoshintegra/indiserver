@@ -50,35 +50,87 @@ public class lx200basic extends telescope implements device_driver_interface {
 	
 	/* Meade LX200 Commands according to official protocol sheet */
 	
-	protected final static String getAlignmentCmd = String.valueOf((char)6); //Get Alignment
-	protected final static String getAlignmentStatusCmd = "#:GW#"; //Get Alignment Status
-	protected final static String setAlignmentAltAzCmd = "#:AA#"; //Set Alignment to AltAz
-	protected final static String setAlignmentPolarCmd = "#:AP#"; //Set Alignment to Polar
-	protected final static String setAlignmentLandCmd = "#:AL#"; //Set Alignment to Land
+	/* A - Alignment Commands */
+	protected final static String AlignmentModeCmd = String.valueOf((char)6); //Get Alignment Mode; Returns A,P,D or L
+	protected final static String AlignmentAltAzCmd = "#:AA#"; //Set Alignment to AltAz
+	protected final static String AlignmentPolarCmd = "#:AP#"; //Set Alignment to Polar
+	protected final static String AlignmentLandCmd = "#:AL#"; //Set Alignment to Land
 	
-	protected final static String getDateCmd = "#:GC#"; //Get Local Date
-	protected final static String getTimeCmd = "#:GL#"; //Get Local Time
-	protected final static String getUTCHoursCmd = "#:GG#"; //Get Hours to yield UTC from Local Time
-	protected final static String setDateCmd = "#:SC%s#"; //Set Local Date to %s (MM/DD/YY)
-	protected final static String setTimeCmd = "#:SL%s#"; //Set Local Time to %s (HH:MM:SS)
-	protected final static String setUTCHoursCmd = "#:SG%s#"; //Set Hours to yield UTC from Local Time
+	/* D - Get Distance Bars */
+	protected final static String DistanceBarsCmd = "#:D#"; //String containing one bar until a slew is complete, then a null string is returned
 	
+	/* F - Focuser Control */
+	protected final static String FocuserMoveInward = "#:F+#"; //Start Focuser moving inward (toward objective)
+	protected final static String FocuserMoveOutward = "#:F-#"; //Start Focuser moving outward (away from objective)
+	protected final static String FocuserHaltMotion = "#:FQ#"; //Halt Focuser Motion
+	protected final static String FocuserSpeedFast = "#:FF#"; //Set Focus speed to fastest setting
+	protected final static String FocuserSpeedSlow = "#:FS#"; //Set Focus speed to slowest setting
+	protected final static String FocuserSpeed = "#:F%1d#"; //Set Focus speed to %1d (1..4)
+	
+	/* G - Get Telescope Information */
+	protected final static String getDateCmd = "#:GC#"; //Get current local Date; Returns: MM/DD/YY#
+	protected final static String getCurrentDECCmd = "#:GD#"; //Get current telescope DEC; Returns: sDD*MM# or sDD*MM’SS# 
+	protected final static String getUTCHoursCmd = "#:GG#"; //Get Hours to yield UTC from Local Time; Returns: sHH# or sHH.H#
+	protected final static String getSiteLongCmd = "#:Gg#"; //Get Longitude of current site; Returns: sDDD*MM#
+	protected final static String getTimeCmd = "#:GL#"; //Get current local Time; Returns: HH:MM:SS#
 	protected final static String getSite1NameCmd = "#:GM#"; //Get Name of Site 1
 	protected final static String getSite2NameCmd = "#:GN#"; //Get Name of Site 2
 	protected final static String getSite3NameCmd = "#:GO#"; //Get Name of Site 3
 	protected final static String getSite4NameCmd = "#:GP#"; //Get Name of Site 4
-	protected final static String getSiteLatCmd = "#:Gt#"; //Get Latitude of selected site
-	protected final static String getSiteLongCmd = "#:Gg#"; //Get Longitude of selected site 
+	protected final static String getCurrentRACmd = "#:GR#"; //Get current telescope RA; Returns: HH:MM.T# or HH:MM:SS#
+	protected final static String getSiderealTimeCmd = "#:GS#"; //Get the Sidereal Time; Returns: HH:MM:SS#
+	protected final static String getTrackingRateCmd = "#:GT#"; //Get tracking rate; Returns: TT.T#
+	protected final static String getSiteLatCmd = "#:Gt#"; //Get Latitude of current site; Returns: sDD*MM# (Positive=North)
+	protected final static String getFirmwareDateCmd = "#:GVD#"; //Get Telescope Firmware Date;	Returns: mmm dd yyyy#
+	protected final static String getFirmwareNumberCmd = "#:GVN#"; //Get Telescope Firmware Number; Returns: <string>#
+	protected final static String getProductNameCmd = "#:GVP#"; //Get Telescope Product Name; Returns: <string>#
+	protected final static String getFirmwareTimeCmd = "#:GVT#"; //Get Telescope Firmware Time;	returns: HH:MM:SS#
+	protected final static String getAlignmentStatusCmd = "#:GW#"; //Get Scope Alignment Status; Returns: <mount><tracking><alignment>#
+
+	/* H - Home Position Commands */
+	protected final static String HomePositionSeekCmd = "#:hF#"; //Seek Home 
+	protected final static String HomePositionParkCmd = "#:hP#"; //Park Scope
+	protected final static String HomePostitionStatusCmd = "#:h?#"; //Query Home Status
+	
+	/* M - Movement Commands */
+	protected final static String MoveEastCmd = "#:Me#"; //Move Telescope East at current slew rate until ":Qe#" or ":Q#" is send
+	protected final static String MoveNorthCmd = "#:Mn#"; //Move Telescope North at current slew rate until ":Qn#" or ":Q#" is send
+	protected final static String MoveSouthCmd = "#:Ms#"; //Move Telescope South at current slew rate until ":Qs#" or ":Q#" is send
+	protected final static String MoveWestCmd = "#:Mw#"; //Move Telescope West at current slew rate until ":Qw#" or ":Q#" is send
+	protected final static String MoveToTargetCmd = "#:MS#"; //Move Telescope to target coords; Returns: 0 Slew is Possible, 1<string># Object Below Horizon, 2<string># Object Below Higher
+	
+	/* Q - Stop Movement Commands */
+	protected final static String StopAllMovementCmd = "#:Q#"; 
+	protected final static String StopEastMovementCmd = "#:Qe#";
+	protected final static String StopNorthMovementCmd = "#:Qn#";
+	protected final static String StopSouthMovementCmd = "#:Qs#";
+	protected final static String StopWestMovementCmd = "#:Qe#";
+	
+	/* R - Slew Rate Commands */
+	protected final static String SlewRateCenteringCmd = "#:RC#"; //Centering Rate (2nd slowest)
+	protected final static String SlewRateGuidingCmd = "#:RG#"; //Guiding Rate (slowest)
+	protected final static String SlewRateFindCmd = "#:RM#"; //Find Rate (2nd fastest)
+	protected final static String SlewRateMaxCmd = "#:RS#"; //Max Rate (fastest)
+	
+	/* S - Telescope Set Commands */
+	protected final static String setDateCmd = "#:SC%s#"; //Set Local Date to %s (MM/DD/YY)
+	protected final static String setTimeCmd = "#:SL%s#"; //Set Local Time to %s (HH:MM:SS)
+	protected final static String setUTCHoursCmd = "#:SG%s#"; //Set Hours to yield UTC from Local Time
 	protected final static String setSite1NameCmd = "#:SM%s#"; //Set Name of Site 1 to %s
 	protected final static String setSite2NameCmd = "#:SN%s#"; //Set Name of Site 2 to %s
 	protected final static String setSite3NameCmd = "#:SO%s#"; //Set Name of Site 3 to %s 
 	protected final static String setSite4NameCmd = "#:SP%s#"; //Set Name of Site 4 to %s
 	protected final static String setSiteLatCmd = "#:St%s#"; //Set Latitude of selected site to %s (sDD*MM) North=positive
-	protected final static String setSiteLongCmd = "#:Sg%s#"; //Set Longitude of selected site to %s (sDDD*MM) West=positive 
-	protected final static String setCurrentSiteCmd = "#:W%1d#;"; // Set current site to %1d (1..4) 
-			
-	protected final static String getCurrentRACmd = "#:GR#"; //Get current RA
-	protected final static String getCurrentDECCmd = "#:GD#"; //Get current DEC
+	protected final static String setSiteLongCmd = "#:Sg%s#"; //Set Longitude of selected site to %s (DDD*MM) 
+	protected final static String setTargetDECCmd = "#:Sd%s#"; //Set target object DEC to %s (sDD*MM or sDD*MM:SS depending on precision setting); Returns:	1 - DEC Accepted 0 - DEC invalid
+	protected final static String setTargetRACmd = "#:Sr%s#"; //Set target object RA to %s (HH:MM.T or HH:MM:SS depending on precision setting); Returns:	1 - RA Accepted 0 - RA invalid
+	protected final static String setSiderealTimeCmd ="#:SS%s#"; //Sets the local sidereal time to %s (HH:MM:SS); Returns: 0 - Invalid 1 - Valid
+
+	/* U - Precision Toggle */
+	protected final static String PrecisionToggleCmd = "#:U#"; //Toggle between low/hi precision in DEC/RA
+
+	/* W - Site select */
+	protected final static String SiteSelectCmd = "#:W%1d#"; // Set current site to %1d (1..4)
 	
 	/* Undocumented commands, use with caution! */
 	/* :ED# 	Get current display message (localized)
@@ -91,7 +143,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * :EK 51#  3 Key ... and so on until
 	 * :EK 57#  9 Key
 	 * EK9 and EK13 without space! 
-	 * Before using any key, check the actual display-message! 
+	 * Before using any key, check the actual display message! 
 	 * One can accidentally navigate to the Download-Function, which can result in a need to reflash the Autostar  
 	 */
 	
@@ -660,9 +712,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 			 * Alignment Property
 			 */
 			if (property==AlignmentSP) {
-				if (elem==AltAzS) sendCommand(setAlignmentAltAzCmd);
-				if (elem==PolarS) sendCommand(setAlignmentPolarCmd);
-				if (elem==LandS) sendCommand(setAlignmentLandCmd);
+				if (elem==AltAzS) sendCommand(AlignmentAltAzCmd);
+				if (elem==PolarS) sendCommand(AlignmentPolarCmd);
+				if (elem==LandS) sendCommand(AlignmentLandCmd);
 				getAlignment();
 			}
 
@@ -701,7 +753,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 					Sites4S.setValue(SwitchStatus.ON);
 				}
 				// Set current site  
-				sendCommand(String.format(setCurrentSiteCmd,site));
+				sendCommand(String.format(SiteSelectCmd,site));
 				
 				// Get the name of the selected site
 				getSiteName(site);
@@ -796,7 +848,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected void getAlignment() {
 		if (isConnected()) {
 			String stmp=null;
-			switch (getCommandChar(getAlignmentCmd)) {
+			switch (getCommandChar(AlignmentModeCmd)) {
 			case 'A': 			
 				AltAzS.setValue(SwitchStatus.ON);
 				LandS.setValue(SwitchStatus.OFF);
@@ -830,7 +882,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 			}
 			
 			// For information only
-			switch (getCommandString(getAlignmentStatusCmd).charAt(0)) {
+			String tmp = getCommandString(getAlignmentStatusCmd); 
+			switch (tmp.charAt(0)) {
 			case 'A':
 				stmp = stmp + ", AzEl mount";
 				break;
