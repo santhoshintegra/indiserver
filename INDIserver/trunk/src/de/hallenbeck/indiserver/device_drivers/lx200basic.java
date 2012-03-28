@@ -577,12 +577,6 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * Connect to telescope and update INDI-Properties
 	 */ 
 	public void connect() {
-		// Set delay-before-read to 200ms 
-		// After some testing I found this a reliable value 
-		// I'm not sure if it relies on the bluetooth connection, because
-		// after looking into lx200generic.cpp it seems that on direct-serial
-		// connections this delay isn't necessary.
-		com_driver.set_delay(200); 
 		
 		super.connect();
 		
@@ -663,15 +657,12 @@ public class lx200basic extends telescope implements device_driver_interface {
 				String DateCmd = String.format(setDateCmd, dateStr);
 				String TimeCmd = String.format(setTimeCmd, timeStr);
 
-				// After setting Date & Time Autostar is recomputing planetary objects, just wait a little longer 
-				com_driver.set_delay(300);  
-
 				// send to Autostar
 				getCommandChar(TimeCmd);
 				getCommandChar(DateCmd);
 				try {
-					com_driver.read('#');
-					com_driver.read('#');
+					com_driver.read('#'); // Return String "Updating planetary data... #"
+					com_driver.read('#'); // Return String "                           #"
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -679,9 +670,6 @@ public class lx200basic extends telescope implements device_driver_interface {
 				
 				// Verify by read and update Properties
 				getDateTime();
-				
-				// Back to normal Delay
-				com_driver.set_delay(200);
 			}
 
 			/**
@@ -964,7 +952,6 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * Get Name of Site site# from telescope
 	 */
 	protected void getSiteName(int site) {
-		com_driver.set_delay(300); //Again Autostar is too slow 
 		switch (site) {
 		case 1: 
 			SiteNameT.setValue(getCommandString(getSite1NameCmd));
@@ -979,7 +966,6 @@ public class lx200basic extends telescope implements device_driver_interface {
 			SiteNameT.setValue(getCommandString(getSite4NameCmd));
 			break;
 		}
-		com_driver.set_delay(200);
 		SiteNameTP.setState(PropertyStates.OK);
 		updateProperty(SiteNameTP,"Site Name: "+SiteNameT.getValue());
 	}
