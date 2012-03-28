@@ -99,7 +99,6 @@ public class serial implements communication_driver_interface {
 		} else {
 			// Construct String from chararray
 			ret = String.copyValueOf(chararray);
-			ret=ret.trim();
 		}
 
 		return ret;
@@ -115,7 +114,7 @@ public class serial implements communication_driver_interface {
 		
 		int pos = 0;
 		
-		//Try to read until stopchar is detected or a timeout occurs
+		//Try to read num bytes or until a timeout occurs
 		//Ignore End of stream!
 		while ((pos != bytes) && (System.currentTimeMillis()<= endTimeMillis)) { 
 			if	(BufReader.ready()) {
@@ -133,6 +132,7 @@ public class serial implements communication_driver_interface {
 		} else {
 			// Construct String from chararray
 			ret = String.copyValueOf(chararray);
+			ret = ret.trim();
 		}
 
 		return ret;

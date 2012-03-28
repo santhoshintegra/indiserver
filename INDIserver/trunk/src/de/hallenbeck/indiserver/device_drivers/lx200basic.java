@@ -581,19 +581,26 @@ public class lx200basic extends telescope implements device_driver_interface {
 		super.connect();
 		
 		if (isConnected()) {
-			ConnectS.setValue(SwitchStatus.ON);
-			DisconnectS.setValue(SwitchStatus.OFF);
-			ConnectSP.setState(PropertyStates.OK);
-			updateProperty(ConnectSP,"Connected to telescope");
 			
 			// Get Alignment information
-			getAlignment();
+			getAlignmentMode();
+			
+			getFirmwareInformation();
+			
+			getAlignmentStatus();
 			
 			// Get data for Site #1
 			getSiteName(1);
 			
+			getGeolocation();
+			
 			// Get current equatorial coords the scope is pointing at
 			getEqCoords();
+			
+			ConnectS.setValue(SwitchStatus.ON);
+			DisconnectS.setValue(SwitchStatus.OFF);
+			ConnectSP.setState(PropertyStates.OK);
+			updateProperty(ConnectSP,"Telescope ready, awaiting commmands...");
 		}
 		
 	}
@@ -664,7 +671,6 @@ public class lx200basic extends telescope implements device_driver_interface {
 					com_driver.read('#'); // Return String "Updating planetary data... #"
 					com_driver.read('#'); // Return String "                           #"
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -711,7 +717,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 				if (elem==AltAzS) sendCommand(AlignmentAltAzCmd);
 				if (elem==PolarS) sendCommand(AlignmentPolarCmd);
 				if (elem==LandS) sendCommand(AlignmentLandCmd);
-				getAlignment();
+				getAlignmentMode();
 			}
 
 			/**
@@ -787,8 +793,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 				if (val<0) sign = "+";
 				String tmp = String.format("%s%02d.%01d", sign, (int) val, (int) (val % 1));
 				String UTCHoursCmd = String.format(setUTCHoursCmd, tmp);
-				if (getCommandInt(UTCHoursCmd) == 1) UTCOffsetNP.setState(PropertyStates.OK);	
+				getCommandInt(UTCHoursCmd);	
 				UTCOffsetN.setValue(val);
+				UTCOffsetNP.setState(PropertyStates.OK);
 				updateProperty(property, "Local Time to UTC difference: "+tmp+"h");
 			}
 
@@ -839,7 +846,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	/**
 	 * Get the Alignment-Mode and status from the telescope
 	 */
-	protected void getAlignment() {
+	protected void getAlignmentMode() {
 		if (isConnected()) {
 			String stmp=null;
 			getCommandChar(AlignmentModeCmd);
@@ -873,24 +880,30 @@ public class lx200basic extends telescope implements device_driver_interface {
 				AlignmentSP.setState(PropertyStates.OK);
 				stmp="Polar alignment";
 				break;
-				
 			}
+			updateProperty(AlignmentSP,stmp);
+
+		}
+	}
+
 			
-			// For information only
-			String tmp = getCommandString(getAlignmentStatusCmd,3); 
+	protected void getAlignmentStatus() {
+		if (isConnected()) {
+	
+			String tmp = getCommandString(getAlignmentStatusCmd,3);
+			String stmp = null;
 			switch (tmp.charAt(0)) {
 			case 'A':
-				stmp = stmp + ", AzEl mount";
+				stmp = "AzEl mount";
 				break;
 			case 'P':
-				stmp = stmp + ", Eq mount";
+				stmp = "Eq mount";
 				break;
 			case 'G':
-				stmp = stmp + ", German Eq mount";
+				stmp = "German Eq mount";
 				break;
 			}
 			
-			// For information only
 			switch (tmp.charAt(1)) {
 			case 'T':
 				stmp = stmp + ", Tracking";
@@ -915,11 +928,20 @@ public class lx200basic extends telescope implements device_driver_interface {
 				stmp = stmp + ", three-star aligned";
 				break;
 			}
-			
-			updateProperty(AlignmentSP,stmp);
+			updateProperty(AlignmentSP, stmp);
 		}
 	}
-
+	
+	protected void getFirmwareInformation() {
+		if (isConnected()) {
+			String tmp = getCommandString(getProductNameCmd);
+			tmp = tmp + " " + getCommandString(getFirmwareNumberCmd);
+			tmp = tmp + " " + getCommandString(getFirmwareDateCmd);
+			tmp = tmp + " " + getCommandString(getFirmwareTimeCmd);
+			updateProperty(ConnectSP,tmp);
+		}
+	}
+			
 	/**
 	 * Get the current Date/Time from telescope
 	 */
@@ -945,7 +967,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 		GeoLatN.setValue(getCommandSexa(getSiteLatCmd));
 		GeoLongN.setValue(360-getCommandSexa(getSiteLongCmd));
 		GeoNP.setState(PropertyStates.OK);
-		updateProperty(GeoNP, "Set Geolocation to Lat: "+GeoLatN.getValueAsString()+" Long: "+GeoLongN.getValueAsString());
+		updateProperty(GeoNP, "Geolocation Lat: "+GeoLatN.getValueAsString()+" Long: "+GeoLongN.getValueAsString());
 	}
 	
 	/** 
@@ -1013,7 +1035,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @return integer 
 	 */
 	protected int getCommandInt(String command){
-		return Integer.parseInt(getCommandString(command).substring(0, 1));
+		return Integer.parseInt(getCommandString(command,1));
 		
 	}
 	
@@ -1044,12 +1066,12 @@ public class lx200basic extends telescope implements device_driver_interface {
 		String tmp=null;
 		try {
 			com_driver.sendCommand(command);
-			//tmp = com_driver.getAnswerString();
 			com_driver.set_timeout(1000);
 			tmp = com_driver.read('#');
 			tmp = tmp.replaceAll("#", "");
 			tmp = tmp.replaceAll("<", "");
 			tmp = tmp.replaceAll(">", "");
+			tmp = tmp.trim();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1060,12 +1082,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 		String tmp=null;
 		try {
 			com_driver.sendCommand(command);
-			//tmp = com_driver.getAnswerString();
 			com_driver.set_timeout(1000);
 			tmp = com_driver.read(bytes);
-			tmp = tmp.replaceAll("#", "");
-			tmp = tmp.replaceAll("<", "");
-			tmp = tmp.replaceAll(">", "");
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
