@@ -17,7 +17,7 @@ public interface communication_driver_interface {
 	
 	/**
 	 * set global timeout for read/write operations
-	 * @param timeout
+	 * @param timeout milliseconds
 	 */
 	public void set_timeout(int timeout);
 	
