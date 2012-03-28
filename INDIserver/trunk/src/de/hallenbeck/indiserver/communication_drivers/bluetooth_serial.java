@@ -1,6 +1,8 @@
 package de.hallenbeck.indiserver.communication_drivers;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -54,6 +56,10 @@ public class bluetooth_serial extends serial implements communication_driver_int
 					// Get the BluetoothSocket input and output streams
 					InStream = btSocket.getInputStream();
 					OutStream = btSocket.getOutputStream();
+					
+					// Construct Readers
+					InReader = new InputStreamReader(InStream);
+					BufReader = new BufferedReader (InReader);
 
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();

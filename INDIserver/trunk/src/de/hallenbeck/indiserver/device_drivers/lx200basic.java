@@ -667,8 +667,15 @@ public class lx200basic extends telescope implements device_driver_interface {
 				com_driver.set_delay(300);  
 
 				// send to Autostar
-				getCommandInt(TimeCmd);
-				getCommandInt(DateCmd);
+				getCommandChar(TimeCmd);
+				getCommandChar(DateCmd);
+				try {
+					com_driver.read('#');
+					com_driver.read('#');
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				
 				// Verify by read and update Properties
 				getDateTime();
@@ -812,7 +819,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 				String GeolatCmd = String.format(setSiteLatCmd, tmp);
 				
 				// Set latitude
-				getCommandInt(GeolatCmd);
+				getCommandChar(GeolatCmd);
 
 				double geolong = 360-elementsAndValues[1].getValue();
 				// Assemble an Autostar longitude format
@@ -821,7 +828,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 				String GeolongCmd = String.format(setSiteLongCmd, tmp);
 				
 				// Set longitude
-				getCommandInt(GeolongCmd);
+				getCommandChar(GeolongCmd);
 				
 				//Verify by read and update Properties
 				getGeolocation();
@@ -847,6 +854,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected void getAlignment() {
 		if (isConnected()) {
 			String stmp=null;
+			getCommandChar(AlignmentModeCmd);
 			switch (getCommandChar(AlignmentModeCmd)) {
 			case 'A': 			
 				AltAzS.setValue(SwitchStatus.ON);
@@ -881,7 +889,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			}
 			
 			// For information only
-			String tmp = getCommandString(getAlignmentStatusCmd); 
+			String tmp = getCommandString(getAlignmentStatusCmd,3); 
 			switch (tmp.charAt(0)) {
 			case 'A':
 				stmp = stmp + ", AzEl mount";
@@ -1029,7 +1037,16 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @return char
 	 */
 	protected char getCommandChar(String command) {
-		return getCommandString(command).charAt(0);
+		com_driver.set_timeout(1000);
+		char tmp='-';
+		try {
+			com_driver.sendCommand(command);
+			tmp = com_driver.read(1).charAt(0);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return tmp;
 	}
 	
 	/**
@@ -1041,7 +1058,25 @@ public class lx200basic extends telescope implements device_driver_interface {
 		String tmp=null;
 		try {
 			com_driver.sendCommand(command);
-			tmp = com_driver.getAnswerString();
+			//tmp = com_driver.getAnswerString();
+			com_driver.set_timeout(1000);
+			tmp = com_driver.read('#');
+			tmp = tmp.replaceAll("#", "");
+			tmp = tmp.replaceAll("<", "");
+			tmp = tmp.replaceAll(">", "");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return tmp;
+	}
+	
+	protected String getCommandString(String command, int bytes) {
+		String tmp=null;
+		try {
+			com_driver.sendCommand(command);
+			//tmp = com_driver.getAnswerString();
+			com_driver.set_timeout(1000);
+			tmp = com_driver.read(bytes);
 			tmp = tmp.replaceAll("#", "");
 			tmp = tmp.replaceAll("<", "");
 			tmp = tmp.replaceAll(">", "");
