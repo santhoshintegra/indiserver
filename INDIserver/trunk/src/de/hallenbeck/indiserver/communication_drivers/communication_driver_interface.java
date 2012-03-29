@@ -76,5 +76,11 @@ public interface communication_driver_interface {
 	 * @return String
 	 */
 	public String read() throws IOException;
+	
+	/**
+	 * Read until end of stream and throw it away
+	 * @throws IOException 
+	 */
+	public void emptyBuffer() throws IOException;
 
 }
