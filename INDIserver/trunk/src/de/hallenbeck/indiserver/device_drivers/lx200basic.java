@@ -644,11 +644,13 @@ public class lx200basic extends telescope implements device_driver_interface {
 			
 			getAlignmentStatus();
 			
-			// EXPERIMENTAL! Works only with Firmware 43Eg!
-			// Navigate Handbox to main menu after power-on, skipping all entries.
+			// EXPERIMENTAL! Works only with Firmware 43Eg (Display messages are localized!)
+			// Navigate Handbox to main menu after power-on, skipping all data entry prompts,
+			// because Handbox does NOT save any parameters as long as it is NOT in main menu.
 			if (getDisplayMessage().compareTo("*Press 0 to Alignor MODE for Menu")==0) {
-			int i=0;
+				int i=0;
 				while (i < 7) {
+					// "Press" the MODE-Key 7 times
 					sendCommand("#:EK9#");
 					i++;
 				}
@@ -657,7 +659,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			// Always use high-precision coords
 			if (getCommandString(getCurrentRACmd).length() == 7) {
 				sendCommand(PrecisionToggleCmd);
-				updateProperty(ConnectSP,"Setting high precision");
+				updateProperty(ConnectSP,"Setting high precision coords");
 			}
 			
 			// Get data for Site #1
