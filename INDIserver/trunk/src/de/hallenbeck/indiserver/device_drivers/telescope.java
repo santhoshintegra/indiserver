@@ -28,9 +28,9 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 		super(inputStream, outputStream);
 	}
 
-	protected communication_driver_interface com_driver=null;
-	protected String device=null;
-	protected boolean connected=false;
+	protected static communication_driver_interface com_driver=null;
+	protected static String device=null;
+	protected static boolean connected=false;
 
 	/**
 	 * Set the driver for communication with the telescope
