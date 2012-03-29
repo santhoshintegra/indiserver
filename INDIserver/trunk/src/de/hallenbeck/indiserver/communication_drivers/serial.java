@@ -168,5 +168,15 @@ public class serial implements communication_driver_interface {
 
 		return ret;
 	}
+	
+	
+	@Override
+	public synchronized void emptyBuffer() throws IOException {
+		if	(BufReader.ready()) {
+			int b=0;
+			while (b != -1) b = BufReader.read();
+		}
+			
+	}
 
 }
