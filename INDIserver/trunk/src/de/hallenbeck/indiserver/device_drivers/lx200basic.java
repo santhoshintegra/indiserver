@@ -8,6 +8,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import de.hallenbeck.indiserver.device_drivers.lx200basic.MovementThread;
+
 import laazotea.indi.INDISexagesimalFormatter;
 import laazotea.indi.INDIDateFormat;
 import laazotea.indi.Constants.PropertyPermissions;
@@ -44,9 +46,42 @@ import laazotea.indi.driver.INDITextProperty;
  */
 public class lx200basic extends telescope implements device_driver_interface {
 	
-	private final String DriverName	= "LX200basic";
-	private final int majorVersion = 0;
-	private final int minorVersion = 1;	
+	public class MovementThread extends Thread {
+
+		public void run() {
+			
+			char tmp = getCommandChar(MoveToTargetCmd);
+			int fail=0;
+			if (tmp !='0') {
+				EquatorialCoordsWNP.setState(PropertyStates.ALERT);
+				updateProperty(EquatorialCoordsWNP);
+			} else {
+				EquatorialCoordsRNP.setState(PropertyStates.BUSY);
+				updateProperty(EquatorialCoordsRNP);
+				while ((!ThreadStop) && (fail < 3)) {
+					if	(getCommandString(DistanceBarsCmd).length()==0) {
+						fail++;
+					} else {
+					getEqCoords();
+					}
+				}
+				if (ThreadStop) {
+					sendCommand(StopAllMovementCmd);
+					updateProperty(ConnectSP,"Slew aborted");
+				} else {
+					updateProperty(ConnectSP,"Slew complete");
+				}
+
+			}
+			getEqCoords();
+		}
+	}
+		
+	protected static boolean ThreadStop = false;
+	protected static INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
+	private final static String DriverName	= "LX200basic";
+	private final static int majorVersion = 0;
+	private final static int minorVersion = 1;	
 	
 	/* Meade LX200 Commands according to official protocol sheet */
 	
@@ -55,6 +90,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected final static String AlignmentAltAzCmd = "#:AA#"; //Set Alignment Mode to AltAz
 	protected final static String AlignmentPolarCmd = "#:AP#"; //Set Alignment Mode to Polar
 	protected final static String AlignmentLandCmd = "#:AL#"; //Set Alignment Mode to Land
+	
+	/* C - Sync Commands */
+	protected final static String SyncToTargetCmd = "#:CM#"; //Sync to target object coords; Returns: static string#
 	
 	/* D - Get Distance Bars */
 	protected final static String DistanceBarsCmd = "#:D#"; //String containing one bar until a slew is complete, then a null string is returned
@@ -70,6 +108,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	/* G - Get Telescope Information */
 	protected final static String getDateCmd = "#:GC#"; //Get current local Date; Returns: MM/DD/YY#
 	protected final static String getCurrentDECCmd = "#:GD#"; //Get current telescope DEC; Returns: sDD*MM# or sDD*MM’SS# 
+	protected final static String getTargetDECCmd = "#:Gd#"; //Get Target object DEC; Returns: sDD*MM# or sDD*MM’SS#
 	protected final static String getUTCHoursCmd = "#:GG#"; //Get Hours to yield UTC from Local Time; Returns: sHH# or sHH.H#
 	protected final static String getSiteLongCmd = "#:Gg#"; //Get Longitude of current site; Returns: sDDD*MM#
 	protected final static String getTimeCmd = "#:GL#"; //Get current local Time; Returns: HH:MM:SS#
@@ -77,6 +116,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected final static String getSite2NameCmd = "#:GN#"; //Get Name of Site 2
 	protected final static String getSite3NameCmd = "#:GO#"; //Get Name of Site 3
 	protected final static String getSite4NameCmd = "#:GP#"; //Get Name of Site 4
+	protected final static String getTargetRACmd = "#:Gr#"; //Get Target object RA; Returns: HH:MM.T# or HH:MM:SS#
 	protected final static String getCurrentRACmd = "#:GR#"; //Get current telescope RA; Returns: HH:MM.T# or HH:MM:SS#
 	protected final static String getSiderealTimeCmd = "#:GS#"; //Get the Sidereal Time; Returns: HH:MM:SS#
 	protected final static String getTrackingRateCmd = "#:GT#"; //Get tracking rate; Returns: TT.T#
@@ -184,7 +224,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 Perm: Transient WO.
 	 Timeout: 120 seconds.
 	*********************************************/
-	protected INDINumberProperty EquatorialCoordsWNP;	// suffix NP = NumberProperty
+	protected static INDINumberProperty EquatorialCoordsWNP;	// suffix NP = NumberProperty
 	protected INDINumberElement RAWN;					// suffix N = NumberElement
 	protected INDINumberElement DECWN;
 	
@@ -589,6 +629,12 @@ public class lx200basic extends telescope implements device_driver_interface {
 			
 			getAlignmentStatus();
 			
+			//Always use high-precision coords
+			if (getCommandString(getCurrentRACmd).length() == 7) {
+				sendCommand(PrecisionToggleCmd);
+				updateProperty(ConnectSP,"Setting high precision");
+			}
+			
 			// Get data for Site #1
 			getSiteName(1);
 			
@@ -765,6 +811,27 @@ public class lx200basic extends telescope implements device_driver_interface {
 				SitesSP.setState(PropertyStates.OK);
 				updateProperty(SitesSP,"Selected Site #"+site);
 			}
+			
+			if (property==OnCoordSetSP) {
+				if (elem==SlewS) {
+					String tmp=null;
+					SlewS.setValue(SwitchStatus.ON);
+					SyncS.setValue(SwitchStatus.OFF);
+				}
+				if (elem==SyncS) {
+					SlewS.setValue(SwitchStatus.OFF);
+					SyncS.setValue(SwitchStatus.ON);
+				}
+				OnCoordSetSP.setState(PropertyStates.OK);
+				updateProperty(OnCoordSetSP);
+				
+			}
+			
+			if (property==AbortSlewSP) {
+				ThreadStop=true;
+				updateProperty(AbortSlewSP);
+			}
+			
 		} else {
 			updateProperty(property,"Not connected");
 		}
@@ -827,6 +894,43 @@ public class lx200basic extends telescope implements device_driver_interface {
 				
 				//Verify by read and update Properties
 				getGeolocation();
+			}
+			
+			/**
+			 * New Equatorial Coords
+			 */
+			if (property == EquatorialCoordsWNP) {
+				ThreadStop=true;
+				int i=0;
+				//for (int i=0; i==elementsAndValues.length-1; i++) {
+				while (i<elementsAndValues.length) {
+					if (elementsAndValues[i].getElement() ==  RAWN) {
+						double RA = elementsAndValues[i].getValue();
+						String RAStr = sexa.format(RA);
+						String RACmd = String.format(setTargetRACmd,RAStr);
+						getCommandChar(RACmd);
+						updateProperty(property,"Targer RA set: "+RAStr);
+						
+					}
+					if (elementsAndValues[i].getElement() == DECWN) {
+						double DEC = elementsAndValues[i].getValue();
+						String DECStr = sexa.format(DEC);
+						String DECCmd = String.format(setTargetDECCmd,DECStr);
+						getCommandChar(DECCmd);
+						updateProperty(property,"Target DEC set: "+DECStr);
+						
+					}
+					i++;
+				}
+				
+				getTargetCoords();
+				ThreadStop=false;
+				MovementThread MThread = new MovementThread();
+				MThread.start();
+				
+				
+				//sendCommand(SyncToTargetCmd);
+				//getEqCoords();
 			}
 		
 		} else {
@@ -996,17 +1100,25 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * Get the current equatorial coords the scope is pointing at
 	 * TODO: some warning if telescope is not aligned, coords may be inaccurate  
 	 */
-	protected void getEqCoords() {
-		INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
+	protected synchronized void getEqCoords() {
 		double RA = sexa.parseSexagesimal(getCommandString(getCurrentRACmd));
 		double DEC = sexa.parseSexagesimal(getCommandString(getCurrentDECCmd));
 		RARN.setValue(RA);
 		DECRN.setValue(DEC);
 		EquatorialCoordsRNP.setState(PropertyStates.OK);
-		updateProperty(EquatorialCoordsRNP,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
+		updateProperty(EquatorialCoordsRNP); //,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
 	}
 	
-	
+	protected void getTargetCoords() {
+		String tmp = getCommandString(getTargetRACmd);
+		double RA = sexa.parseSexagesimal(tmp);
+		String tmp2 = getCommandString(getTargetDECCmd);
+		double DEC = sexa.parseSexagesimal(tmp2);
+		RAWN.setValue(RA);
+		DECWN.setValue(DEC);
+		EquatorialCoordsWNP.setState(PropertyStates.OK);
+		updateProperty(EquatorialCoordsWNP,"Target Object RA: "+RAWN.getValueAsString()+" DEC: "+DECWN.getValueAsString());
+	}
 	
 	
 	/*
@@ -1023,8 +1135,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @param command
 	 * @return double
 	 */
-	protected double getCommandSexa(String command){
-		INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
+	protected static synchronized double getCommandSexa(String command){
 		double tmp = sexa.parseSexagesimal(getCommandString(command));
 		return tmp;
 	}
@@ -1034,7 +1145,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @param command
 	 * @return integer 
 	 */
-	protected int getCommandInt(String command){
+	protected static synchronized int getCommandInt(String command){
 		return Integer.parseInt(getCommandString(command,1));
 		
 	}
@@ -1044,15 +1155,18 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @param command
 	 * @return char
 	 */
-	protected char getCommandChar(String command) {
-		com_driver.set_timeout(1000);
+	protected static synchronized char getCommandChar(String command) {
 		char tmp='-';
+		if (command!=null){
+		com_driver.set_timeout(1000);
+		
 		try {
 			com_driver.sendCommand(command);
 			tmp = com_driver.read(1).charAt(0);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
 		}
 		return tmp;
 	}
@@ -1062,7 +1176,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @param command 
 	 * @return string 
 	 */
-	protected String getCommandString(String command) {
+	protected static synchronized String getCommandString(String command) {
 		String tmp=null;
 		try {
 			com_driver.sendCommand(command);
@@ -1078,7 +1192,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 		return tmp;
 	}
 	
-	protected String getCommandString(String command, int bytes) {
+	protected static synchronized String getCommandString(String command, int bytes) {
 		String tmp=null;
 		try {
 			com_driver.sendCommand(command);
@@ -1096,7 +1210,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * for some commands there is no return (i.e. movement)
 	 * @param command
 	 */
-	protected void sendCommand(String command) {
+	protected static synchronized void sendCommand(String command) {
 		try {
 			com_driver.sendCommand(command);
 		} catch (IOException e) {

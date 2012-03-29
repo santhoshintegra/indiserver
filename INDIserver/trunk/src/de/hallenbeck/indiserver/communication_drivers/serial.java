@@ -41,7 +41,7 @@ public class serial implements communication_driver_interface {
 	 * @param command: String
 	 */
 	@Override
-	public void sendCommand(String command) throws IOException {
+	public synchronized void sendCommand(String command) throws IOException {
 		byte[] buffer=command.getBytes();
 		if (OutStream != null) {
 			OutStream.write(buffer); 
@@ -68,7 +68,7 @@ public class serial implements communication_driver_interface {
 	}
 
 	@Override
-	public String read(char stopchar) throws IOException {
+	public synchronized String read(char stopchar) throws IOException {
 		char c = (char) 255 ;
 		char[] chararray = new char[255];
 		String ret = null;
@@ -94,8 +94,9 @@ public class serial implements communication_driver_interface {
 		}
 
 		// Catch timeout and throw execption
-		if (chararray[pos-1] != stopchar) {
+		if ((pos>0) && (chararray[pos-1] != stopchar)) {
 			throw new IOException ("Read timeout");
+			
 		} else {
 			// Construct String from chararray
 			ret = String.copyValueOf(chararray);
@@ -105,7 +106,7 @@ public class serial implements communication_driver_interface {
 	}
 
 	@Override
-	public String read(int bytes) throws IOException {
+	public synchronized String read(int bytes) throws IOException {
 		char[] chararray = new char[255];
 		String ret = null;
 
@@ -139,7 +140,7 @@ public class serial implements communication_driver_interface {
 	}
 
 	@Override
-	public String read() throws IOException {
+	public synchronized String read() throws IOException {
 		char[] chararray = new char[255];
 		String ret = null;
 
