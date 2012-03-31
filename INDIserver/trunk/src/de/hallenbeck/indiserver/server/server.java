@@ -1,47 +1,42 @@
+/*
+ *
+ * This file is part of INDIserver.
+ *
+ * INDIserver is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * INDIserver is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with INDIserver.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2012 Alexander Tuschen <atuschen75 at gmail dot com>
+ *
+ */
 package de.hallenbeck.indiserver.server;
 
+import android.app.Service;
+import android.content.Intent;
+import android.os.IBinder;
+
 /**
- * The server only acts as a hub between the clients and the devices.
- * There is no parsing of xml-messages. Parsing is done by the drivers itself. 
- * The server should run as service in background and take its settings from 
- * preferences set by the main activity.
- * 
- * The server-service should be able to be started by intent if the first 
- * android client connects and destroy itself after the last client disconnected. 
- * 
- * For network connections (without android-clients) the server should be started
- * by the main activity.
- * 
- * The user should be notified of a running server via notification-manager.
- * 
- * Theoretical procedure:
- * 
- * 0. Start server manually via main-activity or automatically via intent by another android-app 
- * 1. Get device- and communications-driver setting from preferences set by main-activity
- * 2. Create a new instance of the appropriate device-driver class via reflection 
- * 3. Set the appropriate communication-driver (either via constructor of the device-driver
- *    or via public method device_driver_interface.set_communication_driver(drivername) )
- * 4. call the device_driver_interface.connect() method (may be omited if using constructor?)
- * 5. OBSOLETE since INDIforJava uses Streams: give the driver a callback-handler for receiving messages from the telescope 
- *    (also via constructor or device_driver_interface.set_msg_handler(handler) method )
- * 6. open a listening socket on port tcp/7624 for clients to connect (one thread for each client)
- * 7. Notify the user of running background service and number of connected clients via notification-manager 
- * 8. when clients connect keep an array of connected clients
- * 9. relay messages between clients and driver in both directions
- * 10. when last client disconnects stop/destroy service and clear notification of running service 
- *  
- * Exception-handling:
- * 
- * 1. Connection to telescope lost (thrown by the driver)
- * 2. Connection to client(s) lost (thrown by the server)
- * 
- * In the far future:
- * Support other devices like focusers/imagers/cameras etc.
- * 
  * @author atuschen
  *
  */
+public class server extends Service {
 
-public class server {
+	/* (non-Javadoc)
+	 * @see android.app.Service#onBind(android.content.Intent)
+	 */
+	@Override
+	public IBinder onBind(Intent arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }
