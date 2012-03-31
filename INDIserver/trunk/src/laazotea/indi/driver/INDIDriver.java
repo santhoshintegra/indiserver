@@ -33,6 +33,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import android.net.LocalServerSocket;
+import android.net.LocalSocket;
+
 
 /**
  * A class representing a Driver in the INDI Protocol. INDI Drivers should extend this class. It is in charge of stablishing the connection to the clients and parsing / formating any incoming / leaving messages.
@@ -62,6 +65,22 @@ public abstract class INDIDriver {
 
     properties = new LinkedHashMap<String, INDIProperty>();
   }
+  
+  protected INDIDriver() {
+	  	LocalServerSocket serversock;
+		try {
+			serversock = new LocalServerSocket(getName());
+			LocalSocket sock = serversock.accept();
+		    this.out = new PrintWriter(sock.getOutputStream());
+		    in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	  	
+	    properties = new LinkedHashMap<String, INDIProperty>();
+	    startListening();
+	  }
 
   /**
    * Gets the name of the Driver.

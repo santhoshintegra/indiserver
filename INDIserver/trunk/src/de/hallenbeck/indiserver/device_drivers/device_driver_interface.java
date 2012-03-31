@@ -15,4 +15,12 @@ public interface device_driver_interface {
 	public void set_communication_driver (String driver);
 	
 	// TODO: add connect/disconnect/isConnected here.
+	
+	public void set_device(String sdevice);
+	
+	public void connect();
+	
+	public boolean isConnected();
+	
+	public void disconnect();
 }

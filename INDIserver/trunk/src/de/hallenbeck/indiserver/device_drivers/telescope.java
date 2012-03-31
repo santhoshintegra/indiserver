@@ -2,11 +2,7 @@ package de.hallenbeck.indiserver.device_drivers;
 
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 import laazotea.indi.driver.INDIDriver;
-
 import de.hallenbeck.indiserver.communication_drivers.communication_driver_interface;
 
 /**
@@ -23,15 +19,15 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	protected final static String DATETIME_GROUP = "Date/Time";
 	protected final static String SITE_GROUP = "Site Management";
 	protected final static String FOCUS_GROUP = "Focus Control";
-
-	protected telescope(InputStream inputStream, OutputStream outputStream) {
-		super(inputStream, outputStream);
-	}
-
 	protected static communication_driver_interface com_driver=null;
 	protected static String device=null;
 	protected static boolean connected=false;
 
+	protected telescope() {
+		 super();
+	}
+
+	
 	/**
 	 * Set the driver for communication with the telescope
 	 * @param driver fully qualified name of driver class

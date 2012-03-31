@@ -1,8 +1,6 @@
 package de.hallenbeck.indiserver.device_drivers;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -52,47 +50,47 @@ public class lx200basic extends telescope implements device_driver_interface {
 	public class SlewThread extends Thread {
 
 		public void run() {
-			
-			// get return of MoveToTarget Command (starts slewing immediately)
-			int err = getCommandInt(MoveToTargetCmd);
-			
+
+			AbortSlew = false;
+
+			// get return of MoveToTarget Command (starts slewing immediately, if possible)
+			int err = getCommandInt(MoveToTargetCmd); 
 			if (err !=0) {
 				// if Error exit with message
 				EquatorialCoordsWNP.setState(PropertyStates.ALERT);
 				if (err==1) updateProperty(EquatorialCoordsWNP, "Slew not possible: Target object below horizon");
 				if (err==2) updateProperty(EquatorialCoordsWNP, "Slew not possible: Target object not reachable");
-			
+
 			} else { 
-				
+
 				EquatorialCoordsRNP.setState(PropertyStates.BUSY);
 				updateProperty(EquatorialCoordsRNP,"Slewing...");
-				
-				// Loop until slewing complete or aborted
+
+				// Loop until slewing completed or aborted
 				while ((!AbortSlew) && (getCommandString(DistanceBarsCmd).length()==1)) {
-					
-					//Continually update equatorial coordiantes
+
+					//Continually update equatorial coordinates without updating the property
 					getEqCoords(false);
-					
+
 				}
-				
+
 				if (AbortSlew) {
-	
+
 					sendCommand(StopAllMovementCmd);
-					updateProperty(ConnectSP,"Slew aborted");
-					
+					updateProperty(EquatorialCoordsWNP,"Slew aborted");
+
 				} else {
-					
-					updateProperty(ConnectSP,"Slew complete");
+
+					updateProperty(EquatorialCoordsWNP,"Slew complete");
 				}
 
 			}
-			getEqCoords(true);
+			getEqCoords(true); // Update equatorial coordinates and property
 		}
 	}
 		
-	protected static boolean AbortSlew = false; 
+	protected static volatile boolean AbortSlew = false; 
 	protected static INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
-	private final static String DriverName	= "LX200basic";
 	private final static int majorVersion = 0;
 	private final static int minorVersion = 1;	
 	
@@ -108,7 +106,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected final static String SyncToTargetCmd = "#:CM#"; //Sync to target object coords; Returns: static string#
 	
 	/* D - Get Distance Bars */
-	protected final static String DistanceBarsCmd = "#:D#"; //String containing one bar until a slew is complete, then a null string is returned
+	protected final static String DistanceBarsCmd = "#:D#"; //String containing one char until a slew is complete, then a null string is returned
 	
 	/* F - Focuser Control */
 	protected final static String FocuserMoveInward = "#:F+#"; //Start Focuser moving inward (toward objective)
@@ -427,8 +425,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * Constructor with input and outputstream for indi-xml-messages.
 	 * TODO: extend with com_driver and device interface string
 	 */
-	public lx200basic(InputStream inputStream, OutputStream outputStream) {
-		super(inputStream, outputStream);
+	public lx200basic() {
+		super();
 
 	    /*
 		 * INDI Properties 
@@ -704,7 +702,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 */
 	@Override
 	public String getName() {
-		return DriverName;
+		String tmp = this.getClass().getName();
+		return tmp;
 	}
 
 	/**
@@ -882,6 +881,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 			 * UTC-Offset Property
 			 */
 			if (property==UTCOffsetNP) {
+				
+				if (elementsAndValues.length>0) {
 				// Get the value
 				double val = elementsAndValues[0].getValue();
 				// Standard "String.format" doesn't work, we need a string like "+02.0"
@@ -889,13 +890,17 @@ public class lx200basic extends telescope implements device_driver_interface {
 				// KStars sends the Offset (+02.0) but Autostar needs (-02.0) to get the right time.
 				// The Handbox only displays the correct timezone +02.0 if we send -02.0 to it.  
 				String sign = "-";
-				if (val<0) sign = "+";
+				if (val<0) {
+					sign = "+";
+					val = val * -1;
+				}
 				String tmp = String.format("%s%02d.%01d", sign, (int) val, (int) (val % 1));
 				String UTCHoursCmd = String.format(setUTCHoursCmd, tmp);
 				getCommandInt(UTCHoursCmd);	
 				UTCOffsetN.setValue(val);
 				UTCOffsetNP.setState(PropertyStates.OK);
 				updateProperty(property, "Local Time to UTC difference: "+tmp+"h");
+				}
 			}
 
 			/**
@@ -906,11 +911,14 @@ public class lx200basic extends telescope implements device_driver_interface {
 				// Assemble an Autostar Latitude format
 				// Positive = North, Negative = South  Example: "+50*01"
 				String sign = "+";
-				if (geolat<0) sign ="-";
+				if (geolat<0) {
+					sign ="-";
+					geolat = geolat * -1;
+				}
 				// TODO: Instead of truncating doubles with (int) we should round them 
 				String tmp = String.format("%s%02d*%02d", sign, (int) geolat, (int) ((geolat % 1)*60) );
-				
 				String GeolatCmd = String.format(setSiteLatCmd, tmp);
+				updateProperty(property,"Latitude sent:" + tmp);
 				
 				// Set latitude
 				getCommandChar(GeolatCmd);
@@ -920,7 +928,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 				// TODO: Instead of truncating doubles with (int) we should round them 
 				tmp = String.format("%03d*%02d", (int) geolong, (int) ((geolong % 1)*60) ); 
 				String GeolongCmd = String.format(setSiteLongCmd, tmp);
-				
+				updateProperty(property,"Longitude sent:" + tmp);
 				// Set longitude
 				getCommandChar(GeolongCmd);
 				
@@ -957,18 +965,25 @@ public class lx200basic extends telescope implements device_driver_interface {
 				// Verify target coords by read 
 				getTargetCoords();
 				
-				// Slew on new coord is set
+				// "Slew on new coord" is set
 				if (SlewS.getValue()==SwitchStatus.ON) {
+					
 					// Abort all current slewing
 					AbortSlew = true;
 					
-					// Start separate thread for slewing
-					AbortSlew=false;
+					// Wait a moment for a thread to terminate
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					
+					// Start new thread for slewing
 					SlewThread slewThread = new SlewThread();
 					slewThread.start();
 				}
 				
-				// Sync on new coord is set
+				// "Sync on new coord" is set
 				if (SyncS.getValue()==SwitchStatus.ON) {
 					getCommandString(SyncToTargetCmd);
 					getEqCoords(true);
@@ -1156,12 +1171,16 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * TODO: some warning if telescope is not aligned, coords may be inaccurate  
 	 */
 	protected synchronized void getEqCoords(boolean updateState) {
-		double RA = sexa.parseSexagesimal(getCommandString(getCurrentRACmd));
-		double DEC = sexa.parseSexagesimal(getCommandString(getCurrentDECCmd));
-		RARN.setValue(RA);
-		DECRN.setValue(DEC);
-		if (updateState) EquatorialCoordsRNP.setState(PropertyStates.OK);
-		updateProperty(EquatorialCoordsRNP); //,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
+		try {
+			double RA = sexa.parseSexagesimal(getCommandString(getCurrentRACmd));
+			double DEC = sexa.parseSexagesimal(getCommandString(getCurrentDECCmd));
+			RARN.setValue(RA);
+			DECRN.setValue(DEC);
+			if (updateState) EquatorialCoordsRNP.setState(PropertyStates.OK);
+			updateProperty(EquatorialCoordsRNP); //,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
+		} catch (IllegalArgumentException e) {
+			
+		}
 	}
 	
 	protected void getTargetCoords() {
