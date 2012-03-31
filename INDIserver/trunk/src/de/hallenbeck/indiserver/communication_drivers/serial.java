@@ -79,7 +79,7 @@ public class serial implements communication_driver_interface {
 		int pos = 0;
 		
 		//Try to read until stopchar is detected or a timeout occurs
-		//Ignore End of stream!
+		
 		while ((System.currentTimeMillis()<= endTimeMillis) && (c != stopchar)) {
 			if	(BufReader.ready()) {
 				int b = BufReader.read();
@@ -92,9 +92,12 @@ public class serial implements communication_driver_interface {
 			}
 			
 		}
+		
+		// Catch empty String
+		if (pos==0) throw new IOException ("Empty String");
 
 		// Catch timeout and throw execption
-		if ((pos>0) && (chararray[pos-1] != stopchar)) {
+		if (chararray[pos-1] != stopchar) {
 			throw new IOException ("Read timeout");
 			
 		} else {
@@ -116,7 +119,7 @@ public class serial implements communication_driver_interface {
 		int pos = 0;
 		
 		//Try to read num bytes or until a timeout occurs
-		//Ignore End of stream!
+
 		while ((pos != bytes) && (System.currentTimeMillis()<= endTimeMillis)) { 
 			if	(BufReader.ready()) {
 				int b = BufReader.read();
@@ -126,6 +129,9 @@ public class serial implements communication_driver_interface {
 				}
 			}
 		}
+		
+		// Catch empty String
+		if (pos==0) throw new IOException ("Empty String");
 
 		// Catch timeout and throw execption
 		if (pos < bytes) {
@@ -150,7 +156,6 @@ public class serial implements communication_driver_interface {
 		int pos = 0;
 
 		//Try to read until timeout occurs
-		//Ignore End of stream!
 		while ((System.currentTimeMillis()<= endTimeMillis)) {
 			if	(BufReader.ready()) {
 				int b = BufReader.read();
@@ -162,7 +167,10 @@ public class serial implements communication_driver_interface {
 			}
 
 		}
-
+		
+		// Catch empty String
+		if (pos==0) throw new IOException ("Empty String");
+		
 		// Construct String from chararray
 		ret = String.copyValueOf(chararray);
 
