@@ -161,6 +161,9 @@ public class server extends Service {
 					
 					// Create a new ConnectionThread
 					if ( connections < maxClients) {
+						
+						//FIXME: Find free arrayindex!!! This does not work, if an early client disconnects 
+						
 						ConnectionThreads[connections] = new ConnectionThread(sock);
 						ConnectionThreads[connections].start();
 					}
