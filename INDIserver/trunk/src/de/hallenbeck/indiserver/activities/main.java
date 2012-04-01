@@ -44,9 +44,7 @@ import android.widget.Button;
  *
  */
 public class main extends PreferenceActivity {
-	
-	
-	
+
 	public OnClickListener l = new OnClickListener() {
 		public void onClick(View v) {
 			startService(new Intent(main.this, server.class));

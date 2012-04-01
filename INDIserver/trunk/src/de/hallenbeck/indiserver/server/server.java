@@ -58,7 +58,6 @@ public class server extends Service {
 	//max number of devices/drivers
 	private static final int maxDevices = 4;
 	
-	private static boolean StopService = false;
 
 	/**
 	 * TCP ConnectionThread created by ServerThread on connection of client
@@ -159,7 +158,8 @@ public class server extends Service {
 					Socket sock = Sock.accept();
 
 					int connections = getConnectionCount();
-
+					
+					// Create a new ConnectionThread
 					if ( connections < maxClients) {
 						ConnectionThreads[connections] = new ConnectionThread(sock);
 						ConnectionThreads[connections].start();
@@ -302,11 +302,14 @@ public class server extends Service {
 					// This is blocking 
 					len = in.read(buffer, 0, 8192);
 					if (len != -1) {
+						
+						// Write Driver output to all connected clients 
 						int i=0;
 						while (i < SThread.getConnectionCount()) {
 							((ConnectionThread) SThread.ConnectionThreads[i]).write(buffer,len);
 							i++;
 						}
+						
 					} else sock =null;
 
 				} catch (IOException e) {
@@ -343,8 +346,6 @@ public class server extends Service {
 	}
 	
 	public synchronized void Stop() {
-		StopService = true;
-		
 		
 		// Close the ServerThread Socket (causes the ServerThread and all ConnectionThreads to terminate)
 		SThread.closeSocket();
