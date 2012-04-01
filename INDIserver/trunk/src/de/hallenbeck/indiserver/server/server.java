@@ -71,6 +71,7 @@ public class server extends Service {
 		private BufferedWriter out;
 		private char[] buffer;
 		private int connectionSlot;
+		private boolean connected = false;
 		
 		/**
 		 * Seperate thread for each tcp-connection 
@@ -83,6 +84,7 @@ public class server extends Service {
 			try {
 				in  = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 				out = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
+				connected = true;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -91,7 +93,6 @@ public class server extends Service {
 		}
 		
 		public void run() {
-			boolean connected = true;
 			SThread.IncreaseConnectionCount();	
 			while (connected) {
 				try {
@@ -275,6 +276,7 @@ public class server extends Service {
 		private char[] buffer;
 		private LocalSocket sock = null;
 		private DriverStartThread Driver;
+		private boolean connected = false;
 		
 		public DriverThread(String deviceDriver, String comDriver, String device) {
 			
@@ -302,6 +304,7 @@ public class server extends Service {
 				// create the readers/writers
 				in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 				out = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
+				connected = true;
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -314,7 +317,7 @@ public class server extends Service {
 		
 		public void run() {
 			int len=0;
-			while (sock != null) {
+			while (connected) {
 				try {
 					// This is blocking 
 					len = in.read(buffer, 0, 8192);
@@ -323,11 +326,10 @@ public class server extends Service {
 						// Write Driver output to all connected clients 
 						SThread.writeToAllClients(buffer, len);
 						
-					} else sock =null;
+					} 
 
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
-					sock = null;
 					e.printStackTrace();
 				}
 
@@ -337,9 +339,9 @@ public class server extends Service {
 		public void closeSocket() {
 			try {
 				// close input/outputstreams and socket (causes thread to terminate)
-				sock.shutdownInput();
 				sock.shutdownOutput();
-				sock.close();
+				sock.shutdownInput();
+				connected = false;
 				
 			} catch (IOException e) {
 				e.printStackTrace();
