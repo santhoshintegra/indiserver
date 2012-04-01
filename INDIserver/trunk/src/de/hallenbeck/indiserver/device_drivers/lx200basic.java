@@ -652,13 +652,25 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 */ 
 	public void connect() {
 		
-		super.connect();
+		try {
+			super.connect();
+		} catch (IOException e) {
+			ConnectSP.setState(PropertyStates.ALERT);
+			updateProperty(ConnectSP,e.getMessage());
+		}
+		
+		
+		if (isConnected()) {
+			// Test serial connection
+			// Get Alignment information
+			getAlignmentMode();
+		}
 		
 		if (isConnected()) {
 			
 			// Get Alignment information
 			getAlignmentMode();
-			
+		
 			getFirmwareInformation();
 			
 			getAlignmentStatus();
@@ -776,7 +788,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			 */
 
 		} else {
-			updateProperty(property,"Not connected");
+			updateProperty(property,"LX200basic[ProcessNewTextValue]: Not connected");
 		}
 	}
 
@@ -885,7 +897,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			}
 			
 		} else {
-			updateProperty(property,"Not connected");
+			updateProperty(property,"LX200basic[ProcessNewSwitchValue]: Not connected");
 		}
 	}
 
@@ -1014,7 +1026,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			}
 		
 		} else {
-			updateProperty(property,"Not connected");
+			updateProperty(property,"LX200basic[ProcessNewNumberValue]: Not connected");
 		}
 	}
 
@@ -1230,7 +1242,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @param command
 	 * @return double
 	 */
-	protected static synchronized double getCommandSexa(String command){
+	protected synchronized double getCommandSexa(String command){
 		double tmp = sexa.parseSexagesimal(getCommandString(command));
 		return tmp;
 	}
@@ -1240,7 +1252,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @param command
 	 * @return integer 
 	 */
-	protected static synchronized int getCommandInt(String command){
+	protected synchronized int getCommandInt(String command){
 		return Integer.parseInt(getCommandString(command,1));
 		
 	}
@@ -1250,7 +1262,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @param command
 	 * @return char
 	 */
-	protected static synchronized char getCommandChar(String command) {
+	protected synchronized char getCommandChar(String command) {
 		char tmp='-';
 		if (command!=null){
 		com_driver.set_timeout(5000);
@@ -1260,8 +1272,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 			com_driver.sendCommand(command);
 			tmp = com_driver.read(1).charAt(0);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			disconnect();
+			ConnectSP.setState(PropertyStates.ALERT);
+			updateProperty(ConnectSP,e.getMessage());
 		}
 		}
 		return tmp;
@@ -1272,8 +1285,8 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * @param command 
 	 * @return string 
 	 */
-	protected static synchronized String getCommandString(String command) {
-		String tmp=null;
+	protected synchronized String getCommandString(String command) {
+		String tmp="";
 		try {
 			com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
@@ -1284,13 +1297,15 @@ public class lx200basic extends telescope implements device_driver_interface {
 			tmp = tmp.replaceAll(">", "");
 			tmp = tmp.trim();
 		} catch (IOException e) {
-			e.printStackTrace();
+			disconnect();
+			ConnectSP.setState(PropertyStates.ALERT);
+			updateProperty(ConnectSP,e.getMessage());
 		}
 		return tmp;
 	}
 	
-	protected static synchronized String getCommandString(String command, int bytes) {
-		String tmp=null;
+	protected synchronized String getCommandString(String command, int bytes) {
+		String tmp="";
 		try {
 			com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
@@ -1298,7 +1313,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 			tmp = com_driver.read(bytes);
 			
 		} catch (IOException e) {
-			e.printStackTrace();
+			disconnect();
+			ConnectSP.setState(PropertyStates.ALERT);
+			updateProperty(ConnectSP,e.getMessage());
 		}
 		return tmp;
 	}
@@ -1308,12 +1325,14 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * for some commands there is no return (i.e. movement)
 	 * @param command
 	 */
-	protected static synchronized void sendCommand(String command) {
+	protected synchronized void sendCommand(String command) {
 		try {
 			com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
 		} catch (IOException e) {
-			e.printStackTrace();
+			disconnect();
+			ConnectSP.setState(PropertyStates.ALERT);
+			updateProperty(ConnectSP,e.getMessage());
 		}
 	}
 	

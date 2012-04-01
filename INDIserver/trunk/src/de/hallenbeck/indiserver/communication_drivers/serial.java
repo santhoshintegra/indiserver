@@ -66,7 +66,7 @@ public class serial implements communication_driver_interface {
 		if (OutStream != null) {
 			OutStream.write(buffer); 
 		} else {
-			throw new IOException("Not connected");
+			throw new IOException("Serial [sendCommand]: OutputStream closed");
 		}
 	}
 
@@ -101,6 +101,7 @@ public class serial implements communication_driver_interface {
 		//Try to read until stopchar is detected or a timeout occurs
 		
 		while ((System.currentTimeMillis()<= endTimeMillis) && (c != stopchar)) {
+			//FIXME: ready() does consume way too much CPU time
 			if	(BufReader.ready()) {
 				int b = BufReader.read();
 				if (b != -1) {
@@ -108,17 +109,14 @@ public class serial implements communication_driver_interface {
 					chararray[pos]=(char) b;
 					pos++;
 					c = (char) b;
-				}
+				} else throw new IOException ("Serial [read(char stopchar)]: InputStream closed");
 			}
 			
 		}
 		
-		// Catch empty String
-		if (pos==0) throw new IOException ("Empty String");
-
 		// Catch timeout and throw execption
-		if (chararray[pos-1] != stopchar) {
-			throw new IOException ("Read timeout");
+		if ((pos==0) || (chararray[pos-1] != stopchar)) {
+			throw new IOException ("Serial [read(char stopchar)]: timeout");
 			
 		} else {
 			// Construct String from chararray
@@ -141,21 +139,19 @@ public class serial implements communication_driver_interface {
 		//Try to read num bytes or until a timeout occurs
 
 		while ((pos != bytes) && (System.currentTimeMillis()<= endTimeMillis)) { 
+			//FIXME: ready() does consume way too much CPU time
 			if	(BufReader.ready()) {
 				int b = BufReader.read();
 				if (b != -1) {
 					chararray[pos]=(char) b;
 					pos++;
-				}
+				} else throw new IOException ("Serial [read(int bytes)]: InputStream closed");
 			}
 		}
-		
-		// Catch empty String
-		if (pos==0) throw new IOException ("Empty String");
 
 		// Catch timeout and throw execption
-		if (pos < bytes) {
-			throw new IOException ("Read timeout");
+		if ((pos==0) || (pos < bytes)) {
+			throw new IOException ("Serial [read(int bytes)]: timeout");
 		} else {
 			// Construct String from chararray
 			ret = String.copyValueOf(chararray);
@@ -177,19 +173,20 @@ public class serial implements communication_driver_interface {
 
 		//Try to read until timeout occurs
 		while ((System.currentTimeMillis()<= endTimeMillis)) {
+			//FIXME: ready() does consume way too much CPU time
 			if	(BufReader.ready()) {
 				int b = BufReader.read();
 				if (b != -1) {
 					chararray[pos]=(char) b;
 					pos++;
 
-				}
+				} else throw new IOException ("Serial [read()]: InputStream closed");
 			}
 
 		}
 		
 		// Catch empty String
-		if (pos==0) throw new IOException ("Empty String");
+		if (pos==0) throw new IOException ("Serial [read()]: Reader not ready");
 		
 		// Construct String from chararray
 		ret = String.copyValueOf(chararray);
@@ -200,9 +197,10 @@ public class serial implements communication_driver_interface {
 	
 	@Override
 	public synchronized void emptyBuffer() throws IOException {
-		if	(BufReader.ready()) {
+		//FIXME: ready() does consume way too much CPU time
+		while (BufReader.ready()) {
 			int b=0;
-			while (b != -1) b = BufReader.read();
+			b = BufReader.read();
 		}
 			
 	}

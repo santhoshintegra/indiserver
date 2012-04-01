@@ -58,7 +58,7 @@ public class server extends Service {
 	//max number of devices/drivers
 	private static final int maxDevices = 4;
 	
-	
+	private static boolean StopService = false;
 
 	/**
 	 * TCP ConnectionThread created by ServerThread on connection of client
@@ -93,19 +93,22 @@ public class server extends Service {
 			SThread.IncreaseConnectionCount();	
 			while (connected) {
 				try {
-						//Read data from tcp inputstream (from client)
-						int len = in.read(buffer,0,8192);
-						if (len != -1) {
-							// Write data to local sock via DriverThread (to driver)
-							DThread.write(buffer,len);	
-						} else {
-							//Connection to client lost
-							SThread.DecreaseConnectionCount();
-							connected = false;
-						}
-					
+
+					// Blocking: Read data from tcp inputstream (from client) 
+					int len = in.read(buffer,0,8192);
+					if (len != -1) {
+						// Write data to local sock via DriverThread (to driver)
+						DThread.write(buffer,len);	
+					} else {
+						//Connection to client lost
+						SThread.DecreaseConnectionCount();
+						connected = false;
+						
+						// If this was the last client stop the service
+						if (SThread.getConnectionCount() == 0) Stop();
+					}
+
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
@@ -124,6 +127,8 @@ public class server extends Service {
 		}
 	}
 	
+
+	
 	/**
 	 * Main TCP Server Thread
 	 * listens for connections on port 7624 and starts a new 
@@ -135,28 +140,46 @@ public class server extends Service {
 	class ServerThread extends Thread {
 		private Thread[] ConnectionThreads;
 		private int ConnectionCount = 0;
-
+		ServerSocket Sock = null;
+		
+		public ServerThread(){
+			try {
+				Sock = new ServerSocket(7624);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+		
 		public void run() {
 			ConnectionThreads = new Thread[maxClients];
-			while (true) {
+			while ((Sock != null) && (!Sock.isClosed())) {
 				try {
-					ServerSocket Sock = new ServerSocket(7624);
+
+					// This blocks until a new connection is established
 					Socket sock = Sock.accept();
-					
+
 					int connections = getConnectionCount();
-					
+
 					if ( connections < maxClients) {
 						ConnectionThreads[connections] = new ConnectionThread(sock);
 						ConnectionThreads[connections].start();
 					}
-				
-				} catch (IOException e) {
 
-					e.printStackTrace();
+				} catch (IOException e) {
+					// Socket closed exception thrown away
 				}
 
-			}	
+			}
 
+		}
+
+		public void closeSocket() {
+			try {
+				// Close the socket 
+				Sock.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		public int getConnectionCount() {
@@ -165,15 +188,18 @@ public class server extends Service {
 		
 		public synchronized void IncreaseConnectionCount() {
 			ConnectionCount++;
-			notifyUser();
+			notifyUser("INDIserver running", ConnectionCount + " Client(s) connected", true);
 		}
 		
 		public synchronized void DecreaseConnectionCount() {
 			ConnectionCount--;
-			notifyUser();
+			if (ConnectionCount > 0) notifyUser("INDIserver running", ConnectionCount + " Client(s) connected", true);
 		}	
 		
 	}
+	
+	
+	
 	
 	/**
 	 * Driver start Thread - called by DriverThread
@@ -183,13 +209,13 @@ public class server extends Service {
 	 * @author atuschen
 	 *
 	 */
-	public class StartThread extends Thread {
+	public class DriverStartThread extends Thread {
 		private String DeviceDriver;
 		private String ComDriver;
 		private String Device;
 		private device_driver_interface devicedriver = null;
 		
-		public StartThread(String deviceDriver, String comDriver, String device) {
+		public DriverStartThread(String deviceDriver, String comDriver, String device) {
 			DeviceDriver = deviceDriver;
 			ComDriver = comDriver;
 			Device = device;
@@ -208,10 +234,14 @@ public class server extends Service {
 				e.printStackTrace();
 			} catch (InstantiationException e) {
 				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 			
 		}
 	}
+	
+	
 	
 	
 	/**
@@ -226,23 +256,33 @@ public class server extends Service {
 		private BufferedReader in;
 		private BufferedWriter out;
 		private char[] buffer;
-		private StartThread Driver;
+		private LocalSocket sock = null;
+		private DriverStartThread Driver;
 		
 		public DriverThread(String deviceDriver, String comDriver, String device) {
 			
 			buffer = new char[8192];
-			LocalSocket sock = new LocalSocket();
+				
 			
 			// Start the Driver 
-			Driver = new StartThread(deviceDriver, comDriver, device);
+			Driver = new DriverStartThread(deviceDriver, comDriver, device);
 			Driver.start();
 			
 			// Connect to the driver
 			try {
-				sleep(1000); //let the driver start, so wait a moment 
+				// let the driver start, so wait a moment
+				sleep(1000);
+				
+				// create the socket address from the driver class name
 				LocalSocketAddress address = new LocalSocketAddress(deviceDriver);
+				
+				// create the local socket
 				sock = new LocalSocket();
+				
+				// connect to the driver 
 				sock.connect(address);
+				
+				// create the readers/writers
 				in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 				out = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 				
@@ -257,22 +297,36 @@ public class server extends Service {
 		
 		public void run() {
 			int len=0;
-			while(true) {
+			while (sock != null) {
 				try {
-						len = in.read(buffer, 0, 8192);
-						if (len != -1) {
-							int i=0;
-							while (i < SThread.getConnectionCount()) {
-								((ConnectionThread) SThread.ConnectionThreads[i]).write(buffer,len);
-								i++;
-							}
+					// This is blocking 
+					len = in.read(buffer, 0, 8192);
+					if (len != -1) {
+						int i=0;
+						while (i < SThread.getConnectionCount()) {
+							((ConnectionThread) SThread.ConnectionThreads[i]).write(buffer,len);
+							i++;
 						}
+					} else sock =null;
 
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
+					sock = null;
 					e.printStackTrace();
 				}
-					
+
+			}
+		}
+
+		public void closeSocket() {
+			try {
+				// close input/outputstreams and socket (causes thread to terminate)
+				sock.shutdownInput();
+				sock.shutdownOutput();
+				sock.close();
+				
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 		
@@ -288,26 +342,40 @@ public class server extends Service {
 		}
 	}
 	
+	public synchronized void Stop() {
+		StopService = true;
+		
+		
+		// Close the ServerThread Socket (causes the ServerThread and all ConnectionThreads to terminate)
+		SThread.closeSocket();
+			
+		// Close the DriverThread Socket (causes the DriverThread and all Drivers to terminate)
+		DThread.closeSocket();
+			
+		// Notify User and stop the service
+		notifyUser("INDIServer stopped", "All Clients disconnected", false);
+		stopSelf();
+
+	}
+	
 	/**
 	 * Notify user about running server and connected clients
 	 */
-	public void notifyUser() {
-		int nClients = SThread.getConnectionCount();
+	public void notifyUser(String title, String message, boolean ongoing) {
 		
 		String ns = Context.NOTIFICATION_SERVICE;
 		NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
 
 		Notification.Builder notificationbuilder = new Notification.Builder(getApplicationContext());
 		
-		notificationbuilder.setContentTitle("INDIserver running");
-		notificationbuilder.setContentText(String.format("%d Client(s) connected",nClients));
-		notificationbuilder.setTicker(String.format("%d Client(s) connected",nClients));
+		notificationbuilder.setContentTitle(title);
+		notificationbuilder.setContentText(message);
+		notificationbuilder.setTicker(message);
 		notificationbuilder.setSmallIcon(R.drawable.ic_launcher);
-		notificationbuilder.setOngoing(true);
-
+		notificationbuilder.setOngoing(ongoing);
 		Notification notification = notificationbuilder.getNotification();
 		
-		mNotificationManager.notify(2, notification);
+		mNotificationManager.notify(1, notification);
 		
 	}
 	
@@ -332,7 +400,7 @@ public class server extends Service {
 		DThread = new DriverThread( DeviceDriver,ComDriver,Device );
 		DThread.start();
 
-		notifyUser();
+		notifyUser("INDIserver started","Waiting for Clients...",true);
 
 		return super.onStartCommand(intent, flags, startId);
 	}

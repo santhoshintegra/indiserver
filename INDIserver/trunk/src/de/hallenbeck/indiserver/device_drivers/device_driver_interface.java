@@ -20,6 +20,8 @@
  */
 package de.hallenbeck.indiserver.device_drivers;
 
+import java.io.IOException;
+
 
 /**
  * Generic interface definition for device drivers 
@@ -32,14 +34,12 @@ public interface device_driver_interface {
 	 * Set the driver for communication with the telecope
 	 * @param driver
 	 */
-	public void set_communication_driver (String driver);
-	
-	// TODO: add connect/disconnect/isConnected here.
+	public void set_communication_driver (String driver) throws ClassNotFoundException;
 	
 	public void set_device(String sdevice);
 	
-	public void connect();
-	
+	public void connect() throws IOException;
+
 	public boolean isConnected();
 	
 	public void disconnect();

@@ -53,12 +53,10 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	 * Set the driver for communication with the telescope
 	 * @param driver fully qualified name of driver class
 	 */
-	public void set_communication_driver(String driver) {
+	public void set_communication_driver(String driver) throws ClassNotFoundException {
 		try {
-			com_driver = (communication_driver_interface) Class.forName(driver).newInstance();
+			if (driver != null) com_driver = (communication_driver_interface) Class.forName(driver).newInstance();
 			
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		} catch (InstantiationException e) {
@@ -73,15 +71,13 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	/**
 	 * Connect to the telescope
 	 */
-	public void connect() {
-		if (!connected) {
-		try {
+	public void connect() throws IOException {
+		if ((!connected) && (com_driver != null) && (device != null)) {
 			com_driver.connect(device);
 			connected=true;
-		} catch (IOException e) {
-			e.printStackTrace();
-			connected=false;
-		}
+		} else {
+			if (com_driver == null) throw new IOException("Telescope: Communication Driver not set");
+			if (device == null) throw new IOException("Telescope: Device not set");
 		}
 	}
 	
@@ -97,9 +93,9 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	 * Disconnect from telescope
 	 */
 	public void disconnect() {
-		if (connected) {
-		connected=false;
+		if ((connected) && (com_driver != null)) {
 		com_driver.disconnect();
+		connected=false;
 		}
 	}
 

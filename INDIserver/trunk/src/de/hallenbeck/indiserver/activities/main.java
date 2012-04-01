@@ -26,7 +26,6 @@ import java.util.List;
 import de.hallenbeck.indiserver.R;
 import de.hallenbeck.indiserver.server.server;
 
-import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
