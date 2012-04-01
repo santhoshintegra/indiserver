@@ -70,13 +70,16 @@ public class server extends Service {
 		private BufferedReader in;
 		private BufferedWriter out;
 		private char[] buffer;
+		private int connectionSlot;
 		
 		/**
 		 * Seperate thread for each tcp-connection 
 		 * @param sock Connection Socket 
+		 * @param slot Connection Slot (Array index)
 		 */
-		public ConnectionThread (Socket sock) {
+		public ConnectionThread (Socket sock, int slot) {
 			buffer = new char[8192];
+			connectionSlot = slot;
 			try {
 				in  = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 				out = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
@@ -100,7 +103,7 @@ public class server extends Service {
 						DThread.write(buffer,len);	
 					} else {
 						//Connection to client lost
-						SThread.DecreaseConnectionCount();
+						SThread.DecreaseConnectionCount(connectionSlot);
 						connected = false;
 						
 						// If this was the last client stop the service
@@ -137,7 +140,7 @@ public class server extends Service {
 	 *
 	 */
 	class ServerThread extends Thread {
-		private Thread[] ConnectionThreads;
+		private ConnectionThread[] ConnectionThreads;
 		private int ConnectionCount = 0;
 		ServerSocket Sock = null;
 		
@@ -150,26 +153,27 @@ public class server extends Service {
 		}
 		
 		public void run() {
-			ConnectionThreads = new Thread[maxClients];
+			ConnectionThreads = new ConnectionThread[maxClients];
 			while ((Sock != null) && (!Sock.isClosed())) {
 				try {
 
 					// This blocks until a new connection is established
 					Socket sock = Sock.accept();
 
-					int connections = getConnectionCount();
-					
-					// Create a new ConnectionThread
-					if ( connections < maxClients) {
-						
-						//FIXME: Find free arrayindex!!! This does not work, if an early client disconnects 
-						
-						ConnectionThreads[connections] = new ConnectionThread(sock);
-						ConnectionThreads[connections].start();
+					int i = 0;
+					boolean emptySlotFound = false;
+					while ((i < maxClients) && (!emptySlotFound)) {
+						if (ConnectionThreads[i] == null) {
+							ConnectionThreads[i] = new ConnectionThread(sock,i);
+							ConnectionThreads[i].start();
+							emptySlotFound = true;
+						}
+						i++;
 					}
 
 				} catch (IOException e) {
-					// Socket closed exception thrown away
+					// Socket closed (by closeSocket())
+					
 				}
 
 			}
@@ -189,21 +193,31 @@ public class server extends Service {
 			return ConnectionCount;
 		}
 		
+		public synchronized void writeToClient(int slot, char[] data, int len) {
+			ConnectionThreads[slot].write(data, len);
+		}
+		
+		public synchronized void writeToAllClients(char[] data, int len) {
+			int i = 0;
+			while (i < maxClients) {
+				if (ConnectionThreads[i] != null) ConnectionThreads[i].write(data, len);
+				i++;
+			}
+		}
+		
 		public synchronized void IncreaseConnectionCount() {
 			ConnectionCount++;
 			notifyUser("INDIserver running", ConnectionCount + " Client(s) connected", true);
 		}
 		
-		public synchronized void DecreaseConnectionCount() {
+		public synchronized void DecreaseConnectionCount(int slot) {
 			ConnectionCount--;
+			ConnectionThreads[slot] = null;
 			if (ConnectionCount > 0) notifyUser("INDIserver running", ConnectionCount + " Client(s) connected", true);
 		}	
 		
 	}
-	
-	
-	
-	
+
 	/**
 	 * Driver start Thread - called by DriverThread
 	 * Creates a new instance of a driver in its own Thread
@@ -307,11 +321,7 @@ public class server extends Service {
 					if (len != -1) {
 						
 						// Write Driver output to all connected clients 
-						int i=0;
-						while (i < SThread.getConnectionCount()) {
-							((ConnectionThread) SThread.ConnectionThreads[i]).write(buffer,len);
-							i++;
-						}
+						SThread.writeToAllClients(buffer, len);
 						
 					} else sock =null;
 
