@@ -48,9 +48,9 @@ import android.preference.PreferenceManager;
  */
 public class server extends Service {
 
-	public static ServerThread SThread;
-	public DriverThread DThread;
-	public static boolean autoconnect = false;
+	public ServerThread SThread;
+	public DriverThread[] DThread;
+	public boolean autoconnect = false;
 	
 	//max number of clients 
 	private static final int maxClients = 8;
@@ -58,6 +58,7 @@ public class server extends Service {
 	//max number of devices/drivers
 	private static final int maxDevices = 4;
 	
+	//TODO: Add support for multiple drivers/devices
 
 	/**
 	 * TCP ConnectionThread created by ServerThread on connection of client
@@ -101,7 +102,7 @@ public class server extends Service {
 					int len = in.read(buffer,0,8192);
 					if (len != -1) {
 						// Write data to local sock via DriverThread (to driver)
-						DThread.write(buffer,len);	
+						DThread[0].write(buffer,len);	
 					} else {
 						//Connection to client lost
 						SThread.DecreaseConnectionCount(connectionSlot);
@@ -399,9 +400,11 @@ public class server extends Service {
 		SThread = new ServerThread();
 		SThread.start();
 
+		DThread = new DriverThread[maxDevices];
+		
 		// Start the DriverThread
-		DThread = new DriverThread( DeviceDriver,ComDriver,Device );
-		DThread.start();
+		DThread[0] = new DriverThread( DeviceDriver,ComDriver,Device );
+		DThread[0].start();
 
 		notifyUser("INDIserver started","Waiting for Clients...",true);
 
@@ -438,7 +441,7 @@ public class server extends Service {
 		SThread.closeSocket();
 
 		// Close the DriverThread Socket (causes the DriverThread and all Drivers to terminate)
-		DThread.closeSocket();
+		DThread[0].closeSocket();
 
 		// Notify User and stop the service
 		notifyUser("INDIServer stopped", "All Clients disconnected", false);
