@@ -108,7 +108,7 @@ public class server extends Service {
 						connected = false;
 						
 						// If this was the last client stop the service
-						if (SThread.getConnectionCount() == 0) Stop();
+						if (SThread.getConnectionCount() == 0) stopSelf();
 					}
 
 				} catch (IOException e) {
@@ -163,6 +163,7 @@ public class server extends Service {
 
 					int i = 0;
 					boolean emptySlotFound = false;
+					
 					while ((i < maxClients) && (!emptySlotFound)) {
 						if (ConnectionThreads[i] == null) {
 							ConnectionThreads[i] = new ConnectionThread(sock,i);
@@ -338,7 +339,7 @@ public class server extends Service {
 
 		public void closeSocket() {
 			try {
-				// close input/outputstreams and socket (causes thread to terminate)
+				// close input/outputstreams (causes thread to terminate)
 				sock.shutdownOutput();
 				sock.shutdownInput();
 				connected = false;
@@ -358,20 +359,6 @@ public class server extends Service {
 			}
 
 		}
-	}
-	
-	public synchronized void Stop() {
-		
-		// Close the ServerThread Socket (causes the ServerThread and all ConnectionThreads to terminate)
-		SThread.closeSocket();
-			
-		// Close the DriverThread Socket (causes the DriverThread and all Drivers to terminate)
-		DThread.closeSocket();
-			
-		// Notify User and stop the service
-		notifyUser("INDIServer stopped", "All Clients disconnected", false);
-		stopSelf();
-
 	}
 	
 	/**
@@ -446,7 +433,15 @@ public class server extends Service {
 
 	@Override
 	public void onDestroy() {
-		// TODO Auto-generated method stub
+
+		// Close the ServerThread Socket (causes the ServerThread and all ConnectionThreads to terminate)
+		SThread.closeSocket();
+
+		// Close the DriverThread Socket (causes the DriverThread and all Drivers to terminate)
+		DThread.closeSocket();
+
+		// Notify User and stop the service
+		notifyUser("INDIServer stopped", "All Clients disconnected", false);
 		super.onDestroy();
 	}
 
