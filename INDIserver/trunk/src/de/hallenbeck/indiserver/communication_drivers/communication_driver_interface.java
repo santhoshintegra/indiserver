@@ -92,12 +92,6 @@ public interface communication_driver_interface {
 	public String read(int bytes) throws IOException;
 	
 	/**
-	 * Try to read from device until timeout occurs
-	 * @return String
-	 */
-	public String read() throws IOException;
-	
-	/**
 	 * Read until end of stream and throw it away
 	 * @throws IOException 
 	 */

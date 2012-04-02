@@ -39,23 +39,93 @@ public class serial implements communication_driver_interface {
 	protected OutputStream OutStream;
 	protected InputStreamReader InReader;
 	protected BufferedReader BufReader;
-    private int timeout = 0;
- 
-    public serial() {
+    private int timeout = 100; 
+    
+    /**
+     * TimerThread for timeout on blocking operations
+     * BufferedReader.ready() uses too much CPU power (about 50% on my Archos)
+     * Thread uses 50ms steps: A timeout value of 100 yields 5 seconds.
+     * @author atuschen
+     *
+     */
+    private class TimerThread extends Thread {
+    	private boolean StopTimerThread=false;
+    	private boolean jobDone;
+    	public TimerThread() {
+    		start();
+    	}
+    	public void run() {
+    		while (!StopTimerThread) {
+    			try {
+    				synchronized(this) {
+    					wait();
+    				}
+    				
+    				jobDone=false;
+    				int i=0;
+    				while ((!jobDone) && (i<timeout)) {
+    					sleep (50);
+    					i++;
+    				}
+    				
+    				if (!jobDone) {
+    	    			BufReader.close();
+    	    		}
+    			} catch (InterruptedException e) {
+    				// TODO Auto-generated catch block
+    				e.printStackTrace();
+    			} catch (IOException e) {
+    				// TODO Auto-generated catch block
+    				e.printStackTrace();
+    			}	
+    		}
+    	}
     	
+    	public void stoptimer() {
+    		jobDone=true;
+    	}
+    	
+    	public void stopTread() {
+    		jobDone=true;
+    		StopTimerThread=true;
+    		synchronized (this) {
+    			notify();
+    		}
+    	}
     }
     
+    TimerThread Timer = new TimerThread();
+    
+    // Start the Timer
+    private void TimerStart() {
+    	synchronized (Timer) {
+    	Timer.notify();
+    	}
+    }
+    
+    // Stop the Timer 
+    private void TimerStop() {
+    	Timer.stoptimer();
+    }
+
+    
+    /**
+     * Class Constructor
+     */
+    public serial() {
+        
+    }
+
 	@Override
     public void connect(String device) throws IOException {
 		// TODO Open serial device and construct Readers;
-		
 	}
 
 	@Override
 	public void disconnect() {
-		// TODO Close serial device and in/outstreams
+		Timer.stopTread();
 	}
-
+	
 	/**
 	 * Send a String to the device
 	 * @param command: String
@@ -63,11 +133,8 @@ public class serial implements communication_driver_interface {
 	@Override
 	public synchronized void sendCommand(String command) throws IOException {
 		byte[] buffer=command.getBytes();
-		if (OutStream != null) {
-			OutStream.write(buffer); 
-		} else {
-			throw new IOException("Serial [sendCommand]: OutputStream closed");
-		}
+		OutStream.write(buffer);
+		
 	}
 
 	@Override
@@ -92,36 +159,22 @@ public class serial implements communication_driver_interface {
 		char c = (char) 255 ;
 		char[] chararray = new char[255];
 		String ret = null;
-
-		// Set timeout 
-		long endTimeMillis = System.currentTimeMillis() + timeout;
-		
-		int pos = 0;
 		
 		//Try to read until stopchar is detected or a timeout occurs
-		
-		while ((System.currentTimeMillis()<= endTimeMillis) && (c != stopchar)) {
-			//FIXME: ready() does consume way too much CPU time
-			if	(BufReader.ready()) {
-				int b = BufReader.read();
-				if (b != -1) {
-					if (b==65533) b=42; // Workaround for Autostar Degree-sign
-					chararray[pos]=(char) b;
-					pos++;
-					c = (char) b;
-				} else throw new IOException ("Serial [read(char stopchar)]: InputStream closed");
-			}
-			
+		boolean run = true;
+		int pos = 0;
+		TimerStart();
+		while ((c != stopchar) && (run)) {
+			int b = BufReader.read();
+			if (b != -1) {
+				if (b==65533) b=42; // Workaround for Autostar Degree-sign
+				chararray[pos]=(char) b;
+				pos++;
+				c = (char) b;
+			} else run=false;
 		}
-		
-		// Catch timeout and throw execption
-		if ((pos==0) || (chararray[pos-1] != stopchar)) {
-			throw new IOException ("Serial [read(char stopchar)]: timeout");
-			
-		} else {
-			// Construct String from chararray
-			ret = String.copyValueOf(chararray);
-		}
+		TimerStop();
+		ret = String.copyValueOf(chararray);
 
 		return ret;
 	}
@@ -130,77 +183,30 @@ public class serial implements communication_driver_interface {
 	public synchronized String read(int bytes) throws IOException {
 		char[] chararray = new char[255];
 		String ret = null;
-
-		// Set timeout 
-		long endTimeMillis = System.currentTimeMillis() + timeout;
-		
-		int pos = 0;
 		
 		//Try to read num bytes or until a timeout occurs
-
-		while ((pos != bytes) && (System.currentTimeMillis()<= endTimeMillis)) { 
-			//FIXME: ready() does consume way too much CPU time
-			if	(BufReader.ready()) {
-				int b = BufReader.read();
-				if (b != -1) {
-					chararray[pos]=(char) b;
-					pos++;
-				} else throw new IOException ("Serial [read(int bytes)]: InputStream closed");
-			}
-		}
-
-		// Catch timeout and throw execption
-		if ((pos==0) || (pos < bytes)) {
-			throw new IOException ("Serial [read(int bytes)]: timeout");
-		} else {
-			// Construct String from chararray
-			ret = String.copyValueOf(chararray);
-			ret = ret.trim();
-		}
-
-		return ret;
-	}
-
-	@Override
-	public synchronized String read() throws IOException {
-		char[] chararray = new char[255];
-		String ret = null;
-
-		// Set timeout 
-		long endTimeMillis = System.currentTimeMillis() + timeout;
-
+		boolean run = true;
 		int pos = 0;
-
-		//Try to read until timeout occurs
-		while ((System.currentTimeMillis()<= endTimeMillis)) {
-			//FIXME: ready() does consume way too much CPU time
-			if	(BufReader.ready()) {
-				int b = BufReader.read();
-				if (b != -1) {
-					chararray[pos]=(char) b;
-					pos++;
-
-				} else throw new IOException ("Serial [read()]: InputStream closed");
-			}
-
+		TimerStart();
+		while ((pos != bytes) && (run)) { 
+			int b = BufReader.read();
+			if (b != -1) {
+				chararray[pos]=(char) b;
+				pos++;
+			} else run=false;
 		}
+		TimerStop();
 		
-		// Catch empty String
-		if (pos==0) throw new IOException ("Serial [read()]: Reader not ready");
-		
-		// Construct String from chararray
 		ret = String.copyValueOf(chararray);
-
+		ret = ret.trim();
+		
 		return ret;
 	}
-	
 	
 	@Override
 	public synchronized void emptyBuffer() throws IOException {
-		//FIXME: ready() does consume way too much CPU time
 		while (BufReader.ready()) {
-			int b=0;
-			b = BufReader.read();
+			int b = BufReader.read();
 		}
 			
 	}

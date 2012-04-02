@@ -45,9 +45,21 @@ import android.widget.Button;
  */
 public class main extends PreferenceActivity {
 
-	public OnClickListener l = new OnClickListener() {
+	Button start;
+	
+	public OnClickListener startListener = new OnClickListener() {
 		public void onClick(View v) {
 			startService(new Intent(main.this, server.class));
+			start.setText("Stop Server");
+			start.setOnClickListener(stopListener);
+		}
+	};
+	
+	public OnClickListener stopListener = new OnClickListener() {
+		public void onClick(View v) {
+			stopService(new Intent(main.this, server.class));
+			start.setText("Start Server");
+			start.setOnClickListener(startListener);
 		}
 	};
 	
@@ -55,10 +67,12 @@ public class main extends PreferenceActivity {
         super.onCreate(savedInstanceState);
 
         if (hasHeaders()) {
-            Button button = new Button(this);
-            button.setText("Start Server");
-            button.setOnClickListener(l);
-            setListFooter(button);
+        	start = new Button(this);
+            start.setText("Start Server");
+            start.setOnClickListener(startListener);
+            setListFooter(start);
+            
+            
         }
     }
 

@@ -105,9 +105,8 @@ public class bluetooth_serial extends serial implements communication_driver_int
 	 */
 	public void disconnect() {
 		try {
-			InStream.close();
-			OutStream.close();
 			btSocket.close();
+			super.disconnect();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

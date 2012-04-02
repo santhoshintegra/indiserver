@@ -650,26 +650,19 @@ public class lx200basic extends telescope implements device_driver_interface {
 	/**
 	 * Connect to telescope and update INDI-Properties
 	 */ 
-	public void connect() {
+	public void connect() throws IOException{
 		
-		try {
-			super.connect();
-		} catch (IOException e) {
-			ConnectSP.setState(PropertyStates.ALERT);
-			updateProperty(ConnectSP,e.getMessage());
-		}
-		
-		
+		super.connect();
+				
 		if (isConnected()) {
 			// Test serial connection
 			// Get Alignment information
 			getAlignmentMode();
-		}
+		} 
+		
+		if (!isConnected()) throw new IOException("No serial connection");
 		
 		if (isConnected()) {
-			
-			// Get Alignment information
-			getAlignmentMode();
 		
 			getFirmwareInformation();
 			
@@ -808,7 +801,14 @@ public class lx200basic extends telescope implements device_driver_interface {
 		 */
 		if (property==ConnectSP) {
 			if (elem == DisconnectS) disconnect();
-			if (elem == ConnectS) connect();
+			if (elem == ConnectS) {
+				try {
+					connect();
+				} catch (IOException e) {
+					property.setState(PropertyStates.ALERT);
+					updateProperty(property,"Error:" + e.getMessage());
+				}
+			}
 		}
 		
 		// All other Properties are not available if not connected to telescope!
@@ -940,31 +940,37 @@ public class lx200basic extends telescope implements device_driver_interface {
 			 * Geolocation Property
 			 */
 			if (property==GeoNP) {
-				double geolat = elementsAndValues[0].getValue();
-				// Assemble an Autostar Latitude format
-				// Positive = North, Negative = South  Example: "+50*01"
-				String sign = "+";
-				if (geolat<0) {
-					sign ="-";
-					geolat = geolat * -1;
-				}
-				// TODO: Instead of truncating doubles with (int) we should round them 
-				String tmp = String.format("%s%02d*%02d", sign, (int) geolat, (int) ((geolat % 1)*60) );
-				String GeolatCmd = String.format(setSiteLatCmd, tmp);
-				updateProperty(property,"Latitude sent:" + tmp);
-				
-				// Set latitude
-				getCommandChar(GeolatCmd);
+				int i = 0;
+				while (i < elementsAndValues.length) {
+					if (elementsAndValues[i].getElement() ==  GeoLatN) {
+						double geolat = elementsAndValues[0].getValue();
+						// Assemble an Autostar Latitude format
+						// Positive = North, Negative = South  Example: "+50*01"
+						String sign = "+";
+						if (geolat<0) {
+							sign ="-";
+							geolat = geolat * -1;
+						}
+						// TODO: Instead of truncating doubles with (int) we should round them 
+						String tmp = String.format("%s%02d*%02d", sign, (int) geolat, (int) ((geolat % 1)*60) );
+						String GeolatCmd = String.format(setSiteLatCmd, tmp);
+						updateProperty(property,"Latitude sent:" + tmp);
 
-				double geolong = 360-elementsAndValues[1].getValue();
-				// Assemble an Autostar longitude format
-				// TODO: Instead of truncating doubles with (int) we should round them 
-				tmp = String.format("%03d*%02d", (int) geolong, (int) ((geolong % 1)*60) ); 
-				String GeolongCmd = String.format(setSiteLongCmd, tmp);
-				updateProperty(property,"Longitude sent:" + tmp);
-				// Set longitude
-				getCommandChar(GeolongCmd);
-				
+						// Set latitude
+						getCommandChar(GeolatCmd);
+					}
+					if (elementsAndValues[i].getElement() == GeoLongN) {
+						double geolong = 360-elementsAndValues[1].getValue();
+						// Assemble an Autostar longitude format
+						// TODO: Instead of truncating doubles with (int) we should round them 
+						String tmp = String.format("%03d*%02d", (int) geolong, (int) ((geolong % 1)*60) ); 
+						String GeolongCmd = String.format(setSiteLongCmd, tmp);
+						updateProperty(property,"Longitude sent:" + tmp);
+						// Set longitude
+						getCommandChar(GeolongCmd);
+					}
+					i++; 
+				}
 				//Verify by read and update Properties
 				getGeolocation();
 			}
@@ -1265,14 +1271,14 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected synchronized char getCommandChar(String command) {
 		char tmp='-';
 		if (command!=null){
-		com_driver.set_timeout(5000);
+		com_driver.set_timeout(100);
 		
 		try {
 			com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
 			tmp = com_driver.read(1).charAt(0);
 		} catch (IOException e) {
-			disconnect();
+			super.disconnect();
 			ConnectSP.setState(PropertyStates.ALERT);
 			updateProperty(ConnectSP,e.getMessage());
 		}
@@ -1290,14 +1296,14 @@ public class lx200basic extends telescope implements device_driver_interface {
 		try {
 			com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
-			com_driver.set_timeout(5000);
+			com_driver.set_timeout(100);
 			tmp = com_driver.read('#');
 			tmp = tmp.replaceAll("#", "");
 			tmp = tmp.replaceAll("<", "");
 			tmp = tmp.replaceAll(">", "");
 			tmp = tmp.trim();
 		} catch (IOException e) {
-			disconnect();
+			super.disconnect();
 			ConnectSP.setState(PropertyStates.ALERT);
 			updateProperty(ConnectSP,e.getMessage());
 		}
@@ -1309,11 +1315,11 @@ public class lx200basic extends telescope implements device_driver_interface {
 		try {
 			com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
-			com_driver.set_timeout(5000);
+			com_driver.set_timeout(100);
 			tmp = com_driver.read(bytes);
 			
 		} catch (IOException e) {
-			disconnect();
+			super.disconnect();
 			ConnectSP.setState(PropertyStates.ALERT);
 			updateProperty(ConnectSP,e.getMessage());
 		}
@@ -1330,7 +1336,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
 		} catch (IOException e) {
-			disconnect();
+			super.disconnect();
 			ConnectSP.setState(PropertyStates.ALERT);
 			updateProperty(ConnectSP,e.getMessage());
 		}
