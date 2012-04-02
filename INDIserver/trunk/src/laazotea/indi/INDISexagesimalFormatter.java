@@ -180,21 +180,25 @@ public class INDISexagesimalFormatter {
    */
   public double parseSexagesimal(String number) throws IllegalArgumentException {
     number = number.trim();
-
+    
     if (number.isEmpty()) {
       throw new IllegalArgumentException("Empty number");
     }
-
+    
+    //delete all chars other than number-related ones
+    int i=0;
+    String tmp = "";
+    while (i<number.length()) {
+    	
+    	if (((number.charAt(i) > (char) 41)
+    	  && (number.charAt(i) < (char) 60))
+    	  || (number.charAt(i) == (char) 32)) tmp = tmp + number.charAt(i); 
+    	i++;
+    }
+    number = tmp;
     number = number.replace(' ', ':');
     number = number.replace(';', ':');
     number = number.replace('*', ':');
-    number = number.replace((char) -33, ':');
-    
-
-    //TODO: delete all chars other than 0..9, :, ; or space 
-    number = number.replaceAll("°", "");
-    number = number.replaceAll("'", "");
-    number = number.replaceAll("\"", "");
     
 
     int charCount = number.length() - number.replaceAll(":", "").length();

@@ -87,8 +87,7 @@ public class server extends Service {
 				out = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 				connected = true;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				notifyUser("INDIserver error",e.getMessage(),false);
 			}
 			
 		}
@@ -109,14 +108,30 @@ public class server extends Service {
 						connected = false;
 						
 						// If this was the last client stop the service
-						if (SThread.getConnectionCount() == 0) stopSelf();
+						if (SThread.getConnectionCount() == 0) {
+							// Notify User 
+							notifyUser("INDIServer stopped", "All Clients disconnected", false);
+							stopSelf();
+						}
 					}
 
 				} catch (IOException e) {
-					e.printStackTrace();
+					notifyUser("INDIserver error",e.getMessage(),false);
+					connected = false;
 				}
 
 			}
+		}
+		
+		public void closeSocket() {
+			try {
+				out.close();
+				in.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 		
 		public synchronized void write(char[] data, int len) {
@@ -125,8 +140,8 @@ public class server extends Service {
 				out.write(data, 0, len);
 				out.flush();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				notifyUser("INDIserver error",e.getMessage(),false);
+				connected = false;
 			}
 		}
 	}
@@ -185,6 +200,11 @@ public class server extends Service {
 
 		public void closeSocket() {
 			try {
+				int i = 0;
+				while (i < maxClients) {
+					if (ConnectionThreads[i] != null) ConnectionThreads[i].closeSocket();
+					i++;
+				}
 				// Close the socket 
 				Sock.close();
 			} catch (IOException e) {
@@ -249,13 +269,15 @@ public class server extends Service {
 				if (autoconnect) devicedriver.connect();
 				
 			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
+				notifyUser("INDIserver error",e.getMessage(),false); 
+				stopSelf();
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 			} catch (InstantiationException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
-				e.printStackTrace();
+				notifyUser("INDIserver error",e.getMessage(),false);
+				stopSelf();
 			}
 			
 		}
@@ -309,8 +331,8 @@ public class server extends Service {
 				connected = true;
 				
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				notifyUser("INDIserver error",e.getMessage(),false);
+				stopSelf();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -331,8 +353,8 @@ public class server extends Service {
 					} 
 
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					notifyUser("INDIserver error",e.getMessage(),false);
+					stopSelf();
 				}
 
 			}
@@ -355,8 +377,8 @@ public class server extends Service {
 				out.write(data,0,len);
 				out.flush();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				notifyUser("INDIserver error",e.getMessage(),false);
+				stopSelf();
 			}
 
 		}
@@ -399,14 +421,16 @@ public class server extends Service {
 		// Start the Server thread, that listens for incoming TCP-connections
 		SThread = new ServerThread();
 		SThread.start();
-
+		
+		notifyUser("INDIserver started","Waiting for Clients...",true);
+		
 		DThread = new DriverThread[maxDevices];
 		
 		// Start the DriverThread
 		DThread[0] = new DriverThread( DeviceDriver,ComDriver,Device );
 		DThread[0].start();
 
-		notifyUser("INDIserver started","Waiting for Clients...",true);
+		
 
 		return super.onStartCommand(intent, flags, startId);
 	}
@@ -436,14 +460,13 @@ public class server extends Service {
 
 	@Override
 	public void onDestroy() {
+		
+		// Close the DriverThread Socket (causes the DriverThread and all Drivers to terminate)
+		DThread[0].closeSocket();
 
 		// Close the ServerThread Socket (causes the ServerThread and all ConnectionThreads to terminate)
 		SThread.closeSocket();
 
-		// Close the DriverThread Socket (causes the DriverThread and all Drivers to terminate)
-		DThread[0].closeSocket();
-
-		// Notify User and stop the service
 		notifyUser("INDIServer stopped", "All Clients disconnected", false);
 		super.onDestroy();
 	}
