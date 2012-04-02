@@ -45,6 +45,8 @@ public class serial implements communication_driver_interface {
      * TimerThread for timeout on blocking operations
      * BufferedReader.ready() uses too much CPU power (about 50% on my Archos)
      * Thread uses 50ms steps: A timeout value of 100 yields 5 seconds.
+     *
+     * FIXME: This Thread _never_ terminates!
      * @author atuschen
      *
      */
