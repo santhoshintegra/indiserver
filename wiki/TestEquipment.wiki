@@ -4,7 +4,7 @@
 
 *Android devices*
 
- * Vodafone 845 (Huawei 8120), Android 4.0.3, rooted with custom ROM
+ * Vodafone 845 (Huawei 8120), Android 4.0.3 CM9, rooted with custom ROM
  * LG P350 OptimusMe, Android 2.2, rooted CM7.2 custom ROM
  * Archos 70H, Android 2.2, unrooted
  * Archos 101G9, Android 4.0.3, unrooted
