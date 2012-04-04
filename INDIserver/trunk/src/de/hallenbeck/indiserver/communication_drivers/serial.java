@@ -163,19 +163,22 @@ public class serial implements communication_driver_interface {
 		String ret = null;
 		
 		//Try to read until stopchar is detected or a timeout occurs
-		boolean run = true;
+		
 		int pos = 0;
-		TimerStart();
-		while ((c != stopchar) && (run)) {
-			int b = BufReader.read();
-			if (b != -1) {
-				if (b==65533) b=42; // Workaround for Autostar Degree-sign
-				chararray[pos]=(char) b;
+		
+		long endTimeMillis = System.currentTimeMillis() + timeout;
+		
+		while ((c != stopchar) && (System.currentTimeMillis()<endTimeMillis)) {
+			int b=0;
+			if (BufReader.ready()) b = BufReader.read(chararray, pos, 1);
+			if (b == 1) {
+				if (chararray[pos]== (char) 65533) chararray[pos]=42; // Workaround for Autostar Degree-sign
+				c = chararray[pos];
 				pos++;
-				c = (char) b;
-			} else run=false;
+			} 
 		}
-		TimerStop();
+		if (c != stopchar) throw new IOException("Timeout");
+		
 		ret = String.copyValueOf(chararray);
 
 		return ret;
@@ -187,17 +190,16 @@ public class serial implements communication_driver_interface {
 		String ret = null;
 		
 		//Try to read num bytes or until a timeout occurs
-		boolean run = true;
+
 		int pos = 0;
-		TimerStart();
-		while ((pos != bytes) && (run)) { 
-			int b = BufReader.read();
-			if (b != -1) {
-				chararray[pos]=(char) b;
-				pos++;
-			} else run=false;
+		long endTimeMillis = System.currentTimeMillis() + timeout;
+		
+		while ((pos != bytes) && (System.currentTimeMillis()<endTimeMillis)) {
+			int b=0;
+			if (BufReader.ready()) b = BufReader.read(chararray, pos, 1);
+			if (b == 1) pos++;
 		}
-		TimerStop();
+		if (pos != bytes) throw new IOException("Timeout");
 		
 		ret = String.copyValueOf(chararray);
 		ret = ret.trim();
@@ -207,9 +209,9 @@ public class serial implements communication_driver_interface {
 	
 	@Override
 	public synchronized void emptyBuffer() throws IOException {
-		while (BufReader.ready()) {
-			int b = BufReader.read();
-		}
+		//while (BufReader.ready()) {
+	//		int b = BufReader.read();
+		//}
 			
 	}
 
