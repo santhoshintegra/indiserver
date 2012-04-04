@@ -61,7 +61,7 @@ public class server extends Service {
 	//TODO: Add support for multiple drivers/devices
 
 	/**
-	 * TCP ConnectionThread created by ServerThread on connection of client
+	 * Seperate TCP ConnectionThread created by ServerThread on connection of client
 	 * Handles all communication with the client.
 	 * 
 	 * @author atuschen
@@ -75,9 +75,9 @@ public class server extends Service {
 		private boolean connected = false;
 		
 		/**
-		 * Seperate thread for each tcp-connection 
-		 * @param sock Connection Socket 
-		 * @param slot Connection Slot (Array index)
+		 * ConnectionThread Constructor 
+		 * @param sock Socket of Connection
+		 * @param slot Connection number
 		 */
 		public ConnectionThread (Socket sock, int slot) {
 			buffer = new char[8192];
@@ -92,6 +92,9 @@ public class server extends Service {
 			
 		}
 		
+		/**
+		 * Main runnable, listens for client messages and sends them to any driver 
+		 */
 		public void run() {
 			SThread.IncreaseConnectionCount();	
 			while (connected) {
@@ -123,6 +126,9 @@ public class server extends Service {
 			}
 		}
 		
+		/**
+		 * Close the Readers (causes an Exception and returns all blocked read()-operations
+		 */
 		public void closeSocket() {
 			try {
 				out.close();
@@ -134,6 +140,11 @@ public class server extends Service {
 			
 		}
 		
+		/**
+		 * Write method, called by the Server-Thread to send messages to the client
+		 * @param data chararray with data to send
+		 * @param len length of data
+		 */
 		public synchronized void write(char[] data, int len) {
 			try {
 				//Write data to tcp outputstream (to client)
@@ -161,7 +172,11 @@ public class server extends Service {
 		private int ConnectionCount = 0;
 		ServerSocket Sock = null;
 		
+		/**
+		 * ServerThread Constructor
+		 */
 		public ServerThread(){
+			//Create the tcp-socket
 			try {
 				Sock = new ServerSocket(7624);
 			} catch (IOException e1) {
@@ -170,7 +185,9 @@ public class server extends Service {
 		}
 		
 		public void run() {
+			// array of ConnectionThreads 
 			ConnectionThreads = new ConnectionThread[maxClients];
+			
 			while ((Sock != null) && (!Sock.isClosed())) {
 				try {
 
@@ -179,7 +196,8 @@ public class server extends Service {
 
 					int i = 0;
 					boolean emptySlotFound = false;
-					
+
+					// search for an empty array index and create a ConnectionThread
 					while ((i < maxClients) && (!emptySlotFound)) {
 						if (ConnectionThreads[i] == null) {
 							ConnectionThreads[i] = new ConnectionThread(sock,i);
@@ -190,7 +208,7 @@ public class server extends Service {
 					}
 
 				} catch (IOException e) {
-					// Socket closed (by closeSocket())
+					// Thrown away, Socket closed (by closeSocket())
 					
 				}
 
@@ -198,6 +216,7 @@ public class server extends Service {
 
 		}
 
+		// Close all ConnectionThreads and the tcp-socket
 		public void closeSocket() {
 			try {
 				int i = 0;
@@ -212,14 +231,26 @@ public class server extends Service {
 			}
 		}
 		
+		// Get number of connected clients
 		public int getConnectionCount() {
 			return ConnectionCount;
 		}
 		
+		/**
+		 * Write data to ONE specific client
+		 * @param slot Connection Number of the client
+		 * @param data Data to send
+		 * @param len length of data
+		 */
 		public synchronized void writeToClient(int slot, char[] data, int len) {
 			ConnectionThreads[slot].write(data, len);
 		}
 		
+		/**
+		 * Write Data to ALL connected clients
+		 * @param data Data to send
+		 * @param len length of Data
+		 */
 		public synchronized void writeToAllClients(char[] data, int len) {
 			int i = 0;
 			while (i < maxClients) {
@@ -228,11 +259,17 @@ public class server extends Service {
 			}
 		}
 		
+		/** 
+		 * Increase the number of conncted cleints and inform the user
+		 */
 		public synchronized void IncreaseConnectionCount() {
 			ConnectionCount++;
 			notifyUser("INDIserver running", ConnectionCount + " Client(s) connected", true);
 		}
 		
+		/** 
+		 * Decrease the number of conncted cleints and inform the user
+		 */
 		public synchronized void DecreaseConnectionCount(int slot) {
 			ConnectionCount--;
 			ConnectionThreads[slot] = null;
@@ -263,9 +300,13 @@ public class server extends Service {
 		
 		public void run() {
 			try {
+				// create an new instance
 				devicedriver = (device_driver_interface) Class.forName(DeviceDriver).newInstance();
+				// set comm driver
 				devicedriver.set_communication_driver(ComDriver);
+				// set the devicename to connect to
 				devicedriver.set_device(Device);
+				
 				if (autoconnect) devicedriver.connect();
 				
 			} catch (ClassNotFoundException e) {
@@ -339,6 +380,10 @@ public class server extends Service {
 			}
 		}
 		
+		/** 
+		 * DriverThread main runnable
+		 * Listens for mesages from drivers and sends them to all connected Clients
+		 */
 		public void run() {
 			int len=0;
 			while (connected) {
@@ -359,7 +404,10 @@ public class server extends Service {
 
 			}
 		}
-
+		
+		/**
+		 * close the local socket, causes an Exception an returns all blocked read() operations
+		 */
 		public void closeSocket() {
 			try {
 				// close input/outputstreams (causes thread to terminate)
@@ -372,6 +420,12 @@ public class server extends Service {
 			}
 		}
 		
+		/**
+		 * Write data to the driver
+		 * Called by ConnectionThread 
+		 * @param data Data to send
+		 * @param len length of Data
+		 */
 		public synchronized void write(char[] data,int len) {
 			try {
 				out.write(data,0,len);
@@ -429,8 +483,6 @@ public class server extends Service {
 		// Start the DriverThread
 		DThread[0] = new DriverThread( DeviceDriver,ComDriver,Device );
 		DThread[0].start();
-
-		
 
 		return super.onStartCommand(intent, flags, startId);
 	}

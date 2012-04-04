@@ -40,6 +40,7 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	protected final static String DATETIME_GROUP = "Date/Time";
 	protected final static String SITE_GROUP = "Site Management";
 	protected final static String FOCUS_GROUP = "Focus Control";
+	
 	protected static communication_driver_interface com_driver=null;
 	protected static String device=null;
 	protected static boolean connected=false;
@@ -56,7 +57,6 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	public void set_communication_driver(String driver) throws ClassNotFoundException {
 		try {
 			if (driver != null) com_driver = (communication_driver_interface) Class.forName(driver).newInstance();
-			
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		} catch (InstantiationException e) {

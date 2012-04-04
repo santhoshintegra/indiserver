@@ -27,6 +27,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+
+
 import laazotea.indi.INDISexagesimalFormatter;
 import laazotea.indi.INDIDateFormat;
 import laazotea.indi.Constants.PropertyPermissions;
@@ -651,18 +653,19 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * Connect to telescope and update INDI-Properties
 	 */ 
 	public void connect() throws IOException{
-		
-		super.connect();
 				
-		if (isConnected()) {
+		if (!isConnected()) {
+			super.connect();
 			// Test serial connection
-			// Get Alignment information
+			// by getting Alignment information
 			getAlignmentMode();
 		} 
 		
-		if (!isConnected()) throw new IOException("No serial connection");
-		
-		if (isConnected()) {
+		if (!isConnected()) {
+			
+			throw new IOException("No serial connection");
+			
+		} else {
 		
 			getFirmwareInformation();
 			
@@ -706,10 +709,10 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * Disconnect from telescope and update INDI-Properties
 	 */
 	public void disconnect() {
-		
-		super.disconnect();
-		
-		if (!isConnected()) {
+			
+		if (isConnected()) {
+			super.disconnect();
+			AbortSlew=true;
 			ConnectS.setValue(SwitchStatus.OFF);
 			DisconnectS.setValue(SwitchStatus.ON);
 			ConnectSP.setState(PropertyStates.IDLE);
@@ -780,9 +783,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 			 * Geolocation Property
 			 */
 
-		} else {
+		} /* else {
 			updateProperty(property,"LX200basic[ProcessNewTextValue]: Not connected");
-		}
+		} */
 	}
 
 	
@@ -806,7 +809,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 					connect();
 				} catch (IOException e) {
 					property.setState(PropertyStates.ALERT);
-					updateProperty(property,"Error:" + e.getMessage());
+					updateProperty(property,e.getMessage());
 				}
 			}
 		}
@@ -896,9 +899,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 				updateProperty(AbortSlewSP);
 			}
 			
-		} else {
+		} /* else {
 			updateProperty(property,"LX200basic[ProcessNewSwitchValue]: Not connected");
-		}
+		} */
 	}
 
 	/**
@@ -922,6 +925,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 				// Additionally we have to change +/-, because Autostar needs a value to YIELD UTC
 				// KStars sends the Offset (+02.0) but Autostar needs (-02.0) to get the right time.
 				// The Handbox only displays the correct timezone +02.0 if we send -02.0 to it.  
+				
 				String sign = "-";
 				if (val<0) {
 					sign = "+";
@@ -1031,9 +1035,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 				
 			}
 		
-		} else {
+		} /* else {
 			updateProperty(property,"LX200basic[ProcessNewNumberValue]: Not connected");
-		}
+		} */
 	}
 
 	/**
@@ -1050,8 +1054,11 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 */
 	protected void getAlignmentMode() {
 		if (isConnected()) {
-			String stmp=null;
+			// Send command 2 times!
 			getCommandChar(AlignmentModeCmd);
+			
+			String stmp=null;
+
 			switch (getCommandChar(AlignmentModeCmd)) {
 			case 'A': 			
 				AltAzS.setValue(SwitchStatus.ON);
@@ -1153,55 +1160,64 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * Get the current Date/Time from telescope
 	 */
 	protected void getDateTime() {
-		String dateStr = getCommandString(getTimeCmd)+" "+getCommandString(getDateCmd);
-		try {
-			Date date = new SimpleDateFormat("kk:mm:ss MM/dd/yy").parse(dateStr);
-			TimeT.setValue(INDIDateFormat.formatTimestamp(date));
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (isConnected()) {
+
+			String dateStr = getCommandString(getTimeCmd)+" "+getCommandString(getDateCmd);
+			try {
+				Date date = new SimpleDateFormat("kk:mm:ss MM/dd/yy").parse(dateStr);
+				TimeT.setValue(INDIDateFormat.formatTimestamp(date));
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			TimeTP.setState(PropertyStates.OK);
+			updateProperty(TimeTP, "Local time:"+dateStr);
 		}
-		
-		TimeTP.setState(PropertyStates.OK);
-		updateProperty(TimeTP, "Local time:"+dateStr);
-	
 	}
 	
 	/**
 	 * Get the current Geolocation from telescope
 	 */
 	protected void getGeolocation() {
-		GeoLatN.setValue(getCommandSexa(getSiteLatCmd));
-		GeoLongN.setValue(360-getCommandSexa(getSiteLongCmd));
-		GeoNP.setState(PropertyStates.OK);
-		updateProperty(GeoNP, "Geolocation Lat: "+GeoLatN.getValueAsString()+" Long: "+GeoLongN.getValueAsString());
+		if (isConnected()) {
+			GeoLatN.setValue(getCommandSexa(getSiteLatCmd));
+			GeoLongN.setValue(360-getCommandSexa(getSiteLongCmd));
+			GeoNP.setState(PropertyStates.OK);
+			updateProperty(GeoNP, "Geolocation Lat: "+GeoLatN.getValueAsString()+" Long: "+GeoLongN.getValueAsString());
+		}
 	}
 	
 	/** 
 	 * Get Name of Site site# from telescope
 	 */
 	protected void getSiteName(int site) {
-		switch (site) {
-		case 1: 
-			SiteNameT.setValue(getCommandString(getSite1NameCmd));
-			break;
-		case 2: 
-			SiteNameT.setValue(getCommandString(getSite2NameCmd));
-			break;
-		case 3: 
-			SiteNameT.setValue(getCommandString(getSite3NameCmd));
-			break;
-		case 4: 
-			SiteNameT.setValue(getCommandString(getSite4NameCmd));
-			break;
+		if (isConnected()) {
+			switch (site) {
+			case 1: 
+				SiteNameT.setValue(getCommandString(getSite1NameCmd));
+				break;
+			case 2: 
+				SiteNameT.setValue(getCommandString(getSite2NameCmd));
+				break;
+			case 3: 
+				SiteNameT.setValue(getCommandString(getSite3NameCmd));
+				break;
+			case 4: 
+				SiteNameT.setValue(getCommandString(getSite4NameCmd));
+				break;
+			}
+			SiteNameTP.setState(PropertyStates.OK);
+			updateProperty(SiteNameTP,"Site Name: "+SiteNameT.getValue());
 		}
-		SiteNameTP.setState(PropertyStates.OK);
-		updateProperty(SiteNameTP,"Site Name: "+SiteNameT.getValue());
 	}
-	
+
 	
 	protected String getDisplayMessage() {
-		String tmp = getCommandString(getDisplayMsgCmd);
+		String tmp="";
+		if (isConnected()) {
+			tmp = getCommandString(getDisplayMsgCmd);
+		}
 		return tmp;
 	}
 	
@@ -1210,27 +1226,31 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * TODO: some warning if telescope is not aligned, coords may be inaccurate  
 	 */
 	protected synchronized void getEqCoords(boolean updateState) {
-		try {
-			double RA = sexa.parseSexagesimal(getCommandString(getCurrentRACmd));
-			double DEC = sexa.parseSexagesimal(getCommandString(getCurrentDECCmd));
-			RARN.setValue(RA);
-			DECRN.setValue(DEC);
-			if (updateState) EquatorialCoordsRNP.setState(PropertyStates.OK);
-			updateProperty(EquatorialCoordsRNP); //,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
-		} catch (IllegalArgumentException e) {
-			
+		if (isConnected()) {
+			try {
+				double RA = sexa.parseSexagesimal(getCommandString(getCurrentRACmd));
+				double DEC = sexa.parseSexagesimal(getCommandString(getCurrentDECCmd));
+				RARN.setValue(RA);
+				DECRN.setValue(DEC);
+				if (updateState) EquatorialCoordsRNP.setState(PropertyStates.OK);
+				updateProperty(EquatorialCoordsRNP); //,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
+			} catch (IllegalArgumentException e) {
+
+			}
 		}
 	}
 	
 	protected void getTargetCoords() {
-		String tmp = getCommandString(getTargetRACmd);
-		double RA = sexa.parseSexagesimal(tmp);
-		String tmp2 = getCommandString(getTargetDECCmd);
-		double DEC = sexa.parseSexagesimal(tmp2);
-		RAWN.setValue(RA);
-		DECWN.setValue(DEC);
-		EquatorialCoordsWNP.setState(PropertyStates.OK);
-		updateProperty(EquatorialCoordsWNP,"Target Object RA: "+RAWN.getValueAsString()+" DEC: "+DECWN.getValueAsString());
+		if (isConnected()) {
+			String tmp = getCommandString(getTargetRACmd);
+			double RA = sexa.parseSexagesimal(tmp);
+			String tmp2 = getCommandString(getTargetDECCmd);
+			double DEC = sexa.parseSexagesimal(tmp2);
+			RAWN.setValue(RA);
+			DECWN.setValue(DEC);
+			EquatorialCoordsWNP.setState(PropertyStates.OK);
+			updateProperty(EquatorialCoordsWNP,"Target Object RA: "+RAWN.getValueAsString()+" DEC: "+DECWN.getValueAsString());
+		}
 	}
 	
 	
@@ -1271,17 +1291,17 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected synchronized char getCommandChar(String command) {
 		char tmp='-';
 		if (command!=null){
-		com_driver.set_timeout(100);
-		
-		try {
-			com_driver.emptyBuffer();
-			com_driver.sendCommand(command);
-			tmp = com_driver.read(1).charAt(0);
-		} catch (IOException e) {
-			super.disconnect();
-			ConnectSP.setState(PropertyStates.ALERT);
-			updateProperty(ConnectSP,e.getMessage());
-		}
+			com_driver.set_timeout(1000);
+
+			try {
+				com_driver.emptyBuffer();
+				com_driver.sendCommand(command);
+				tmp = com_driver.read(1).charAt(0);
+				
+			} catch (IOException e) {
+				updateProperty(ConnectSP,e.getMessage());
+				disconnect();
+			}
 		}
 		return tmp;
 	}
@@ -1296,16 +1316,16 @@ public class lx200basic extends telescope implements device_driver_interface {
 		try {
 			com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
-			com_driver.set_timeout(100);
+			com_driver.set_timeout(1000);
 			tmp = com_driver.read('#');
 			tmp = tmp.replaceAll("#", "");
 			tmp = tmp.replaceAll("<", "");
 			tmp = tmp.replaceAll(">", "");
 			tmp = tmp.trim();
+			
 		} catch (IOException e) {
-			super.disconnect();
-			ConnectSP.setState(PropertyStates.ALERT);
 			updateProperty(ConnectSP,e.getMessage());
+			disconnect();
 		}
 		return tmp;
 	}
@@ -1315,13 +1335,12 @@ public class lx200basic extends telescope implements device_driver_interface {
 		try {
 			com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
-			com_driver.set_timeout(100);
+			com_driver.set_timeout(1000);
 			tmp = com_driver.read(bytes);
 			
 		} catch (IOException e) {
-			super.disconnect();
-			ConnectSP.setState(PropertyStates.ALERT);
 			updateProperty(ConnectSP,e.getMessage());
+			disconnect();
 		}
 		return tmp;
 	}
@@ -1335,10 +1354,10 @@ public class lx200basic extends telescope implements device_driver_interface {
 		try {
 			com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
+			
 		} catch (IOException e) {
-			super.disconnect();
-			ConnectSP.setState(PropertyStates.ALERT);
 			updateProperty(ConnectSP,e.getMessage());
+			disconnect();
 		}
 	}
 	
