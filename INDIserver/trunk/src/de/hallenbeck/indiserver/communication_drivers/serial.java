@@ -41,74 +41,7 @@ public class serial implements communication_driver_interface {
 	protected BufferedReader BufReader;
     private int timeout = 100; 
     
-    /**
-     * TimerThread for timeout on blocking operations
-     * BufferedReader.ready() uses too much CPU power (about 50% on my Archos)
-     * Thread uses 50ms steps: A timeout value of 100 yields 5 seconds.
-     *
-     * FIXME: This Thread _never_ terminates!
-     * @author atuschen
-     *
-     */
-    private class TimerThread extends Thread {
-    	private boolean StopTimerThread=false;
-    	private boolean jobDone;
-    	public TimerThread() {
-    		start();
-    	}
-    	public void run() {
-    		while (!StopTimerThread) {
-    			try {
-    				synchronized(this) {
-    					wait();
-    				}
-    				
-    				jobDone=false;
-    				int i=0;
-    				while ((!jobDone) && (i<timeout)) {
-    					sleep (50);
-    					i++;
-    				}
-    				
-    				if (!jobDone) {
-    	    			BufReader.close();
-    	    		}
-    			} catch (InterruptedException e) {
-    				// TODO Auto-generated catch block
-    				e.printStackTrace();
-    			} catch (IOException e) {
-    				// TODO Auto-generated catch block
-    				e.printStackTrace();
-    			}	
-    		}
-    	}
-    	
-    	public void stoptimer() {
-    		jobDone=true;
-    	}
-    	
-    	public void stopTread() {
-    		jobDone=true;
-    		StopTimerThread=true;
-    		synchronized (this) {
-    			notify();
-    		}
-    	}
-    }
-    
-    TimerThread Timer = new TimerThread();
-    
-    // Start the Timer
-    private void TimerStart() {
-    	synchronized (Timer) {
-    	Timer.notify();
-    	}
-    }
-    
-    // Stop the Timer 
-    private void TimerStop() {
-    	Timer.stoptimer();
-    }
+ 
 
     
     /**
