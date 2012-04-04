@@ -61,6 +61,7 @@ import laazotea.indi.driver.INDITextProperty;
  *   
  * @author atuschen75 at gmail.com
  *
+ *
  */
 
 public class lx200basic extends telescope implements device_driver_interface {

@@ -58,7 +58,7 @@ public class serial implements communication_driver_interface {
 
 	@Override
 	public void disconnect() {
-		Timer.stopTread();
+
 	}
 	
 	/**

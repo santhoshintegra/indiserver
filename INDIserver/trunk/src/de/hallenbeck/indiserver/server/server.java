@@ -48,6 +48,7 @@ import android.preference.PreferenceManager;
  */
 public class server extends Service {
 
+	
 	public ServerThread SThread;
 	public DriverThread[] DThread;
 	public boolean autoconnect = false;
