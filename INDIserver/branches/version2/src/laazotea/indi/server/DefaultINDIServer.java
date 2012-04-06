@@ -31,7 +31,16 @@ import org.w3c.dom.Element;
  */
 public class DefaultINDIServer extends AbstractINDIServer {
 
-  /**
+  /* (non-Javadoc)
+	 * @see laazotea.indi.server.AbstractINDIServer#getDevice(java.lang.String)
+	 */
+	@Override
+	protected INDIDevice getDevice(String deviceName) {
+		// TODO Auto-generated method stub
+		return super.getDevice(deviceName);
+	}
+
+/**
    * Constructs the server.
    */
   public DefaultINDIServer() {

@@ -22,6 +22,7 @@ package de.hallenbeck.indiserver.server;
 
 import laazotea.indi.INDIException;
 import laazotea.indi.server.DefaultINDIServer;
+import laazotea.indi.server.INDIDevice;
 import de.hallenbeck.indiserver.R;
 import de.hallenbeck.indiserver.device_drivers.lx200basic;
 import android.app.Notification;
@@ -53,14 +54,25 @@ public class INDIservice extends Service {
 		      loadJavaDriver(lx200basic.class);
 		    } catch (INDIException e) {
 		      e.printStackTrace();
-
+		      
 		      System.exit(-1);
 		    }
 		  }
 
 		 
 
-		  /**
+		  /* (non-Javadoc)
+		 * @see laazotea.indi.server.DefaultINDIServer#getDevice(java.lang.String)
+		 */
+		@Override
+		protected INDIDevice getDevice(String deviceName) {
+			// TODO Auto-generated method stub
+			return super.getDevice(deviceName);
+		}
+
+
+
+		/**
 		   * Just creates one instance of this server.
 		   * @param args 
 		   */
@@ -113,7 +125,8 @@ public class INDIservice extends Service {
 		String ComDriver = settings.getString("com_driver", null);
 		String Device = settings.getString("device", null);
 		autoconnect = settings.getBoolean("autoconnect", false);
-		//server = new MinimumINDIServer();
+		server = new INDIServer();
+		//INDIDevice d = server.getDevice("LX200basic");
 		
 		notifyUser("INDIserver started","Waiting for Clients...",true);
 		
