@@ -39,6 +39,7 @@ import laazotea.indi.Constants.SwitchRules;
 import laazotea.indi.Constants.SwitchStatus;
 import laazotea.indi.driver.INDIBLOBElementAndValue;
 import laazotea.indi.driver.INDIBLOBProperty;
+import laazotea.indi.driver.INDIConnectionHandler;
 import laazotea.indi.driver.INDINumberElement;
 import laazotea.indi.driver.INDINumberElementAndValue;
 import laazotea.indi.driver.INDINumberProperty;
@@ -583,8 +584,11 @@ public class lx200basic extends telescope implements device_driver_interface {
 		GeoLongN = new INDINumberElement(GeoNP, "LONG",  "Long. D:M:S", 0, 0, 360, 0, "%10.6m");
 		// Not used // GeoHeightN  = new INDINumberElement("HEIGHT",  "Height m", 610, -300, 6000, 0, "%10.2f");
 		
+		this.addProperty(ConnectSP);
+		
 	}
 
+	
 	/*
 	 * Public interface methods 
 	 */
@@ -593,7 +597,14 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 * Connect to telescope and update INDI-Properties
 	 */ 
 	public void connect() throws IOException{
-				
+		try {
+			set_communication_driver("de.hallenbeck.indiserver.communication_drivers.bluetooth_serial");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		set_device("00:80:37:14:9F:E7");
+		
 		if (!isConnected()) {
 			super.connect();
 			// Test serial connection
@@ -606,7 +617,32 @@ public class lx200basic extends telescope implements device_driver_interface {
 			throw new IOException("No serial connection");
 			
 		} else {
-		
+			this.addProperty(AlignmentSP);
+		    this.addProperty(EquatorialCoordsWNP);
+		    this.addProperty(EquatorialCoordsRNP);
+		    this.addProperty(OnCoordSetSP);
+		    this.addProperty(AbortSlewSP);
+		    this.addProperty(SlewModeSP);
+		    this.addProperty(TrackModeSP);
+		    this.addProperty(TrackFreqNP);
+		    this.addProperty(MovementNSSP);
+		    this.addProperty(MovementWESP);
+		    this.addProperty(MovementNSSP);
+		    this.addProperty(GuideNSNP);
+		    this.addProperty(GuideWENP);
+		    this.addProperty(SlewAccuracyNP);
+		    this.addProperty(UsePulseCommandSP);
+		    this.addProperty(FocusMotionSP);
+		    this.addProperty(FocusTimerNP);
+		    this.addProperty(FocusModesSP);
+		    this.addProperty(TimeTP);
+		    this.addProperty(UTCOffsetNP);
+		    this.addProperty(SDTimeNP);
+		    this.addProperty(SitesSP);
+		    this.addProperty(SiteNameTP);
+		    this.addProperty(GeoNP);
+		    
+		    
 			getFirmwareInformation();
 			
 			getAlignmentStatus();
@@ -651,6 +687,31 @@ public class lx200basic extends telescope implements device_driver_interface {
 	public void disconnect() {
 			
 		if (isConnected()) {
+			this.removeProperty(AlignmentSP);
+		    this.removeProperty(EquatorialCoordsWNP);
+		    this.removeProperty(EquatorialCoordsRNP);
+		    this.removeProperty(OnCoordSetSP);
+		    this.removeProperty(AbortSlewSP);
+		    this.removeProperty(SlewModeSP);
+		    this.removeProperty(TrackModeSP);
+		    this.removeProperty(TrackFreqNP);
+		    this.removeProperty(MovementNSSP);
+		    this.removeProperty(MovementWESP);
+		    this.removeProperty(MovementNSSP);
+		    this.removeProperty(GuideNSNP);
+		    this.removeProperty(GuideWENP);
+		    this.removeProperty(SlewAccuracyNP);
+		    this.removeProperty(UsePulseCommandSP);
+		    this.removeProperty(FocusMotionSP);
+		    this.removeProperty(FocusTimerNP);
+		    this.removeProperty(FocusModesSP);
+		    this.removeProperty(TimeTP);
+		    this.removeProperty(UTCOffsetNP);
+		    this.removeProperty(SDTimeNP);
+		    this.removeProperty(SitesSP);
+		    this.removeProperty(SiteNameTP);
+		    this.removeProperty(GeoNP);
+		    
 			super.disconnect();
 			AbortSlew=true;
 			ConnectS.setValue(SwitchStatus.OFF);
@@ -1124,7 +1185,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			GeoLatN.setValue(getCommandSexa(getSiteLatCmd));
 			GeoLongN.setValue(360-getCommandSexa(getSiteLongCmd));
 			GeoNP.setState(PropertyStates.OK);
-			updateProperty(GeoNP, "Geolocation Lat: "+GeoLatN.getValueAsString()+" Long: "+GeoLongN.getValueAsString());
+			updateProperty(GeoNP, "Geolocation Lat: "+GeoLatN+" Long: "+GeoLongN);
 		}
 	}
 	

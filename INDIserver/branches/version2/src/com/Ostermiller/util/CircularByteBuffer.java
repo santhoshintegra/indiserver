@@ -19,6 +19,7 @@ package com.Ostermiller.util;
 
 import java.io.*;
 
+
 /**
  * Implements the Circular Buffer producer/consumer model for bytes.
  * More information about this class is available from <a target="_top" href=
