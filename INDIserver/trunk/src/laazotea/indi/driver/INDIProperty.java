@@ -1,18 +1,18 @@
 /*
- *  This file is part of INDI Driver for Java.
+ *  This file is part of INDI for Java Driver.
  * 
- *  INDI Driver for Java is free software: you can redistribute it
+ *  INDI for Java Driver is free software: you can redistribute it
  *  and/or modify it under the terms of the GNU General Public License 
  *  as published by the Free Software Foundation, either version 3 of 
  *  the License, or (at your option) any later version.
  * 
- *  INDI Driver for Java is distributed in the hope that it will be
+ *  INDI for Java Driver is distributed in the hope that it will be
  *  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  *  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  * 
  *  You should have received a copy of the GNU General Public License
- *  along with INDI Driver for Java.  If not, see 
+ *  along with INDI for Java Driver.  If not, see 
  *  <http://www.gnu.org/licenses/>.
  */
 package laazotea.indi.driver;
@@ -33,7 +33,7 @@ import laazotea.indi.Constants.PropertyStates;
  * may contain according to the INDI protocol.
  *
  * @author S. Alonso (Zerjillo) [zerjio at zerjio.com]
- * @version 1.10, March 19, 2012
+ * @version 1.21, April 4, 2012
  */
 public abstract class INDIProperty {
 
@@ -106,7 +106,7 @@ public abstract class INDIProperty {
 
     name = name.trim();
 
-    if (name.isEmpty()) {
+    if (name.length() == 0) {
       throw new IllegalArgumentException("No name for the Property");
     }
 
@@ -118,7 +118,7 @@ public abstract class INDIProperty {
     } else {
       label = label.trim();
 
-      if (label.isEmpty()) {
+      if (label.length() == 0) {
         this.label = name;
       } else {
         this.label = label;
@@ -131,7 +131,7 @@ public abstract class INDIProperty {
 
     group = group.trim();
 
-    if (group.isEmpty()) {
+    if (group.length() == 0) {
       group = "Unsorted";
     }
 
@@ -250,12 +250,14 @@ public abstract class INDIProperty {
 
   /**
    * Adds a new Element to this Property (if it there is no other Element with
-   * the same name and it is alrady being init [not sended to clients]).
+   * the same name and it is already being init [not sended to clients]). Drivers
+   * must not call this method directly as it is called when constructing the
+   * Element.
    *
    * @param element the Element to be added.
    * @throws IllegalArgumentException
    */
-  public void addElement(INDIElement element) throws IllegalArgumentException {
+  protected void addElement(INDIElement element) throws IllegalArgumentException {
     if ((this instanceof INDITextProperty) && (!(element instanceof INDITextElement))) {
       throw new IllegalArgumentException("Text Element cannot be added to Text Property");
     }
@@ -317,7 +319,7 @@ public abstract class INDIProperty {
 
     String[] names = new String[l.size()];
 
-    for (int i = 0; i < l.size(); i++) {
+    for (int i = 0 ; i < l.size() ; i++) {
       names[i] = l.get(i).getName();
     }
 
@@ -334,7 +336,7 @@ public abstract class INDIProperty {
     String aux = getName() + " - " + getState() + "\n";
     List<INDIElement> l = getElementsAsList();
 
-    for (int i = 0; i < l.size(); i++) {
+    for (int i = 0 ; i < l.size() ; i++) {
       aux += "  " + l.get(i).getNameAndValueAsString() + "\n";
     }
 
@@ -370,7 +372,7 @@ public abstract class INDIProperty {
 
     List<INDIElement> elem = getElementsAsList();
 
-    for (int i = 0; i < elements.size(); i++) {
+    for (int i = 0 ; i < elements.size() ; i++) {
       xml += elem.get(i).getXMLDefElement();
     }
 
@@ -408,7 +410,7 @@ public abstract class INDIProperty {
 
     List<INDIElement> elem = getElementsAsList();
 
-    for (int i = 0; i < elem.size(); i++) {
+    for (int i = 0 ; i < elem.size() ; i++) {
       xml += elem.get(i).getXMLOneElement();
     }
 

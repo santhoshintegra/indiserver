@@ -17,35 +17,31 @@
  */
 package laazotea.indi.driver;
 
-import laazotea.indi.Constants.SwitchStatus;
+import java.util.Date;
+import laazotea.indi.INDIException;
 
 /**
- * A class representing a pair of a <code>INDISwitchElement</code> and a <code>SwitchStatus</code>. 
+ * An interface for those drivers that wish to have a standard CONNECTION
+ * property. Note that any INDIDriver implementing this interface will
+ * automatically include the connection property. No code will be necessary in
+ * the Driver code to include or manage it.
  *
  * @author S. Alonso (Zerjillo) [zerjio at zerjio.com]
- * @version 1.10, March 19, 2012
+ * @version 1.11, March 26, 2012
  */
-public class INDISwitchElementAndValue implements INDIElementAndValue {
-  private final INDISwitchElement element;
-  private final SwitchStatus status;
+public interface INDIConnectionHandler {
 
   /**
-   * Constructs an instance of a <code>INDISwitchElementAndValue</code>.  This class should not usually be instantiated by specific Drivers.
-   * @param element The Switch Element
-   * @param status The Switch Status
+   * The method that will handle the connection.
+   *
+   * @param timestamp when the connection message has been received.
    */
-  public INDISwitchElementAndValue(INDISwitchElement element, SwitchStatus status) {
-    this.element = element;
-    this.status = status;
-  }
+  public void driverConnect(Date timestamp) throws INDIException;
 
-  @Override
-  public INDISwitchElement getElement() {
-    return element;
-  }
-
-  @Override
-  public SwitchStatus getValue() {
-    return status;
-  }
+  /**
+   * The method that will handle the disconnection.
+   *
+   * @param timestamp when the disconnection message has been received.
+   */
+  public void driverDisconnect(Date timestamp) throws INDIException;
 }

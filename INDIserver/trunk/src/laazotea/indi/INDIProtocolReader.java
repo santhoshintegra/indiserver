@@ -1,24 +1,25 @@
 /*
- *  This file is part of INDI Driver for Java.
+ *  This file is part of INDI for Java.
  * 
- *  INDI Driver for Java is free software: you can redistribute it
+ *  INDI for Java is free software: you can redistribute it
  *  and/or modify it under the terms of the GNU General Public License 
  *  as published by the Free Software Foundation, either version 3 of 
  *  the License, or (at your option) any later version.
  * 
- *  INDI Driver for Java is distributed in the hope that it will be
+ *  INDI for Java is distributed in the hope that it will be
  *  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  *  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  * 
  *  You should have received a copy of the GNU General Public License
- *  along with INDI Driver for Java.  If not, see 
+ *  along with INDI for Java.  If not, see 
  *  <http://www.gnu.org/licenses/>.
  */
-package laazotea.indi.driver;
+package laazotea.indi;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -29,31 +30,31 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
- * A class representing the main Thread of the Driver. It reads from the Drivers
- * input Stream and does the initial parsing of the received information.
- * Drivers usually should not directly instantiate this class nor directly start
- * this Thread (it is done via the
- * <code>startListening</code> method of the
- * <code>INDIDriver</code>).
+ * A class that reads from a input stream and sends the read messages to a parser.
  *
  * @author S. Alonso (Zerjillo) [zerjio at zerjio.com]
- * @version 1.10, March 19, 2012
+ * @version 1.2, April 1, 2012
  */
-public class INDIDriverThread extends Thread {
-
-  INDIDriver driver;
-
-  protected INDIDriverThread(INDIDriver driver) {
-    this.driver = driver;
-  }
-
+public class INDIProtocolReader extends Thread {
   /**
-   * Implements the function to read the Driver input stream and parsing of the
-   * received messages. It is called by
-   * <code>startListening</code> and should not be directly called by the
-   * Drivers.
-   *
-   * @see INDIDriver#startListening
+   * The parser to which the messages will be sent.
+   */
+  private INDIProtocolParser parser;
+  /**
+   * Used to friendly stop the reader.
+   */
+  private boolean stop;
+  
+  /**
+   * Creates the reader.
+   * @param parser The parser to which the readed messages will be sent.
+   */
+  public INDIProtocolReader(INDIProtocolParser parser) {
+    this.parser = parser;
+  }
+  
+  /**
+   * The main body of the reader.
    */
   @Override
   public void run() {
@@ -88,11 +89,12 @@ public class INDIDriverThread extends Thread {
 
     char[] buffer = new char[BUFFER_SIZE];
 
-    boolean connected = true;
-    BufferedReader in = driver.getIn();
+    stop = false;
+
+    BufferedReader in = new BufferedReader(new InputStreamReader(parser.getInputStream()));
 
     try {
-      while (connected) {
+      while (!stop) {
         int nReaded = in.read(buffer, 0, BUFFER_SIZE);
 
         if (nReaded != -1) {
@@ -101,9 +103,15 @@ public class INDIDriverThread extends Thread {
           boolean errorParsing = false;
 
           try {
-            Document doc = docBuilder.parse(new InputSource(new StringReader("<INDI>" + bufferedInput + "</INDI>")));
+            String d = "<INDI>" + bufferedInput + "</INDI>";
+            //System.err.println(d);
+            d = d.replaceAll("\\<\\?xml version='...'\\?\\>", "");
+            d = d.replaceAll("\\<\\?xml version=\"...\"\\?\\>", "");
+            //    System.err.println(d);
 
-            driver.parseXML(doc);
+            Document doc = docBuilder.parse(new InputSource(new StringReader(d)));
+
+            parser.parseXML(doc);
           } catch (SAXException e) {
             errorParsing = true;
           }
@@ -112,14 +120,21 @@ public class INDIDriverThread extends Thread {
             bufferedInput.setLength(0);  // Empty the buffer because it has been already parsed
           }
         } else {  // If -1 readed, end
-          connected = false;
+          stop = true;
         }
-
       }
     } catch (IOException e) {
       //   e.printStackTrace();
     }
 
-    driver.disconnect();
+    parser.finishReader();
+  }
+  
+  /**
+   * Sets the stop parameter. If set to <code>true</code> the reader will gracefully stop after the next read.
+   * @param stop
+   */
+  public void setStop(boolean stop) {
+    this.stop = stop; 
   }
 }
