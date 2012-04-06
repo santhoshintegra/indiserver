@@ -19,7 +19,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <service android:name=".server.server"></service>
+        <service android:name=".server.INDIservice"></service>
     </application>
 
 </manifest>

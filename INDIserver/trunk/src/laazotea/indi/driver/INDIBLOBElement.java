@@ -1,18 +1,18 @@
 /*
- *  This file is part of INDI Driver for Java.
+ *  This file is part of INDI for Java Driver.
  * 
- *  INDI Driver for Java is free software: you can redistribute it
+ *  INDI for Java Driver is free software: you can redistribute it
  *  and/or modify it under the terms of the GNU General Public License 
  *  as published by the Free Software Foundation, either version 3 of 
  *  the License, or (at your option) any later version.
  * 
- *  INDI Driver for Java is distributed in the hope that it will be
+ *  INDI for Java Driver is distributed in the hope that it will be
  *  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  *  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  * 
  *  You should have received a copy of the GNU General Public License
- *  along with INDI Driver for Java.  If not, see 
+ *  along with INDI for Java Driver.  If not, see 
  *  <http://www.gnu.org/licenses/>.
  */
 package laazotea.indi.driver;
@@ -24,7 +24,7 @@ import org.w3c.dom.Element;
  * A class representing a INDI BLOB Element.
  *
  * @author S. Alonso (Zerjillo) [zerjio at zerjio.com]
- * @version 1.10, March 19, 2012
+ * @version 1.11, March 26, 2012
  */
 public class INDIBLOBElement extends INDIElement {
 
@@ -35,26 +35,33 @@ public class INDIBLOBElement extends INDIElement {
 
   /**
    * Constructs an instance of a <code>INDIBLOBElement</code> with a <code>name</code> and a <code>label</code>.
+   * @param property The Property to which this Element belongs.
    * @param name The name of the Element.
    * @param label The label of the Element.
    * @throws IllegalArgumentException
    */
-  public INDIBLOBElement(String name, String label) throws IllegalArgumentException {
-    super(name, label);
+  public INDIBLOBElement(INDIBLOBProperty property, String name, String label) throws IllegalArgumentException {
+    super(property, name, label);
 
     value = new INDIBLOBValue(new byte[0], "");
   }
 
   /**
    * Constructs an instance of a <code>INDIBLOBElement</code> with a <code>name</code>.
+   * @param property The Property to which this Element belongs.
    * @param name The name of the Element.
    * @throws IllegalArgumentException
    */
-  public INDIBLOBElement(String name) throws IllegalArgumentException {
-    super(name);
+  public INDIBLOBElement(INDIBLOBProperty property, String name) throws IllegalArgumentException {
+    super(property, name);
 
     value = new INDIBLOBValue(new byte[0], "");
   }  
+  
+  @Override
+  public INDIBLOBProperty getProperty() {
+    return (INDIBLOBProperty) super.getProperty();
+  }
   
   @Override
   public INDIBLOBValue getValue() {

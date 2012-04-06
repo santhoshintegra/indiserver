@@ -24,7 +24,7 @@ package de.hallenbeck.indiserver.activities;
 import java.util.List;
 
 import de.hallenbeck.indiserver.R;
-import de.hallenbeck.indiserver.server.server;
+import de.hallenbeck.indiserver.server.INDIservice;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -49,7 +49,7 @@ public class main extends PreferenceActivity {
 	
 	public OnClickListener startListener = new OnClickListener() {
 		public void onClick(View v) {
-			startService(new Intent(main.this, server.class));
+			startService(new Intent(main.this, INDIservice.class));
 			start.setText("Stop Server");
 			start.setOnClickListener(stopListener);
 		}
@@ -57,7 +57,7 @@ public class main extends PreferenceActivity {
 	
 	public OnClickListener stopListener = new OnClickListener() {
 		public void onClick(View v) {
-			stopService(new Intent(main.this, server.class));
+			stopService(new Intent(main.this, INDIservice.class));
 			start.setText("Start Server");
 			start.setOnClickListener(startListener);
 		}
