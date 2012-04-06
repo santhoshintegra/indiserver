@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    <PreferenceCategory android:title="Devices">
+        <EditTextPreference android:key="device_driver" android:title="Device driver" android:dialogMessage="Select Device driver" android:dialogTitle="Device driver"/>
+        <EditTextPreference android:key="com_driver" android:title="Communication Driver" android:dialogMessage="Select Communication Driver" android:dialogTitle="Communication Driver"/>
+        <EditTextPreference android:key="device" android:title="Device" android:dialogMessage="Change Device" android:dialogTitle="Device"/>
+    </PreferenceCategory>
+    
+
+</PreferenceScreen>
