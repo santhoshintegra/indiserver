@@ -18,7 +18,8 @@
 package laazotea.indi;
 
 /**
- * A class representing a some Constants and convenience functions to deal with them used in several parts of the INDI for Java libraries.
+ * A class representing a some Constants and convenience functions to deal with
+ * them used in several parts of the INDI for Java libraries.
  *
  * @author S. Alonso (Zerjillo) [zerjio at zerjio.com]
  * @version 1.10, March 19, 2012
@@ -50,9 +51,12 @@ public class Constants {
 
   /**
    * Parses a Light State
-   * @param state a string representation of the Light State to be parsed ("Alert" or "Busy" or "Ok" or "Idle").
+   *
+   * @param state a string representation of the Light State to be parsed
+   * ("Alert" or "Busy" or "Ok" or "Idle").
    * @return The parsed Light State
-   * @throws IllegalArgumentException if the <code>state</code> is not a valid one.
+   * @throws IllegalArgumentException if the
+   * <code>state</code> is not a valid one.
    */
   public static LightStates parseLightState(String state) throws IllegalArgumentException {
     if (state.compareTo("Alert") == 0) {
@@ -69,7 +73,26 @@ public class Constants {
   }
 
   /**
+   * Checks if a string corresponds to a valid LightState.
+   *
+   * @param state The string to check
+   * @return
+   * <code>true</code> if it corresponds to a valid LightState.
+   * <code>false</code> otherwise.
+   */
+  public static boolean isValidLightState(String state) {
+    try {
+      parseLightState(state);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Gets a String representation of the Light State.
+   *
    * @param lightState The Light State
    * @return A String representation of the Light State
    */
@@ -104,9 +127,12 @@ public class Constants {
 
   /**
    * Parses a Switch Status.
-   * @param status a string representation of the Switch Status to be parsed ("Off" or "On").
+   *
+   * @param status a string representation of the Switch Status to be parsed
+   * ("Off" or "On").
    * @return The parsed Switch Status
-   * @throws IllegalArgumentException if the <code>status</code> is not a valid one.
+   * @throws IllegalArgumentException if the
+   * <code>status</code> is not a valid one.
    */
   public static SwitchStatus parseSwitchStatus(String status) throws IllegalArgumentException {
     if (status.compareTo("Off") == 0) {
@@ -119,7 +145,26 @@ public class Constants {
   }
 
   /**
+   * Checks if a string corresponds to a valid SwitchStatus.
+   *
+   * @param status The string to check
+   * @return
+   * <code>true</code> if it corresponds to a valid SwitchStatus.
+   * <code>false</code> otherwise.
+   */
+  public static boolean isValidSwitchStatus(String status) {
+    try {
+      parseSwitchStatus(status);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Gets a String representation of the Switch Status.
+   *
    * @param switchStatus The Switch Status
    * @return A String representation of the Switch Status
    */
@@ -154,9 +199,12 @@ public class Constants {
 
   /**
    * Parses a Property Permission
-   * @param permission a string representation of the Property Permission to be parsed ("ro" or "rw" or "wo").
+   *
+   * @param permission a string representation of the Property Permission to be
+   * parsed ("ro" or "rw" or "wo").
    * @return The parsed Property Permission
-   * @throws IllegalArgumentException if the <code>permission</code> is not a valid one.
+   * @throws IllegalArgumentException if the
+   * <code>permission</code> is not a valid one.
    */
   public static PropertyPermissions parsePropertyPermission(String permission) throws IllegalArgumentException {
     if (permission.compareTo("ro") == 0) {
@@ -171,7 +219,26 @@ public class Constants {
   }
 
   /**
+   * Checks if a string corresponds to a valid PropertyPermission.
+   *
+   * @param permission The string to check
+   * @return
+   * <code>true</code> if it corresponds to a valid PropertyPermission.
+   * <code>false</code> otherwise.
+   */
+  public static boolean isValidPropertyPermission(String permission) {
+    try {
+      parsePropertyPermission(permission);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Gets a String representation of the Property Permission.
+   *
    * @param permission The Property Permission
    * @return A String representation of the Property Permission.
    */
@@ -210,12 +277,14 @@ public class Constants {
     ALERT
   };
 
-
   /**
    * Parses a Property State.
-   * @param state a string representation of the Property State to be parsed ("Alert" or "Busy" or "Ok" or "Idle").
+   *
+   * @param state a string representation of the Property State to be parsed
+   * ("Alert" or "Busy" or "Ok" or "Idle").
    * @return The parsed Property State
-   * @throws IllegalArgumentException if the <code>state</code> is not a valid one.
+   * @throws IllegalArgumentException if the
+   * <code>state</code> is not a valid one.
    */
   public static PropertyStates parsePropertyState(String state) throws IllegalArgumentException {
     if (state.compareTo("Alert") == 0) {
@@ -232,7 +301,26 @@ public class Constants {
   }
 
   /**
+   * Checks if a string corresponds to a valid PropertyState.
+   *
+   * @param state The string to check
+   * @return
+   * <code>true</code> if it corresponds to a valid PropertyState.
+   * <code>false</code> otherwise.
+   */
+  public static boolean isValidPropertyState(String state) {
+    try {
+      parsePropertyState(state);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Gets a String representation of the Property State.
+   *
    * @param propertyState The Property State
    * @return A String representation of the Property State
    */
@@ -271,9 +359,12 @@ public class Constants {
 
   /**
    * Parses a Switch Rule
-   * @param rule a string representation of the Switch Rule to be parsed ("OneOfMany" or "AtMostOne" or "AnyOfMany").
+   *
+   * @param rule a string representation of the Switch Rule to be parsed
+   * ("OneOfMany" or "AtMostOne" or "AnyOfMany").
    * @return The Switch Rule
-   * @throws IllegalArgumentException if the <code>rule</code> is not a valid one.
+   * @throws IllegalArgumentException if the
+   * <code>rule</code> is not a valid one.
    */
   public static SwitchRules parseSwitchRule(String rule) throws IllegalArgumentException {
     if (rule.compareTo("OneOfMany") == 0) {
@@ -288,7 +379,26 @@ public class Constants {
   }
 
   /**
+   * Checks if a string corresponds to a valid SwitchRule.
+   *
+   * @param rule The string to check
+   * @return
+   * <code>true</code> if it corresponds to a valid SwitchRule.
+   * <code>false</code> otherwise.
+   */
+  public static boolean isValidSwitchRule(String rule) {
+    try {
+      parseSwitchRule(rule);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Gets a String representation of the Switch Rule.
+   *
    * @param rule The Switch Rule
    * @return A String representation of the Switch Rule.
    */
@@ -299,7 +409,7 @@ public class Constants {
       return "AtMostOne";
     } else if (rule == SwitchRules.ANY_OF_MANY) {
       return "AnyOfMany";
-    } 
+    }
 
     return "";
   }

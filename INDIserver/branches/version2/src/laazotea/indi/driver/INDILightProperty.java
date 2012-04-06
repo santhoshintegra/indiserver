@@ -1,18 +1,18 @@
 /*
- *  This file is part of INDI Driver for Java.
+ *  This file is part of INDI for Java Driver.
  * 
- *  INDI Driver for Java is free software: you can redistribute it
+ *  INDI for Java Driver is free software: you can redistribute it
  *  and/or modify it under the terms of the GNU General Public License 
  *  as published by the Free Software Foundation, either version 3 of 
  *  the License, or (at your option) any later version.
  * 
- *  INDI Driver for Java is distributed in the hope that it will be
+ *  INDI for Java Driver is distributed in the hope that it will be
  *  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  *  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  * 
  *  You should have received a copy of the GNU General Public License
- *  along with INDI Driver for Java.  If not, see 
+ *  along with INDI for Java Driver.  If not, see 
  *  <http://www.gnu.org/licenses/>.
  */
 package laazotea.indi.driver;
@@ -26,7 +26,7 @@ import laazotea.indi.INDIDateFormat;
  * A class representing a INDI Light Property.
  *
  * @author S. Alonso (Zerjillo) [zerjio at zerjio.com]
- * @version 1.10, March 19, 2012
+ * @version 1.11, March 19, 2012
  */
 public class INDILightProperty extends INDIProperty {
   /**
@@ -68,6 +68,11 @@ public class INDILightProperty extends INDIProperty {
     super(driver, name, null, null, state, PropertyPermissions.RO, 0);
   }
 
+    @Override
+  public INDILightElement getElement(String name) {
+    return (INDILightElement)super.getElement(name); 
+  }
+    
   @Override
   protected String getXMLPropertyDefinitionInit() {
     String xml = "<defLightVector device=\"" + getDriver().getName() + "\" name=\"" + getName() + "\" label=\"" + getLabel() + "\" group=\"" + getGroup() + "\" state=\"" + Constants.getPropertyStateAsString(getState()) + "\" timestamp=\"" + INDIDateFormat.getCurrentTimestamp() + "\">";

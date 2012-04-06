@@ -180,28 +180,15 @@ public class INDISexagesimalFormatter {
    */
   public double parseSexagesimal(String number) throws IllegalArgumentException {
     number = number.trim();
-    
-    if (number.isEmpty()) {
+
+    if (number.length() == 0) {
       throw new IllegalArgumentException("Empty number");
     }
-    
-    //delete all chars other than number-related ones
-    int i=0;
-    String tmp = "";
-    while (i<number.length()) {
-    	
-    	if (((number.charAt(i) > (char) 41)
-    	  && (number.charAt(i) < (char) 60))
-    	  || (number.charAt(i) == (char) 32)) tmp = tmp + number.charAt(i); 
-    	i++;
-    }
-    number = tmp;
+
     number = number.replace(' ', ':');
     number = number.replace(';', ':');
-    number = number.replace('*', ':');
-    
 
-    int charCount = number.length() - number.replaceAll(":", "").length();
+    int charCount = number.length() - number.replaceAll(".", "").length();
 
     if (charCount > 2) {
       throw new IllegalArgumentException("Too many components for the sexagesimal formatter");
@@ -354,7 +341,6 @@ public class INDISexagesimalFormatter {
    * @return The padded <code>String</code>
    */
   private String padLeft(String s, int n) {
-    // return String.format("%1$#" + n + "s", s);
-	  return s;  
+    return String.format("%1$#" + n + "s", s);
   }
 }
