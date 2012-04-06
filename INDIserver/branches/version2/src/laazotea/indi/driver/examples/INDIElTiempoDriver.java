@@ -1,18 +1,18 @@
 /*
- *  This file is part of INDI Driver for Java.
+ *  This file is part of INDI for Java Driver.
  * 
- *  INDI Driver for Java is free software: you can redistribute it
+ *  INDI for Java Driver is free software: you can redistribute it
  *  and/or modify it under the terms of the GNU General Public License 
  *  as published by the Free Software Foundation, either version 3 of 
  *  the License, or (at your option) any later version.
  * 
- *  INDI Driver for Java is distributed in the hope that it will be
+ *  INDI for Java Driver is distributed in the hope that it will be
  *  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  *  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  * 
  *  You should have received a copy of the GNU General Public License
- *  along with INDI Driver for Java.  If not, see 
+ *  along with INDI for Java Driver.  If not, see 
  *  <http://www.gnu.org/licenses/>.
  */
 package laazotea.indi.driver.examples;
@@ -27,10 +27,11 @@ import laazotea.indi.Constants.PropertyStates;
 import laazotea.indi.Constants.SwitchRules;
 import laazotea.indi.Constants.SwitchStatus;
 import laazotea.indi.INDIBLOBValue;
+import laazotea.indi.INDIException;
 import laazotea.indi.driver.*;
 
 /**
- * A small example Driver that uses the INDI Driver for Java library. It defines
+ * A small example Driver that uses the INDI for Java Driver library. It defines
  * two BLOB Properties, two Text Properties and a Switch One. The BLOB
  * Properties will have two images about the weather in Spain and Europe
  * (dinamically downloaded from http://eltiempo.es), and the Text ones will
@@ -39,9 +40,9 @@ import laazotea.indi.driver.*;
  * once the client connects to the driver).
  *
  * @author S. Alonso (Zerjillo) [zerjio at zerjio.com]
- * @version 1.00, March 19, 2012
+ * @version 1.11, March 26, 2012
  */
-public class INDIElTiempoDriver extends INDIDriver implements Runnable {
+public class INDIElTiempoDriver extends INDIDriver implements Runnable, INDIConnectionHandler {
 
   /*
    * The properties
@@ -56,6 +57,15 @@ public class INDIElTiempoDriver extends INDIDriver implements Runnable {
   private INDIBLOBElement europeImageElem;
   private INDITextProperty europeImageNameProp;
   private INDITextElement europeImageNameElem;
+  /**
+   * The thread that continuously reads images and sends them back tothe
+   * clients.
+   */
+  private Thread runningThread;
+  /**
+   * A signal to stop the thread
+   */
+  private boolean stop;
 
   /**
    * Initializes the driver. It creates the Proerties and its Elements.
@@ -66,46 +76,38 @@ public class INDIElTiempoDriver extends INDIDriver implements Runnable {
   public INDIElTiempoDriver(InputStream inputStream, OutputStream outputStream) {
     super(inputStream, outputStream);
 
-    // We add the default CONNECTION Property
-    addConnectionProperty();
-
     // We create the Switch Property with only one Switch Element
-    sendImage = new INDISwitchElement("SEND", "Send Image", SwitchStatus.OFF);
+
     send = new INDISwitchProperty(this, "SEND", "Send Image", "Main Control", PropertyStates.IDLE, PropertyPermissions.RW, 3, SwitchRules.AT_MOST_ONE);
-    send.addElement(sendImage);
+    sendImage = new INDISwitchElement(send, "SEND", "Send Image", SwitchStatus.OFF);
 
     addProperty(send);
 
     // We create the BLOB Property for the Spain satellite image
-    spainImageElem = new INDIBLOBElement("SPAIN_SATELLITE_IMAGE", "Spain Image");
     spainImageProp = new INDIBLOBProperty(this, "SPAIN_SATELLITE_IMAGE", "Spain Image", "Main Control", PropertyStates.IDLE, PropertyPermissions.RO, 0);
-    spainImageProp.addElement(spainImageElem);
+    spainImageElem = new INDIBLOBElement(spainImageProp, "SPAIN_SATELLITE_IMAGE", "Spain Image");
 
     addProperty(spainImageProp);
 
     // We create the Text Property for the Spain image name
-    spainImageNameElem = new INDITextElement("SPAIN_IMAGE_NAME", "Spain Image Name", "");
     spainImageNameProp = new INDITextProperty(this, "SPAIN_IMAGE_NAME", "Spain Image Name", "Main Control", PropertyStates.IDLE, PropertyPermissions.RO, 3);
-    spainImageNameProp.addElement(spainImageNameElem);
+    spainImageNameElem = new INDITextElement(spainImageNameProp, "SPAIN_IMAGE_NAME", "Spain Image Name", "");
 
     addProperty(spainImageNameProp);
 
     // We create the BLOB Property for the Europe satellite image
-    europeImageElem = new INDIBLOBElement("EUROPE_SATELLITE_IMAGE", "Europe Image");
     europeImageProp = new INDIBLOBProperty(this, "EUROPE_SATELLITE_IMAGE", "Europe Image", "Main Control", PropertyStates.IDLE, PropertyPermissions.RO, 0);
-    europeImageProp.addElement(europeImageElem);
+    europeImageElem = new INDIBLOBElement(europeImageProp, "EUROPE_SATELLITE_IMAGE", "Europe Image");
 
     addProperty(europeImageProp);
 
     // We create the Text Property for the Europe image name
-    europeImageNameElem = new INDITextElement("EUROPE_IMAGE_NAME", "Europe Image Name", "");
     europeImageNameProp = new INDITextProperty(this, "EUROPE_IMAGE_NAME", "Europe Image Name", "Main Control", PropertyStates.IDLE, PropertyPermissions.RO, 3);
-    europeImageNameProp.addElement(europeImageNameElem);
+    europeImageNameElem = new INDITextElement(europeImageNameProp, "EUROPE_IMAGE_NAME", "Europe Image Name", "");
 
     addProperty(europeImageNameProp);
     
-    Thread t = new Thread(this);
-    t.start();
+    stop = true;
   }
 
   /**
@@ -137,11 +139,14 @@ public class INDIElTiempoDriver extends INDIDriver implements Runnable {
    */
   @Override
   public void processNewSwitchValue(INDISwitchProperty property, Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
+
     if (property == send) {
+
       if (elementsAndValues.length > 0) {
         SwitchStatus stat = elementsAndValues[0].getValue();
 
         if (stat == SwitchStatus.ON) {
+
           property.setState(PropertyStates.OK);
           updateProperty(property, "Checking images");
 
@@ -188,7 +193,7 @@ public class INDIElTiempoDriver extends INDIDriver implements Runnable {
         updateProperty(europeImageProp);
 
         europeImageNameProp.setState(PropertyStates.OK);
-        
+
         updateProperty(europeImageNameProp);
       }
     }
@@ -390,15 +395,44 @@ public class INDIElTiempoDriver extends INDIDriver implements Runnable {
    */
   @Override
   public void run() {
-    while (true) {
+    while (!stop) {
       try {
         Thread.sleep(15 * 60 * 1000);
       } catch (InterruptedException e) {
       }
-      
-      checksForSpainImage(false);
 
-      checksForEuropeImage(false);
+      if (!stop) {
+        checksForSpainImage(false);
+
+        checksForEuropeImage(false);
+      }
     }
+    
+    printMessage("Thread Stopped");
+  }
+
+  /**
+   * Creates a new thread which reads new images every 15 minutes and sends them
+   * back to the clients.
+   *
+   * @param timestamp
+   * @throws INDIException
+   * @see #run()
+   */
+  @Override
+  public void driverConnect(Date timestamp) throws INDIException {
+    if (stop == true) {
+    printMessage("Starting El Tiempo Driver");
+    stop = false;
+    runningThread = new Thread(this);
+    runningThread.start();
+    }
+  }
+
+  @Override
+  public void driverDisconnect(Date timestamp) throws INDIException {
+    printMessage("Stopping El Tiempo Driver");
+
+    stop = true;
   }
 }

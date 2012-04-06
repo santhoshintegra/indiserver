@@ -20,7 +20,6 @@ package laazotea.indi;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.lang.String;
 
 /**
  * A simple class to format and parse INDI timestamps.
@@ -52,7 +51,7 @@ public class INDIDateFormat {
 
     time = time.trim();
     
-    if (!time.isEmpty()) {
+    if (!(time.length() == 0)) {
       try {
         timestamp = dateFormat.parse(time);
       } catch (ParseException e) {

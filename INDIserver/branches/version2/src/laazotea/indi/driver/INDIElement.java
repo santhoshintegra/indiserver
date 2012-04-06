@@ -1,18 +1,18 @@
 /*
- *  This file is part of INDI Driver for Java.
+ *  This file is part of INDI for Java Driver.
  * 
- *  INDI Driver for Java is free software: you can redistribute it
+ *  INDI for Java Driver is free software: you can redistribute it
  *  and/or modify it under the terms of the GNU General Public License 
  *  as published by the Free Software Foundation, either version 3 of 
  *  the License, or (at your option) any later version.
  * 
- *  INDI Driver for Java is distributed in the hope that it will be
+ *  INDI for Java Driver is distributed in the hope that it will be
  *  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  *  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  * 
  *  You should have received a copy of the GNU General Public License
- *  along with INDI Driver for Java.  If not, see 
+ *  along with INDI for Java Driver.  If not, see 
  *  <http://www.gnu.org/licenses/>.
  */
 package laazotea.indi.driver;
@@ -30,7 +30,7 @@ import org.w3c.dom.Element;
  * may contain according to the INDI protocol.
  *
  * @author S. Alonso (Zerjillo) [zerjio at zerjio.com]
- * @version 1.10, March 19, 2012
+ * @version 1.21, April 4, 2012
  */
 public abstract class INDIElement {
 
@@ -43,23 +43,30 @@ public abstract class INDIElement {
    */
   private String label;
 
+  /**
+   * The Property to which this Element belongs.
+   */
+  private INDIProperty property;
 
   /**
    * Constructs an instance of
    * <code>INDIElement</code>. Called by its sub-classes. If the <code>label</code> is null, the name is assigned to the label.
    * 
+   * @param property The Property to which this Element belongs.
    * @param name The name of the Element
    * @param label The label of the Element
    * @throws IllegalArgumentException if the <code>name</code> is <code>null</code>.
    */
-  protected INDIElement(String name, String label) throws IllegalArgumentException {
+  protected INDIElement(INDIProperty property, String name, String label) throws IllegalArgumentException {
+    this.property = property;
+    
     if (name == null) {
       throw new IllegalArgumentException("No name for Element");
     }
     
     name = name.trim();
     
-    if (name.isEmpty()) {
+    if (name.length() == 0) {
       throw new IllegalArgumentException("No name for Element");
     }
     
@@ -70,35 +77,50 @@ public abstract class INDIElement {
     } else {
       label = label.trim();
       
-      if (label.isEmpty()) {
+      if (label.length() == 0) {
         this.label = name; 
       } else {
         this.label = label;
       }
     }
+    
+    property.addElement(this);
   }
   
   /**
    * Constructs an instance of
    * <code>INDIElement</code> with a label equal to its name. Called by its sub-classes.
+   * @param property The Property to which this Element belongs.
    * @param name The name of the Element.
    * @throws IllegalArgumentException if the <code>name</code> is <code>null</code>.
    */
-  protected INDIElement(String name) throws IllegalArgumentException {
+  protected INDIElement(INDIProperty property, String name) throws IllegalArgumentException {
+    this.property = property;
+    
     if (name == null) {
       throw new IllegalArgumentException("No name for Element");
     }
     
     name = name.trim();
     
-    if (name.isEmpty()) {
+    if (name.length() == 0) {
       throw new IllegalArgumentException("No name for Element");
     }
     
     this.name = name;
 
     this.label = name;
-  }  
+    
+    property.addElement(this);
+  }
+
+  /**
+   * Gets the Property to which this Element belongs.
+   * @return The Property to which this Element belongs
+   */
+  public INDIProperty getProperty() {
+    return property;
+  }
 
   /**
    * Gets the label of the Element.

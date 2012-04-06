@@ -1,18 +1,18 @@
 /*
- *  This file is part of INDI Driver for Java.
+ *  This file is part of INDI for Java Driver.
  * 
- *  INDI Driver for Java is free software: you can redistribute it
+ *  INDI for Java Driver is free software: you can redistribute it
  *  and/or modify it under the terms of the GNU General Public License 
  *  as published by the Free Software Foundation, either version 3 of 
  *  the License, or (at your option) any later version.
  * 
- *  INDI Driver for Java is distributed in the hope that it will be
+ *  INDI for Java Driver is distributed in the hope that it will be
  *  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  *  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  * 
  *  You should have received a copy of the GNU General Public License
- *  along with INDI Driver for Java.  If not, see 
+ *  along with INDI for Java Driver.  If not, see 
  *  <http://www.gnu.org/licenses/>.
  */
 package laazotea.indi.driver;
@@ -22,12 +22,11 @@ import java.util.Locale;
 import laazotea.indi.INDISexagesimalFormatter;
 import org.w3c.dom.Element;
 
-
 /**
  * A class representing a INDI Number Element.
  *
  * @author S. Alonso (Zerjillo) [zerjio at zerjio.com]
- * @version 1.10, March 19, 2012
+ * @version 1.11, March 26, 2012
  */
 public class INDINumberElement extends INDIElement {
 
@@ -56,9 +55,18 @@ public class INDINumberElement extends INDIElement {
    */
   private INDISexagesimalFormatter sFormatter;
 
-
   /**
-   * Constructs an instance of a <code>INDINumberElement</code> with a <code>name</code>, a <code>label</code>, a initial <code>value</code>, a <code>minimum</code>, a <code>maximum</code>, a <code>step</code> and a <code>numberFormat</code>. 
+   * Constructs an instance of a
+   * <code>INDINumberElement</code> with a
+   * <code>name</code>, a
+   * <code>label</code>, a initial
+   * <code>value</code>, a
+   * <code>minimum</code>, a
+   * <code>maximum</code>, a
+   * <code>step</code> and a
+   * <code>numberFormat</code>.
+   *
+   * @param property The Property to which this Element belongs.
    * @param name The name of the Element.
    * @param label The label of the Element.
    * @param value The initial value of the Element.
@@ -66,10 +74,15 @@ public class INDINumberElement extends INDIElement {
    * @param maximum The maximum of the Element.
    * @param step The step of the Element.
    * @param numberFormat The number format of the element.
-   * @throws IllegalArgumentException if any of the <code>value</code>, <code>minimum</code>, <code>maximum</code> or <code>step</code> are not well formatted or if the initial Value is not in [minimum, maximum].
+   * @throws IllegalArgumentException if any of the
+   * <code>value</code>,
+   * <code>minimum</code>,
+   * <code>maximum</code> or
+   * <code>step</code> are not well formatted or if the initial Value is not in
+   * [minimum, maximum].
    */
-  public INDINumberElement(String name, String label, String value, String minimum, String maximum, String step, String numberFormat) throws IllegalArgumentException {
-    super(name, label);
+  public INDINumberElement(INDINumberProperty property, String name, String label, String value, String minimum, String maximum, String step, String numberFormat) throws IllegalArgumentException {
+    super(property, name, label);
 
     setNumberFormat(numberFormat);
 
@@ -81,9 +94,19 @@ public class INDINumberElement extends INDIElement {
 
     setValueAsString(value);
   }
-  
+
   /**
-   * Constructs an instance of a <code>INDINumberElement</code> with a <code>name</code>, a <code>label</code>, a initial <code>value</code>, a <code>minimum</code>, a <code>maximum</code>, a <code>step</code> and a <code>numberFormat</code>. 
+   * Constructs an instance of a
+   * <code>INDINumberElement</code> with a
+   * <code>name</code>, a
+   * <code>label</code>, a initial
+   * <code>value</code>, a
+   * <code>minimum</code>, a
+   * <code>maximum</code>, a
+   * <code>step</code> and a
+   * <code>numberFormat</code>.
+   *
+   * @param property The Property to which this Element belongs.
    * @param name The name of the Element.
    * @param label The label of the Element.
    * @param value The initial value of the Element.
@@ -91,10 +114,11 @@ public class INDINumberElement extends INDIElement {
    * @param maximum The maximum of the Element.
    * @param step The step of the Element.
    * @param numberFormat The number format of the element.
-   * @throws IllegalArgumentException if the initial Value is not in [minimum, maximum].
+   * @throws IllegalArgumentException if the initial Value is not in [minimum,
+   * maximum].
    */
-  public INDINumberElement(String name, String label, double value, double minimum, double maximum, double step, String numberFormat) throws IllegalArgumentException {
-    super(name, label);
+  public INDINumberElement(INDINumberProperty property, String name, String label, double value, double minimum, double maximum, double step, String numberFormat) throws IllegalArgumentException {
+    super(property, name, label);
 
     setNumberFormat(numberFormat);
 
@@ -106,19 +130,34 @@ public class INDINumberElement extends INDIElement {
 
     setValueAsdouble(value);
   }
-  
+
   /**
-   * Constructs an instance of a <code>INDINumberElement</code> with a <code>name</code>, a initial <code>value</code>, a <code>minimum</code>, a <code>maximum</code>, a <code>step</code> and a <code>numberFormat</code>.  The label of the Element will be a copy of the <code>name</code>. 
+   * Constructs an instance of a
+   * <code>INDINumberElement</code> with a
+   * <code>name</code>, a initial
+   * <code>value</code>, a
+   * <code>minimum</code>, a
+   * <code>maximum</code>, a
+   * <code>step</code> and a
+   * <code>numberFormat</code>. The label of the Element will be a copy of the
+   * <code>name</code>.
+   *
+   * @param property The Property to which this Element belongs.
    * @param name The name of the Element.
    * @param value The initial value of the Element.
    * @param minimum The minimum of the Element.
    * @param maximum The maximum of the Element.
    * @param step The step of the Element.
    * @param numberFormat The number format of the element.
-   * @throws IllegalArgumentException if any of the <code>value</code>, <code>minimum</code>, <code>maximum</code> or <code>step</code> are not well formatted or if the initial Value is not in [minimum, maximum].
+   * @throws IllegalArgumentException if any of the
+   * <code>value</code>,
+   * <code>minimum</code>,
+   * <code>maximum</code> or
+   * <code>step</code> are not well formatted or if the initial Value is not in
+   * [minimum, maximum].
    */
-  public INDINumberElement(String name, String value, String minimum, String maximum, String step, String numberFormat) throws IllegalArgumentException {
-    super(name);
+  public INDINumberElement(INDINumberProperty property, String name, String value, String minimum, String maximum, String step, String numberFormat) throws IllegalArgumentException {
+    super(property, name);
 
     setNumberFormat(numberFormat);
 
@@ -130,19 +169,30 @@ public class INDINumberElement extends INDIElement {
 
     setValueAsString(value);
   }
-  
+
   /**
-   *  Constructs an instance of a <code>INDINumberElement</code> with a <code>name</code>, a initial <code>value</code>, a <code>minimum</code>, a <code>maximum</code>, a <code>step</code> and a <code>numberFormat</code>.  The label of the Element will be a copy of the <code>name</code>. 
+   * Constructs an instance of a
+   * <code>INDINumberElement</code> with a
+   * <code>name</code>, a initial
+   * <code>value</code>, a
+   * <code>minimum</code>, a
+   * <code>maximum</code>, a
+   * <code>step</code> and a
+   * <code>numberFormat</code>. The label of the Element will be a copy of the
+   * <code>name</code>.
+   *
+   * @param property The Property to which this Element belongs.
    * @param name The name of the Element.
    * @param value The initial value of the Element.
    * @param minimum The minimum of the Element.
    * @param maximum The maximum of the Element.
    * @param step The step of the Element.
    * @param numberFormat The number format of the element.
-   * @throws IllegalArgumentException if the initial Value is not in [minimum, maximum].
+   * @throws IllegalArgumentException if the initial Value is not in [minimum,
+   * maximum].
    */
-  public INDINumberElement(String name, double value, double minimum, double maximum, double step, String numberFormat) throws IllegalArgumentException {
-    super(name);
+  public INDINumberElement(INDINumberProperty property, String name, double value, double minimum, double maximum, double step, String numberFormat) throws IllegalArgumentException {
+    super(property, name);
 
     setNumberFormat(numberFormat);
 
@@ -153,7 +203,12 @@ public class INDINumberElement extends INDIElement {
     this.step = step;
 
     setValueAsdouble(value);
-  }    
+  }
+
+  @Override
+  public INDINumberProperty getProperty() {
+    return (INDINumberProperty) super.getProperty();
+  }
 
   /**
    * Set the number format for this Number Element.
@@ -284,11 +339,11 @@ public class INDINumberElement extends INDIElement {
   @Override
   public void setValue(Object newValue) throws IllegalArgumentException {
     if (newValue instanceof String) {
-      setValueAsString((String)newValue);  
+      setValueAsString((String) newValue);
     } else if (newValue instanceof Double) {
-      setValueAsdouble(((Double)newValue).doubleValue()); 
+      setValueAsdouble(((Double) newValue).doubleValue());
     } else {
-      throw new IllegalArgumentException("Value for a Number Element must be a String or a Double"); 
+      throw new IllegalArgumentException("Value for a Number Element must be a String or a Double");
     }
   }
 
@@ -319,7 +374,6 @@ public class INDINumberElement extends INDIElement {
     step = parseNumber(stepS);
   }
 
-
   private void setValueAsString(String valueS) throws IllegalArgumentException {
     value = parseNumber(valueS);
 
@@ -327,14 +381,14 @@ public class INDINumberElement extends INDIElement {
       throw new IllegalArgumentException(getName() + " ; " + "Number (" + valueS + ") not in range [" + min + ", " + max + "]");
     }
   }
-  
+
   private void setValueAsdouble(double value) throws IllegalArgumentException {
     this.value = value;
-    
+
     if ((value < min) || (value > max)) {
       throw new IllegalArgumentException(getName() + " ; " + "Number (" + value + ") not in range [" + min + ", " + max + "]");
     }
-  }  
+  }
 
   /**
    * Parses a number according to the Number Format of this Number Element.
@@ -359,17 +413,9 @@ public class INDINumberElement extends INDIElement {
     return res;
   }
 
-
   @Override
   public String getXMLOneElement() {
-	String xml = null;
-	if (numberFormat.endsWith("m")) {
-		//WORKAROUND
-		xml = "<oneNumber name=\"" + this.getName() + "\">" + sFormatter.format(value) + "</oneNumber>";
-	} else {
-		xml = "<oneNumber name=\"" + this.getName() + "\">" + value + "</oneNumber>";
-	}
-    
+    String xml = "<oneNumber name=\"" + this.getName() + "\">" + value + "</oneNumber>";
 
     return xml;
   }
@@ -389,11 +435,11 @@ public class INDINumberElement extends INDIElement {
   @Override
   public Object parseOneValue(Element xml) {
     double v = parseNumber(xml.getTextContent().trim());
-    
+
     if ((v < min) || (v > max)) {
       throw new IllegalArgumentException(getName() + " ; " + "Number (" + v + ") not in range [" + min + ", " + max + "]");
     }
-    
+
     return v;
   }
 }
