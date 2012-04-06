@@ -20,16 +20,10 @@
  */
 package de.hallenbeck.indiserver.server;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-
+import laazotea.indi.INDIException;
+import laazotea.indi.server.DefaultINDIServer;
 import de.hallenbeck.indiserver.R;
-import de.hallenbeck.indiserver.device_drivers.device_driver_interface;
+import de.hallenbeck.indiserver.device_drivers.lx200basic;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
@@ -37,8 +31,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.net.LocalSocket;
-import android.net.LocalSocketAddress;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 
@@ -46,9 +38,41 @@ import android.preference.PreferenceManager;
  * @author Alexander Tuschen <atuschen75 at gmail dot com>
  *
  */
-public class server extends Service {
+public class INDIservice extends Service {
+	
+	public class INDIServer extends DefaultINDIServer {
+
+		  /**
+		   * Just loads the available driver.
+		   */
+		  public INDIServer() {
+		    super();
+
+		    // Loads the Java Driver. Please note that this must be in the classpath.
+		    try {
+		      loadJavaDriver(lx200basic.class);
+		    } catch (INDIException e) {
+		      e.printStackTrace();
+
+		      System.exit(-1);
+		    }
+		  }
+
+		 
+
+		  /**
+		   * Just creates one instance of this server.
+		   * @param args 
+		   */
+		  public void main(String[] args) {
+		    INDIServer s = new INDIServer();  
+		  }
+		}
+
+	
 	public boolean autoconnect = false;
 	
+	private INDIServer server;
 	//max number of clients 
 	private static final int maxClients = 8;
 	
@@ -89,7 +113,7 @@ public class server extends Service {
 		String ComDriver = settings.getString("com_driver", null);
 		String Device = settings.getString("device", null);
 		autoconnect = settings.getBoolean("autoconnect", false);
-
+		//server = new MinimumINDIServer();
 		
 		notifyUser("INDIserver started","Waiting for Clients...",true);
 		
