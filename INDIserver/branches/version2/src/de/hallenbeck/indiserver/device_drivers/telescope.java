@@ -24,6 +24,9 @@ package de.hallenbeck.indiserver.device_drivers;
 
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import laazotea.indi.driver.INDIDriver;
 import de.hallenbeck.indiserver.communication_drivers.communication_driver_interface;
 
@@ -46,8 +49,8 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	protected static String device=null;
 	protected static boolean connected=false;
 
-	protected telescope() {
-		 super();
+	protected telescope(InputStream in, OutputStream out) {
+		 super(in, out);
 	}
 
 	
