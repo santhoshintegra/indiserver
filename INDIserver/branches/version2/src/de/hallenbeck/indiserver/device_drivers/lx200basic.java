@@ -29,8 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-
-
 import laazotea.indi.INDISexagesimalFormatter;
 import laazotea.indi.INDIDateFormat;
 import laazotea.indi.Constants.PropertyPermissions;
@@ -39,7 +37,6 @@ import laazotea.indi.Constants.SwitchRules;
 import laazotea.indi.Constants.SwitchStatus;
 import laazotea.indi.driver.INDIBLOBElementAndValue;
 import laazotea.indi.driver.INDIBLOBProperty;
-import laazotea.indi.driver.INDIConnectionHandler;
 import laazotea.indi.driver.INDINumberElement;
 import laazotea.indi.driver.INDINumberElementAndValue;
 import laazotea.indi.driver.INDINumberProperty;
@@ -49,6 +46,8 @@ import laazotea.indi.driver.INDISwitchProperty;
 import laazotea.indi.driver.INDITextElement;
 import laazotea.indi.driver.INDITextElementAndValue;
 import laazotea.indi.driver.INDITextProperty;
+
+import de.hallenbeck.indiserver.device_drivers.lx200commands;
 
 /**
  * Driver for LX200 compatible telescopes, only covering the basic commandset.
@@ -69,19 +68,29 @@ import laazotea.indi.driver.INDITextProperty;
 
 public class lx200basic extends telescope implements device_driver_interface {
 	
+	protected static lx200commands lx200  = new lx200commands();
+	
+	protected static boolean AbortSlew = false; 
+	private final static String driverName = "LX200basic";
+	private final static int majorVersion = 0;
+	private final static int minorVersion = 1;	
+	protected final static String FOCUS_GROUP = "Focus Control";
+	protected final static String FIRMWARE_GROUP = "Firmware Information";
+	
 	/**
 	 * Seperate Thread for slewing and continually updating equatorial coordinates
 	 * @author atuschen
 	 *
 	 */
-	public class SlewThread extends Thread {
+	
+	protected class SlewThread extends Thread {
 
 		public void run() {
 
 			AbortSlew = false;
 
 			// get return of MoveToTarget Command (starts slewing immediately, if possible)
-			int err = getCommandInt(MoveToTargetCmd); 
+			int err = getCommandInt(lx200.MoveToTargetCmd); 
 			if (err !=0) {
 				// if Error exit with message
 				EquatorialCoordsWNP.setState(PropertyStates.ALERT);
@@ -94,16 +103,16 @@ public class lx200basic extends telescope implements device_driver_interface {
 				updateProperty(EquatorialCoordsRNP,"Slewing...");
 
 				// Loop until slewing completed or aborted
-				while ((!AbortSlew) && (getCommandString(DistanceBarsCmd).length()==1)) {
+				while ((!AbortSlew) && (getCommandString(lx200.DistanceBarsCmd).length()==1)) {
 
-					//Continually update equatorial coordinates without updating the property
+					//Continually update equatorial coordinates without updating the property-state
 					getEqCoords(false);
 
 				}
 
 				if (AbortSlew) {
 
-					sendCommand(StopAllMovementCmd);
+					sendCommand(lx200.StopAllMovementCmd);
 					updateProperty(EquatorialCoordsWNP,"Slew aborted");
 
 				} else {
@@ -115,167 +124,30 @@ public class lx200basic extends telescope implements device_driver_interface {
 			getEqCoords(true); // Update equatorial coordinates and property
 		}
 	}
-		
-	protected static volatile boolean AbortSlew = false; 
-	protected static INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
-	private final static int majorVersion = 0;
-	private final static int minorVersion = 1;	
-	
-	/* Meade LX200 Commands according to official protocol sheet */
-	
-	/* A - Alignment Commands */
-	protected final static String AlignmentModeCmd = String.valueOf((char)6); //Get Alignment Mode; Returns A,P,D or L
-	protected final static String AlignmentAltAzCmd = "#:AA#"; //Set Alignment Mode to AltAz
-	protected final static String AlignmentPolarCmd = "#:AP#"; //Set Alignment Mode to Polar
-	protected final static String AlignmentLandCmd = "#:AL#"; //Set Alignment Mode to Land
-	
-	/* C - Sync Commands */
-	protected final static String SyncToTargetCmd = "#:CM#"; //Sync to target object coords; Returns: static string#
-	
-	/* D - Get Distance Bars */
-	protected final static String DistanceBarsCmd = "#:D#"; //String containing one char until a slew is complete, then a null string is returned
-	
-	/* F - Focuser Control */
-	protected final static String FocuserMoveInward = "#:F+#"; //Start Focuser moving inward (toward objective)
-	protected final static String FocuserMoveOutward = "#:F-#"; //Start Focuser moving outward (away from objective)
-	protected final static String FocuserHaltMotion = "#:FQ#"; //Halt Focuser Motion
-	protected final static String FocuserSpeedFast = "#:FF#"; //Set Focuser speed to fastest setting
-	protected final static String FocuserSpeedSlow = "#:FS#"; //Set Focuser speed to slowest setting
-	protected final static String FocuserSpeed = "#:F%1d#"; //Set Focuser speed to %1d (1..4)
-	
-	/* G - Get Telescope Information */
-	protected final static String getDateCmd = "#:GC#"; //Get current local Date; Returns: MM/DD/YY#
-	protected final static String getCurrentDECCmd = "#:GD#"; //Get current telescope DEC; Returns: sDD*MM# or sDD*MM’SS# 
-	protected final static String getTargetDECCmd = "#:Gd#"; //Get Target object DEC; Returns: sDD*MM# or sDD*MM’SS#
-	protected final static String getUTCHoursCmd = "#:GG#"; //Get Hours to yield UTC from Local Time; Returns: sHH# or sHH.H#
-	protected final static String getSiteLongCmd = "#:Gg#"; //Get Longitude of current site; Returns: sDDD*MM#
-	protected final static String getTimeCmd = "#:GL#"; //Get current local Time; Returns: HH:MM:SS#
-	protected final static String getSite1NameCmd = "#:GM#"; //Get Name of Site 1
-	protected final static String getSite2NameCmd = "#:GN#"; //Get Name of Site 2
-	protected final static String getSite3NameCmd = "#:GO#"; //Get Name of Site 3
-	protected final static String getSite4NameCmd = "#:GP#"; //Get Name of Site 4
-	protected final static String getTargetRACmd = "#:Gr#"; //Get Target object RA; Returns: HH:MM.T# or HH:MM:SS#
-	protected final static String getCurrentRACmd = "#:GR#"; //Get current telescope RA; Returns: HH:MM.T# or HH:MM:SS#
-	protected final static String getSiderealTimeCmd = "#:GS#"; //Get the Sidereal Time; Returns: HH:MM:SS#
-	protected final static String getTrackingRateCmd = "#:GT#"; //Get tracking rate; Returns: TT.T#
-	protected final static String getSiteLatCmd = "#:Gt#"; //Get Latitude of current site; Returns: sDD*MM# (Positive=North)
-	protected final static String getFirmwareDateCmd = "#:GVD#"; //Get Telescope Firmware Date;	Returns: mmm dd yyyy#
-	protected final static String getFirmwareNumberCmd = "#:GVN#"; //Get Telescope Firmware Number; Returns: <string>#
-	protected final static String getProductNameCmd = "#:GVP#"; //Get Telescope Product Name; Returns: <string>#
-	protected final static String getFirmwareTimeCmd = "#:GVT#"; //Get Telescope Firmware Time;	returns: HH:MM:SS#
-	protected final static String getAlignmentStatusCmd = "#:GW#"; //Get Scope Alignment Status; Returns: <mount><tracking><alignment>#
-
-	/* H - Home Position Commands */
-	protected final static String HomePositionSeekCmd = "#:hF#"; //Seek Home 
-	protected final static String HomePositionParkCmd = "#:hP#"; //Park Scope
-	protected final static String HomePostitionStatusCmd = "#:h?#"; //Query Home Status
-	
-	/* M - Movement Commands */
-	protected final static String MoveEastCmd = "#:Me#"; //Move Telescope East at current slew rate until ":Qe#" or ":Q#" is send
-	protected final static String MoveNorthCmd = "#:Mn#"; //Move Telescope North at current slew rate until ":Qn#" or ":Q#" is send
-	protected final static String MoveSouthCmd = "#:Ms#"; //Move Telescope South at current slew rate until ":Qs#" or ":Q#" is send
-	protected final static String MoveWestCmd = "#:Mw#"; //Move Telescope West at current slew rate until ":Qw#" or ":Q#" is send
-	protected final static String MoveToTargetCmd = "#:MS#"; //Move Telescope to target object; Returns: 0 Slew is Possible, 1<string># Object Below Horizon, 2<string># Object Below Higher
-	
-	/* Q - Stop Movement Commands */
-	protected final static String StopAllMovementCmd = "#:Q#"; 
-	protected final static String StopEastMovementCmd = "#:Qe#";
-	protected final static String StopNorthMovementCmd = "#:Qn#";
-	protected final static String StopSouthMovementCmd = "#:Qs#";
-	protected final static String StopWestMovementCmd = "#:Qe#";
-	
-	/* R - Slew Rate Commands */
-	protected final static String SlewRateCenteringCmd = "#:RC#"; //Centering Rate (2nd slowest)
-	protected final static String SlewRateGuidingCmd = "#:RG#"; //Guiding Rate (slowest)
-	protected final static String SlewRateFindCmd = "#:RM#"; //Find Rate (2nd fastest)
-	protected final static String SlewRateMaxCmd = "#:RS#"; //Max Rate (fastest)
-	
-	/* S - Telescope Set Commands */
-	protected final static String setDateCmd = "#:SC%s#"; //Set Local Date to %s (MM/DD/YY)
-	protected final static String setTimeCmd = "#:SL%s#"; //Set Local Time to %s (HH:MM:SS)
-	protected final static String setUTCHoursCmd = "#:SG%s#"; //Set Hours to yield UTC from Local Time
-	protected final static String setSite1NameCmd = "#:SM%s#"; //Set Name of Site 1 to %s
-	protected final static String setSite2NameCmd = "#:SN%s#"; //Set Name of Site 2 to %s
-	protected final static String setSite3NameCmd = "#:SO%s#"; //Set Name of Site 3 to %s 
-	protected final static String setSite4NameCmd = "#:SP%s#"; //Set Name of Site 4 to %s
-	protected final static String setSiteLatCmd = "#:St%s#"; //Set Latitude of selected site to %s (sDD*MM) North=positive
-	protected final static String setSiteLongCmd = "#:Sg%s#"; //Set Longitude of selected site to %s (DDD*MM) 
-	protected final static String setTargetDECCmd = "#:Sd%s#"; //Set target object DEC to %s (sDD*MM or sDD*MM:SS depending on precision setting); Returns:	1 - DEC Accepted 0 - DEC invalid
-	protected final static String setTargetRACmd = "#:Sr%s#"; //Set target object RA to %s (HH:MM.T or HH:MM:SS depending on precision setting); Returns:	1 - RA Accepted 0 - RA invalid
-	protected final static String setSiderealTimeCmd ="#:SS%s#"; //Sets the local sidereal time to %s (HH:MM:SS); Returns: 0 - Invalid 1 - Valid
-
-	/* U - Precision Toggle */
-	protected final static String PrecisionToggleCmd = "#:U#"; //Toggle between low/hi precision in DEC/RA
-
-	/* W - Site select */
-	protected final static String SiteSelectCmd = "#:W%1d#"; //Set current site to %1d (1..4)
-	
-	/* Undocumented commands, use with caution! */
-	/* :ED# 	Get current display message (localized)
-	 * :EK9# 	MODE Key
-	 * :EK13#	ENTER Key
-	 * :EK 71#	GOTO Key
-	 * :EK 48#  0 Key
-	 * :EK 49#  1 Key
-	 * :EK 50#	2 Key
-	 * :EK 51#  3 Key ... and so on until
-	 * :EK 57#  9 Key
-	 * EK9 and EK13 without space! 
-	 * Before using any key, check the actual display message! 
-	 * One can accidentally navigate to the Download-Function, which can result in a need to reflash the Autostar  
-	 */
-	protected final static String getDisplayMsgCmd ="#:ED#"; 
-	
-	
-	/* INDI Properties */
+			
+	/* INDI Properties for LX200 compatible telescopes */
 	
 	/**********************************************************************************************/
 	/************************************ GROUP: Communication ************************************/
 	/**********************************************************************************************/
 
-	/********************************************
-	 Property: Connection
-	*********************************************/
-	protected INDISwitchProperty ConnectSP;			// suffix SP = SwitchProperty
-	protected INDISwitchElement ConnectS;			// suffix S = SwitchElement
-	protected INDISwitchElement DisconnectS;		
-
 	/**
 	 * The device-interface property isn't implemented.
 	 * It's up to the server-app to set the right interface for the device, not the remote client(s).
-	 *   
 	 */
-	
 	
 	/********************************************
 	 Property: Telescope Alignment Mode
 	*********************************************/
-	protected INDISwitchProperty AlignmentSP;
-	protected INDISwitchElement PolarS;
-	protected INDISwitchElement AltAzS;
-	protected INDISwitchElement LandS;
+	protected INDISwitchProperty AlignmentSP  = new INDISwitchProperty(this, "ALIGNMENT", "Alignment", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement PolarS = new INDISwitchElement(AlignmentSP, "POLAR" , "Polar" , SwitchStatus.ON);
+	protected INDISwitchElement AltAzS = new INDISwitchElement(AlignmentSP, "ALTAZ" , "AltAz" , SwitchStatus.OFF);
+	protected INDISwitchElement LandS = new INDISwitchElement(AlignmentSP, "LAND" , "Land" , SwitchStatus.OFF);
 	
 	/**********************************************************************************************/
 	/************************************ GROUP: Main Control *************************************/
 	/**********************************************************************************************/
 
-	/********************************************
-	 Property: Equatorial Coordinates JNow
-	 Perm: Transient WO.
-	 Timeout: 120 seconds.
-	*********************************************/
-	protected static INDINumberProperty EquatorialCoordsWNP;	// suffix NP = NumberProperty
-	protected INDINumberElement RAWN;					// suffix N = NumberElement
-	protected INDINumberElement DECWN;
-	
-	/********************************************
-	 Property: Equatorial Coordinates JNow
-	 Perm: RO
-	*********************************************/
-	protected INDINumberProperty EquatorialCoordsRNP;
-	protected INDINumberElement RARN;
-	protected INDINumberElement DECRN;
-	
 	/********************************************
 	 Property: On Coord Set
 	 Description: This property decides what happens
@@ -283,15 +155,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 	             value. We either track, or sync
 		     to the new coordinates.
 	*********************************************/
-	protected INDISwitchProperty OnCoordSetSP;
-	protected INDISwitchElement SlewS;
-	protected INDISwitchElement SyncS;
-	
-	/********************************************
-	 Property: Abort telescope motion
-	*********************************************/
-	protected INDISwitchProperty AbortSlewSP;
-	protected INDISwitchElement AbortSlewS;
+	protected INDISwitchProperty OnCoordSetSP = new INDISwitchProperty(this, "ON_COORD_SET", "On Set", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement SlewS = new INDISwitchElement(OnCoordSetSP, "SLEW", "Slew", SwitchStatus.ON);
+	protected INDISwitchElement SyncS = new INDISwitchElement(OnCoordSetSP, "SYNC", "Sync", SwitchStatus.OFF);
 	
 	/**********************************************************************************************/
 	/************************************** GROUP: Motion *****************************************/
@@ -300,53 +166,39 @@ public class lx200basic extends telescope implements device_driver_interface {
 	/********************************************
 	 Property: Slew Speed
 	*********************************************/
-	protected INDISwitchProperty SlewModeSP;
-	protected INDISwitchElement MaxS;
-	protected INDISwitchElement FindS;
-	protected INDISwitchElement CenteringS;
-	protected INDISwitchElement GuideS;
+	protected INDISwitchProperty SlewModeSP = new INDISwitchProperty(this,"SLEW_RATE","Slew rate", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement MaxS = new INDISwitchElement(SlewModeSP, "MAX", "Max", SwitchStatus.ON);
+	protected INDISwitchElement FindS = new INDISwitchElement(SlewModeSP, "FIND", "Find", SwitchStatus.OFF);
+	protected INDISwitchElement CenteringS = new INDISwitchElement(SlewModeSP, "CENTERING", "Centering", SwitchStatus.OFF);
+	protected INDISwitchElement GuideS = new INDISwitchElement(SlewModeSP, "GUIDE", "Guide", SwitchStatus.OFF);
 	
 	/********************************************
 	 Property: Tracking Mode
 	*********************************************/
-	protected INDISwitchProperty TrackModeSP;
-	protected INDISwitchElement DefaultModeS;
-	protected INDISwitchElement LunarModeS;
-	protected INDISwitchElement ManualModeS;
+	protected INDISwitchProperty TrackModeSP = new INDISwitchProperty(this,"TRACKING_MODE", "Tracking Mode", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement DefaultModeS = new INDISwitchElement(TrackModeSP, "DEFAULT", "Default", SwitchStatus.ON);
+	protected INDISwitchElement LunarModeS = new INDISwitchElement(TrackModeSP, "LUNAR", "Lunar", SwitchStatus.OFF);
+	protected INDISwitchElement ManualModeS = new INDISwitchElement(TrackModeSP, "MANUAL", "Manual", SwitchStatus.OFF);
 	
 	/********************************************
 	 Property: Tracking Frequency
 	*********************************************/
-	protected INDINumberProperty TrackFreqNP;
-	protected INDINumberElement TrackFreqN;
+	protected INDINumberProperty TrackFreqNP = new INDINumberProperty(this,"TRACKING_FREQ", "Tracking Frequency", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement TrackFreqN = new INDINumberElement(TrackFreqNP, "TRACK_FREQ", "Freq", 60.1, 56.4, 60.1, 0.1, "%g");
 	
-	/********************************************
-	 Property: Movement (Arrow keys on handset). North/South
-	*********************************************/
-	protected INDISwitchProperty MovementNSSP;
-	protected INDISwitchElement MoveNorthS;
-	protected INDISwitchElement MoveSouthS;
-	
-	/********************************************
-	 Property: Movement (Arrow keys on handset). West/East
-	*********************************************/
-	protected INDISwitchProperty MovementWESP;
-	protected INDISwitchElement MoveWestS;
-	protected INDISwitchElement MoveEastS;
-
 	/********************************************
 	 Property: Timed Guide movement. North/South
 	*********************************************/
-	protected INDINumberProperty GuideNSNP;
-	protected INDINumberElement GuideNorthN;
-	protected INDINumberElement GuideSouthN;
+	protected INDINumberProperty GuideNSNP = new INDINumberProperty(this,"TELESCOPE_TIMED_GUIDE_NS", "Guide North/South", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement GuideNorthN = new INDINumberElement(GuideNSNP, "TIMED_GUIDE_N", "North (sec)", 0, 0, 10, 0.001, "%g");
+	protected INDINumberElement GuideSouthN = new INDINumberElement(GuideNSNP, "TIMED_GUIDE_S", "South (sec)", 0, 0, 10, 0.001, "%g");
 	
 	/********************************************
 	 Property: Timed Guide movement. West/East
 	*********************************************/
-	protected INDINumberProperty GuideWENP;
-	protected INDINumberElement GuideWestN;
-	protected INDINumberElement GuideEastN;
+	protected INDINumberProperty GuideWENP = new INDINumberProperty(this,"TELESCOPE_TIMED_GUIDE_WE", "Guide West/East", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement GuideWestN = new INDINumberElement(GuideWENP, "TIMED_GUIDE_W", "West (sec)", 0, 0, 10, 0.001, "%g");
+	protected INDINumberElement GuideEastN = new INDINumberElement(GuideWENP, "TIMED_GUIDE_E", "East (sec)", 0, 0, 10, 0.001, "%g");
 	
 	/********************************************
 	 Property: Slew Accuracy
@@ -355,9 +207,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 		     the tracking operation to be successull
 		     i.e. returns OK
 	*********************************************/
-	protected INDINumberProperty SlewAccuracyNP;
-	protected INDINumberElement SlewAccuracyRAN;
-	protected INDINumberElement SlewAccuracyDECN;
+	protected INDINumberProperty SlewAccuracyNP = new INDINumberProperty(this,"SLEW_ACCURACY", "Slew Accuracy", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement SlewAccuracyRAN = new INDINumberElement(SlewAccuracyNP, "SLEW_RA",  "RA (arcmin)", 3, 0, 60, 1, "%g");
+	protected INDINumberElement SlewAccuracyDECN = new INDINumberElement(SlewAccuracyNP, "SLEW_DEC", "Dec (arcmin)", 3, 0, 60, 1, "%g");
 	
 	/********************************************
 	 Property: Use pulse-guide commands
@@ -366,9 +218,9 @@ public class lx200basic extends telescope implements device_driver_interface {
 	             be no way to query this information from
 	             the mount
 	*********************************************/
-	protected INDISwitchProperty UsePulseCommandSP;
-	protected INDISwitchElement UsePulseCommandOnS;
-	protected INDISwitchElement UsePulseCommandOffS;
+	protected INDISwitchProperty UsePulseCommandSP = new INDISwitchProperty(this,"USE_PULSE_CMD", "Use PulseCMd", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement UsePulseCommandOnS = new INDISwitchElement(UsePulseCommandSP, "PULSE_ON", "On", SwitchStatus.OFF);
+	protected INDISwitchElement UsePulseCommandOffS = new INDISwitchElement(UsePulseCommandSP, "PULSE_OFF", "Off", SwitchStatus.ON);
 
 	/**********************************************************************************************/
 	/************************************** GROUP: Focus ******************************************/
@@ -377,45 +229,33 @@ public class lx200basic extends telescope implements device_driver_interface {
 	/********************************************
 	 Property: Focus Direction
 	*********************************************/
-	protected INDISwitchProperty FocusMotionSP;
-	protected INDISwitchElement FocusInS;
-	protected INDISwitchElement FocusOutS;
+	protected INDISwitchProperty FocusMotionSP = new INDISwitchProperty(this,"FOCUS_MOTION", "Motion", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement FocusInS = new INDISwitchElement(FocusMotionSP, "IN", "Focus in", SwitchStatus.OFF);
+	protected INDISwitchElement FocusOutS = new INDISwitchElement(FocusMotionSP, "OUT", "Focus out", SwitchStatus.OFF);
 
 	/********************************************
 	 Property: Focus Timer
 	*********************************************/
-	protected INDINumberProperty FocusTimerNP;
-	protected INDINumberElement FocusTimerN;
+	protected INDINumberProperty FocusTimerNP = new INDINumberProperty(this,"FOCUS_TIMER", "Focus Timer", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement FocusTimerN = new INDINumberElement(FocusTimerNP, "TIMER", "Timer (ms)", 50, 0, 10000, 1000, "%g");
 	
 	/********************************************
 	 Property: Focus Mode
 	*********************************************/
-	protected INDISwitchProperty FocusModesSP;
-	protected INDISwitchElement FocusHaltS;
-	protected INDISwitchElement FocusSlowS;
-	protected INDISwitchElement FocusFastS;
+	protected INDISwitchProperty FocusModesSP = new INDISwitchProperty(this,"FOCUS_MODE", "Mode", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement FocusHaltS = new INDISwitchElement(FocusModesSP, "FOCUS_HALT", "Halt", SwitchStatus.ON);
+	protected INDISwitchElement FocusSlowS = new INDISwitchElement(FocusModesSP, "FOCUS_SLOW", "Slow", SwitchStatus.OFF);
+	protected INDISwitchElement FocusFastS = new INDISwitchElement(FocusModesSP, "FOCUS_FAST", "Fast", SwitchStatus.OFF);
 
 	/**********************************************************************************************/
 	/*********************************** GROUP: Date & Time ***************************************/
 	/**********************************************************************************************/
 
 	/********************************************
-	 Property: UTC Time
-	*********************************************/
-	protected INDITextProperty TimeTP;				// suffix TP = TextProperty
-	protected INDITextElement TimeT;				// suffix T = TextElement
-
-	/********************************************
-	 Property: DST Corrected UTC Offfset
-	*********************************************/
-	protected INDINumberProperty UTCOffsetNP;
-	protected INDINumberElement UTCOffsetN;
-
-	/********************************************
 	 Property: Sidereal Time
 	*********************************************/
-	protected INDINumberProperty SDTimeNP;
-	protected INDINumberElement SDTimeN;
+	protected INDINumberProperty SDTimeNP = new INDINumberProperty(this,"TIME_LST", "Sidereal Time", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement SDTimeN = new INDINumberElement(SDTimeNP, "LST", "Sidereal time", 0, 0, 24, 0, "%10.6m");
 
 	/**********************************************************************************************/
 	/************************************* GROUP: Sites *******************************************/
@@ -424,168 +264,53 @@ public class lx200basic extends telescope implements device_driver_interface {
 	/********************************************
 	 Property: Site Management
 	*********************************************/
-	protected INDISwitchProperty SitesSP;
-	protected INDISwitchElement Sites1S;
-	protected INDISwitchElement Sites2S;
-	protected INDISwitchElement Sites3S;
-	protected INDISwitchElement Sites4S;
+	protected INDISwitchProperty SitesSP = new INDISwitchProperty(this,"SITES", "Sites", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement Sites1S = new INDISwitchElement(SitesSP, "SITE1", "Site 1", SwitchStatus.ON);
+	protected INDISwitchElement Sites2S = new INDISwitchElement(SitesSP, "SITE2", "Site 2", SwitchStatus.OFF);
+	protected INDISwitchElement Sites3S = new INDISwitchElement(SitesSP, "SITE3", "Site 3", SwitchStatus.OFF);
+	protected INDISwitchElement Sites4S = new INDISwitchElement(SitesSP, "SITE4", "Site 4", SwitchStatus.OFF);
 
 	/********************************************
 	 Property: Site Name
 	*********************************************/
-	protected INDITextProperty SiteNameTP;
-	protected INDITextElement SiteNameT;
+	protected INDITextProperty SiteNameTP = new INDITextProperty(this,  "SITE NAME", "Site Name", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDITextElement SiteNameT = new INDITextElement(SiteNameTP, "NAME", "Name", "");
+
+	/**********************************************************************************************/
+	/************************************* GROUP: Firmware*****************************************/
+	/**********************************************************************************************/
 
 	/********************************************
-	 Property: Geographical Location
+	 Property: Site Name
 	*********************************************/
-	protected INDINumberProperty GeoNP;
-	protected INDINumberElement GeoLatN;
-	protected INDINumberElement GeoLongN;
-	// Not used // protected INDINumberElement GeoHeightN;
+	protected INDITextProperty ProductNameTP = new INDITextProperty(this,  "PRODUCT_NAME", "Product Name", FIRMWARE_GROUP, PropertyStates.IDLE, PropertyPermissions.RO, 0);
+	protected INDITextElement ProductNameT = new INDITextElement(ProductNameTP, "FWNAME", "Name", "");
 
+	/********************************************
+	 Property: Site Name
+	*********************************************/
+	protected INDITextProperty FirmwareVersionTP = new INDITextProperty(this,  "FIRMWARE_VERSION", "Firmware Version", FIRMWARE_GROUP, PropertyStates.IDLE, PropertyPermissions.RO, 0);
+	protected INDITextElement FirmwareVersionT = new INDITextElement(FirmwareVersionTP, "FWVERSION", "Version", "");
+
+	/********************************************
+	 Property: Site Name
+	*********************************************/
+	protected INDITextProperty FirmwareDateTimeTP = new INDITextProperty(this,  "FIRMWARE_DATETIME", "Firmware Date & Time", FIRMWARE_GROUP, PropertyStates.IDLE, PropertyPermissions.RO, 0);
+	protected INDITextElement FirmwareDateTimeT = new INDITextElement(FirmwareDateTimeTP, "FWDATETIME", "Date & Time", "");
+
+	
 	/*****************************************************************************************************/
 	/**************************************** END PROPERTIES *********************************************/
 	/*****************************************************************************************************/
 
+	
+	
 	/**
 	 * Constructor with input and outputstream for indi-xml-messages.
 	 * TODO: extend with com_driver and device interface string
 	 */
 	public lx200basic(InputStream in, OutputStream out) {
 		super(in,out);
-
-	    /*
-		 * INDI Properties 
-		 * For compatibility reasons names, labels and settings of elements/properties are
-		 * the same as in lx200generic.cpp from the original indilib.
-		 * TODO: localize labels with an Android string-ressource 
-		 */
-	    
-	    /**********************************************************************************************/
-		/************************************ GROUP: Communication ************************************/
-		/**********************************************************************************************/
-
-	    ConnectSP = new INDISwitchProperty(this, "CONNECTION", "Connection", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	    ConnectS = new INDISwitchElement(ConnectSP, "CONNECT" , "Connect" , SwitchStatus.OFF);
-	    DisconnectS = new INDISwitchElement(ConnectSP, "DISCONNECT" , "Disconnect" , SwitchStatus.ON);
-	    
-	    AlignmentSP = new INDISwitchProperty(this, "ALIGNMENT", "Alignment", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	    PolarS = new INDISwitchElement(AlignmentSP, "POLAR" , "Polar" , SwitchStatus.ON);
-	    AltAzS = new INDISwitchElement(AlignmentSP, "ALTAZ" , "AltAz" , SwitchStatus.OFF);
-	    LandS = new INDISwitchElement(AlignmentSP, "LAND" , "Land" , SwitchStatus.OFF);
-	    
-	    /**********************************************************************************************/
-		/************************************ GROUP: Main Control *************************************/
-		/**********************************************************************************************/
-	    
-	    EquatorialCoordsWNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD_REQUEST", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.WO, 120);
-	    RAWN = new INDINumberElement(EquatorialCoordsWNP, "RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
-		DECWN = new INDINumberElement(EquatorialCoordsWNP, "DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
-		
-		
-		EquatorialCoordsRNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.RO, 120);
-		RARN = new INDINumberElement(EquatorialCoordsRNP, "RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
-		DECRN = new INDINumberElement(EquatorialCoordsRNP, "DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
-		
-		OnCoordSetSP = new INDISwitchProperty(this, "ON_COORD_SET", "On Set", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		SlewS = new INDISwitchElement(OnCoordSetSP, "SLEW", "Slew", SwitchStatus.ON);
-		SyncS = new INDISwitchElement(OnCoordSetSP, "SYNC", "Sync", SwitchStatus.OFF);
-		
-		AbortSlewSP = new INDISwitchProperty(this, "TELESCOPE_ABORT_MOTION", "Abort Slew", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		AbortSlewS = new INDISwitchElement(AbortSlewSP, "ABORT", "Abort", SwitchStatus.OFF);
-		
-		/**********************************************************************************************/
-		/************************************** GROUP: Motion *****************************************/
-		/**********************************************************************************************/
-		
-		SlewModeSP = new INDISwitchProperty(this,"SLEW_RATE","Slew rate", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		MaxS = new INDISwitchElement(SlewModeSP, "MAX", "Max", SwitchStatus.ON);
-		FindS = new INDISwitchElement(SlewModeSP, "FIND", "Find", SwitchStatus.OFF);
-		CenteringS = new INDISwitchElement(SlewModeSP, "CENTERING", "Centering", SwitchStatus.OFF);
-		GuideS = new INDISwitchElement(SlewModeSP, "GUIDE", "Guide", SwitchStatus.OFF);
-		
-		TrackModeSP = new INDISwitchProperty(this,"TRACKING_MODE", "Tracking Mode", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		DefaultModeS = new INDISwitchElement(TrackModeSP, "DEFAULT", "Default", SwitchStatus.ON);
-		LunarModeS = new INDISwitchElement(TrackModeSP, "LUNAR", "Lunar", SwitchStatus.OFF);
-		ManualModeS = new INDISwitchElement(TrackModeSP, "MANUAL", "Manual", SwitchStatus.OFF);
-		
-		TrackFreqNP = new INDINumberProperty(this,"TRACKING_FREQ", "Tracking Frequency", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		TrackFreqN = new INDINumberElement(TrackFreqNP, "TRACK_FREQ", "Freq", 60.1, 56.4, 60.1, 0.1, "%g");
-		
-		MovementNSSP = new INDISwitchProperty(this,"TELESCOPE_MOTION_NS", "North/South", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		MoveNorthS = new INDISwitchElement(MovementNSSP, "MOTION_NORTH", "North", SwitchStatus.OFF);
-		MoveSouthS = new INDISwitchElement(MovementNSSP, "MOTION_SOUTH", "South", SwitchStatus.OFF);
-		
-		MovementWESP = new INDISwitchProperty(this,"TELESCOPE_MOTION_WE", "West/East", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		MoveWestS = new INDISwitchElement(MovementWESP, "MOTION_WEST", "West", SwitchStatus.OFF);
-		MoveEastS = new INDISwitchElement(MovementWESP, "MOTION_EAST", "East", SwitchStatus.OFF);
-		
-		GuideNSNP = new INDINumberProperty(this,"TELESCOPE_TIMED_GUIDE_NS", "Guide North/South", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		GuideNorthN = new INDINumberElement(GuideNSNP, "TIMED_GUIDE_N", "North (sec)", 0, 0, 10, 0.001, "%g");
-		GuideSouthN = new INDINumberElement(GuideNSNP, "TIMED_GUIDE_S", "South (sec)", 0, 0, 10, 0.001, "%g");
-		
-		GuideWENP = new INDINumberProperty(this,"TELESCOPE_TIMED_GUIDE_WE", "Guide West/East", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		GuideWestN = new INDINumberElement(GuideWENP, "TIMED_GUIDE_W", "West (sec)", 0, 0, 10, 0.001, "%g");
-		GuideEastN = new INDINumberElement(GuideWENP, "TIMED_GUIDE_E", "East (sec)", 0, 0, 10, 0.001, "%g");
-		
-		SlewAccuracyNP = new INDINumberProperty(this,"SLEW_ACCURACY", "Slew Accuracy", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		SlewAccuracyRAN = new INDINumberElement(SlewAccuracyNP, "SLEW_RA",  "RA (arcmin)", 3, 0, 60, 1, "%g");
-		SlewAccuracyDECN = new INDINumberElement(SlewAccuracyNP, "SLEW_DEC", "Dec (arcmin)", 3, 0, 60, 1, "%g");
-		
-		UsePulseCommandSP = new INDISwitchProperty(this,"USE_PULSE_CMD", "Use PulseCMd", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		UsePulseCommandOnS = new INDISwitchElement(UsePulseCommandSP, "PULSE_ON", "On", SwitchStatus.OFF);
-		UsePulseCommandOffS = new INDISwitchElement(UsePulseCommandSP, "PULSE_OFF", "Off", SwitchStatus.ON);
-		
-		/**********************************************************************************************/
-		/************************************** GROUP: Focus ******************************************/
-		/**********************************************************************************************/
-		
-		FocusMotionSP = new INDISwitchProperty(this,"FOCUS_MOTION", "Motion", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		FocusInS = new INDISwitchElement(FocusMotionSP, "IN", "Focus in", SwitchStatus.OFF);
-		FocusOutS = new INDISwitchElement(FocusMotionSP, "OUT", "Focus out", SwitchStatus.OFF);
-		
-		FocusTimerNP = new INDINumberProperty(this,"FOCUS_TIMER", "Focus Timer", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		FocusTimerN = new INDINumberElement(FocusTimerNP, "TIMER", "Timer (ms)", 50, 0, 10000, 1000, "%g");
-		
-		FocusModesSP = new INDISwitchProperty(this,"FOCUS_MODE", "Mode", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		FocusHaltS = new INDISwitchElement(FocusModesSP, "FOCUS_HALT", "Halt", SwitchStatus.ON);
-		FocusSlowS = new INDISwitchElement(FocusModesSP, "FOCUS_SLOW", "Slow", SwitchStatus.OFF);
-		FocusFastS = new INDISwitchElement(FocusModesSP, "FOCUS_FAST", "Fast", SwitchStatus.OFF);
-		
-		/**********************************************************************************************/
-		/*********************************** GROUP: Date & Time ***************************************/
-		/**********************************************************************************************/
-		
-		TimeTP = new INDITextProperty(this,  "TIME_UTC", "UTC Time", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		TimeT = new INDITextElement(TimeTP, "UTC", "UTC", "0");
-		
-		UTCOffsetNP = new INDINumberProperty(this, "TIME_UTC_OFFSET", "UTC Offset", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		UTCOffsetN = new INDINumberElement(UTCOffsetNP, "OFFSET", "Offset", 0, -12, 12, 0.5, "%0.3g");
-		
-		SDTimeNP = new INDINumberProperty(this,"TIME_LST", "Sidereal Time", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		SDTimeN = new INDINumberElement(SDTimeNP, "LST", "Sidereal time", 0, 0, 24, 0, "%10.6m");
-		
-		/**********************************************************************************************/
-		/************************************* GROUP: Sites *******************************************/
-		/**********************************************************************************************/
-		
-		SitesSP = new INDISwitchProperty(this,"SITES", "Sites", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		Sites1S = new INDISwitchElement(SitesSP, "SITE1", "Site 1", SwitchStatus.ON);
-		Sites2S = new INDISwitchElement(SitesSP, "SITE2", "Site 2", SwitchStatus.OFF);
-		Sites3S = new INDISwitchElement(SitesSP, "SITE3", "Site 3", SwitchStatus.OFF);
-		Sites4S = new INDISwitchElement(SitesSP, "SITE4", "Site 4", SwitchStatus.OFF);
-		
-		SiteNameTP = new INDITextProperty(this,  "SITE NAME", "Site Name", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		SiteNameT = new INDITextElement(SiteNameTP, "NAME", "Name", "");
-		
-		GeoNP = new INDINumberProperty(this,"GEOGRAPHIC_COORD", "Geographic Location", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		GeoLatN = new INDINumberElement(GeoNP, "LAT",  "Lat.  D:M:S +N", 0, -90, 90, 0, "%10.6m");
-		GeoLongN = new INDINumberElement(GeoNP, "LONG",  "Long. D:M:S", 0, 0, 360, 0, "%10.6m");
-		// Not used // GeoHeightN  = new INDINumberElement("HEIGHT",  "Height m", 610, -300, 6000, 0, "%10.2f");
-		
-		this.addProperty(ConnectSP);
-		
 	}
 
 	
@@ -596,6 +321,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	/**
 	 * Connect to telescope and update INDI-Properties
 	 */ 
+	@Override
 	public void connect() throws IOException{
 		try {
 			set_communication_driver("de.hallenbeck.indiserver.communication_drivers.bluetooth_serial");
@@ -618,16 +344,10 @@ public class lx200basic extends telescope implements device_driver_interface {
 			
 		} else {
 			this.addProperty(AlignmentSP);
-		    this.addProperty(EquatorialCoordsWNP);
-		    this.addProperty(EquatorialCoordsRNP);
 		    this.addProperty(OnCoordSetSP);
-		    this.addProperty(AbortSlewSP);
 		    this.addProperty(SlewModeSP);
 		    this.addProperty(TrackModeSP);
 		    this.addProperty(TrackFreqNP);
-		    this.addProperty(MovementNSSP);
-		    this.addProperty(MovementWESP);
-		    this.addProperty(MovementNSSP);
 		    this.addProperty(GuideNSNP);
 		    this.addProperty(GuideWENP);
 		    this.addProperty(SlewAccuracyNP);
@@ -635,33 +355,20 @@ public class lx200basic extends telescope implements device_driver_interface {
 		    this.addProperty(FocusMotionSP);
 		    this.addProperty(FocusTimerNP);
 		    this.addProperty(FocusModesSP);
-		    this.addProperty(TimeTP);
-		    this.addProperty(UTCOffsetNP);
 		    this.addProperty(SDTimeNP);
 		    this.addProperty(SitesSP);
 		    this.addProperty(SiteNameTP);
-		    this.addProperty(GeoNP);
-		    
+		    this.addProperty(ProductNameTP);
+		    this.addProperty(FirmwareVersionTP);
+		    this.addProperty(FirmwareDateTimeTP);
 		    
 			getFirmwareInformation();
 			
 			getAlignmentStatus();
 			
-			// EXPERIMENTAL! Works only with Firmware 43Eg (Display messages are localized!)
-			// Navigate Handbox to main menu after power-on, skipping all data entry prompts,
-			// because Handbox does NOT save any parameters as long as it is NOT in main menu.
-			if (getDisplayMessage().compareTo("*Press 0 to Alignor MODE for Menu")==0) {
-				int i=0;
-				while (i < 7) {
-					// "Press" the MODE-Key 7 times
-					sendCommand("#:EK9#");
-					i++;
-				}
-			}
-			
 			// Always use high-precision coords
-			if (getCommandString(getCurrentRACmd).length() == 7) {
-				sendCommand(PrecisionToggleCmd);
+			if (getCommandString(lx200.getCurrentRACmd).length() == 7) {
+				sendCommand(lx200.PrecisionToggleCmd);
 				updateProperty(ConnectSP,"Setting high precision coords");
 			}
 			
@@ -684,20 +391,16 @@ public class lx200basic extends telescope implements device_driver_interface {
 	/**
 	 * Disconnect from telescope and update INDI-Properties
 	 */
+	@Override
 	public void disconnect() {
 			
 		if (isConnected()) {
+			super.disconnect();
 			this.removeProperty(AlignmentSP);
-		    this.removeProperty(EquatorialCoordsWNP);
-		    this.removeProperty(EquatorialCoordsRNP);
 		    this.removeProperty(OnCoordSetSP);
-		    this.removeProperty(AbortSlewSP);
 		    this.removeProperty(SlewModeSP);
 		    this.removeProperty(TrackModeSP);
 		    this.removeProperty(TrackFreqNP);
-		    this.removeProperty(MovementNSSP);
-		    this.removeProperty(MovementWESP);
-		    this.removeProperty(MovementNSSP);
 		    this.removeProperty(GuideNSNP);
 		    this.removeProperty(GuideWENP);
 		    this.removeProperty(SlewAccuracyNP);
@@ -705,14 +408,14 @@ public class lx200basic extends telescope implements device_driver_interface {
 		    this.removeProperty(FocusMotionSP);
 		    this.removeProperty(FocusTimerNP);
 		    this.removeProperty(FocusModesSP);
-		    this.removeProperty(TimeTP);
-		    this.removeProperty(UTCOffsetNP);
 		    this.removeProperty(SDTimeNP);
 		    this.removeProperty(SitesSP);
 		    this.removeProperty(SiteNameTP);
-		    this.removeProperty(GeoNP);
+		    this.removeProperty(ProductNameTP);
+		    this.removeProperty(FirmwareVersionTP);
+		    this.removeProperty(FirmwareDateTimeTP);
 		    
-			super.disconnect();
+		    
 			AbortSlew=true;
 			ConnectS.setValue(SwitchStatus.OFF);
 			DisconnectS.setValue(SwitchStatus.ON);
@@ -732,8 +435,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 */
 	@Override
 	public String getName() {
-		String tmp = this.getClass().getName();
-		return tmp;
+		return driverName;
 	}
 
 	/**
@@ -742,64 +444,62 @@ public class lx200basic extends telescope implements device_driver_interface {
 	@Override
 	public void processNewTextValue(INDITextProperty property, Date timestamp,
 			INDITextElementAndValue[] elementsAndValues) {
-		
-		if (isConnected()) {
-		
-			/**
-			 * UTC Time Property
-			 */
-			if (property==TimeTP) {
-				
-				Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
-				
-				// Autostar expects local time, but INDI clients send UTC!
-				// We have to add the UTC-Offset to get the local time
-				Calendar cal = Calendar.getInstance();
-				cal.setTime(date);
-				cal.add(Calendar.HOUR, UTCOffsetN.getValue().intValue());
-				cal.add(Calendar.MINUTE, (int) ((UTCOffsetN.getValue()%1)*60));
-				date = cal.getTime();
-				
-				// assemble Autostar-format date/time 
-				String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
-				String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
-				String DateCmd = String.format(setDateCmd, dateStr);
-				String TimeCmd = String.format(setTimeCmd, timeStr);
 
-				// send to Autostar
-				getCommandChar(TimeCmd);
-				getCommandChar(DateCmd);
-				try {
-					com_driver.read('#'); // Return String "Updating planetary data... #"
-					com_driver.read('#'); // Return String "                           #"
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-				// Verify by read and update Properties
-				getDateTime();
+
+		/**
+		 * UTC Time Property
+		 */
+		if (property==TimeTP) {
+
+			Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
+
+			// Autostar expects local time, but INDI clients send UTC!
+			// We have to add the UTC-Offset to get the local time
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(date);
+			cal.add(Calendar.HOUR, UTCOffsetN.getValue().intValue());
+			cal.add(Calendar.MINUTE, (int) ((UTCOffsetN.getValue()%1)*60));
+			date = cal.getTime();
+
+			// assemble Autostar-format date/time 
+			String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
+			String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
+			String DateCmd = String.format(lx200.setDateCmd, dateStr);
+			String TimeCmd = String.format(lx200.setTimeCmd, timeStr);
+
+			// send to Autostar
+			getCommandChar(TimeCmd);
+			getCommandChar(DateCmd);
+			try {
+				com_driver.read('#'); // Return String "Updating planetary data... #"
+				com_driver.read('#'); // Return String "                           #"
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 
-			/**
-			 * Geolocation Property
-			 */
+			// Verify by read and update Properties
+			getDateTime();
+		}
 
-		} /* else {
-			updateProperty(property,"LX200basic[ProcessNewTextValue]: Not connected");
-		} */
+		/**
+		 * Geolocation Property
+		 */
+		
+		super.processNewTextValue(property, timestamp, elementsAndValues);
+
 	}
 
-	
+
 	/**
 	 * Set new switch-values received from clients
 	 */
 	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
-		
+
 		// Get the Element
 		INDISwitchElement elem = elementsAndValues[0].getElement();
-		
+
 		/**
 		 * Connect Property always available
 		 */
@@ -814,95 +514,89 @@ public class lx200basic extends telescope implements device_driver_interface {
 				}
 			}
 		}
-		
-		// All other Properties are not available if not connected to telescope!
-		
-		if (isConnected()) {
-			
-			/**
-			 * Alignment Property
-			 */
-			if (property==AlignmentSP) {
-				if (elem==AltAzS) sendCommand(AlignmentAltAzCmd);
-				if (elem==PolarS) sendCommand(AlignmentPolarCmd);
-				if (elem==LandS) sendCommand(AlignmentLandCmd);
-				getAlignmentMode();
-			}
 
-			/**
-			 * SiteSwitch Property
-			 */
-			if (property==SitesSP) {
-				int site=1;
-				
-				if (elem==Sites1S) {
-					site=1;
-					Sites1S.setValue(SwitchStatus.ON);
-					Sites2S.setValue(SwitchStatus.OFF);
-					Sites3S.setValue(SwitchStatus.OFF);
-					Sites4S.setValue(SwitchStatus.OFF);
-				}
-				if (elem==Sites2S) {
-					site=2;
-					Sites1S.setValue(SwitchStatus.OFF);
-					Sites2S.setValue(SwitchStatus.ON);
-					Sites3S.setValue(SwitchStatus.OFF);
-					Sites4S.setValue(SwitchStatus.OFF);
-				}
-				if (elem==Sites3S){
-					site=3;
-					Sites1S.setValue(SwitchStatus.OFF);
-					Sites2S.setValue(SwitchStatus.OFF);
-					Sites3S.setValue(SwitchStatus.ON);
-					Sites4S.setValue(SwitchStatus.OFF);
-				}
-				if (elem==Sites4S){
-					site=4;
-					Sites1S.setValue(SwitchStatus.OFF);
-					Sites2S.setValue(SwitchStatus.OFF);
-					Sites3S.setValue(SwitchStatus.OFF);
-					Sites4S.setValue(SwitchStatus.ON);
-				}
-				// Set current site  
-				sendCommand(String.format(SiteSelectCmd,site));
-				
-				// Get the name of the selected site
-				getSiteName(site);
-				// Get the geolocation of the selected site
-				getGeolocation();
-				
-				SitesSP.setState(PropertyStates.OK);
-				updateProperty(SitesSP,"Selected Site #"+site);
+
+		/**
+		 * Alignment Property
+		 */
+		if (property==AlignmentSP) {
+			if (elem==AltAzS) sendCommand(lx200.AlignmentAltAzCmd);
+			if (elem==PolarS) sendCommand(lx200.AlignmentPolarCmd);
+			if (elem==LandS) sendCommand(lx200.AlignmentLandCmd);
+			getAlignmentMode();
+		}
+
+		/**
+		 * SiteSwitch Property
+		 */
+		if (property==SitesSP) {
+			int site=1;
+
+			if (elem==Sites1S) {
+				site=1;
+				Sites1S.setValue(SwitchStatus.ON);
+				Sites2S.setValue(SwitchStatus.OFF);
+				Sites3S.setValue(SwitchStatus.OFF);
+				Sites4S.setValue(SwitchStatus.OFF);
 			}
-			
-			/**
-			 * Switch between slew and sync on new equatorial coords 
-			 */
-			if (property==OnCoordSetSP) {
-				if (elem==SlewS) {
-					SlewS.setValue(SwitchStatus.ON);
-					SyncS.setValue(SwitchStatus.OFF);
-				}
-				if (elem==SyncS) {
-					SlewS.setValue(SwitchStatus.OFF);
-					SyncS.setValue(SwitchStatus.ON);
-				}
-				OnCoordSetSP.setState(PropertyStates.OK);
-				updateProperty(OnCoordSetSP);
-				
+			if (elem==Sites2S) {
+				site=2;
+				Sites1S.setValue(SwitchStatus.OFF);
+				Sites2S.setValue(SwitchStatus.ON);
+				Sites3S.setValue(SwitchStatus.OFF);
+				Sites4S.setValue(SwitchStatus.OFF);
 			}
-			
-			/**
-			 * Abort all current slewing
-			 */
-			if (property==AbortSlewSP) {
-				AbortSlew=true;
-				updateProperty(AbortSlewSP);
+			if (elem==Sites3S){
+				site=3;
+				Sites1S.setValue(SwitchStatus.OFF);
+				Sites2S.setValue(SwitchStatus.OFF);
+				Sites3S.setValue(SwitchStatus.ON);
+				Sites4S.setValue(SwitchStatus.OFF);
 			}
-			
-		} /* else {
-			updateProperty(property,"LX200basic[ProcessNewSwitchValue]: Not connected");
-		} */
+			if (elem==Sites4S){
+				site=4;
+				Sites1S.setValue(SwitchStatus.OFF);
+				Sites2S.setValue(SwitchStatus.OFF);
+				Sites3S.setValue(SwitchStatus.OFF);
+				Sites4S.setValue(SwitchStatus.ON);
+			}
+			// Set current site  
+			sendCommand(String.format(lx200.SiteSelectCmd,site));
+
+			// Get the name of the selected site
+			getSiteName(site);
+			// Get the geolocation of the selected site
+			getGeolocation();
+
+			SitesSP.setState(PropertyStates.OK);
+			updateProperty(SitesSP,"Selected Site #"+site);
+		}
+
+		/**
+		 * Switch between slew and sync on new equatorial coords 
+		 */
+		if (property==OnCoordSetSP) {
+			if (elem==SlewS) {
+				SlewS.setValue(SwitchStatus.ON);
+				SyncS.setValue(SwitchStatus.OFF);
+			}
+			if (elem==SyncS) {
+				SlewS.setValue(SwitchStatus.OFF);
+				SyncS.setValue(SwitchStatus.ON);
+			}
+			OnCoordSetSP.setState(PropertyStates.OK);
+			updateProperty(OnCoordSetSP);
+
+		}
+
+		/**
+		 * Abort all current slewing
+		 */
+		if (property==AbortSlewSP) {
+			AbortSlew=true;
+			updateProperty(AbortSlewSP);
+		}
+		super.processNewSwitchValue(property, timestamp, elementsAndValues);
 	}
 
 	/**
@@ -911,134 +605,130 @@ public class lx200basic extends telescope implements device_driver_interface {
 	@Override
 	public void processNewNumberValue(INDINumberProperty property,
 			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
-		
-		if (isConnected()) {
-			
-			/**
-			 * UTC-Offset Property
-			 */
-			if (property==UTCOffsetNP) {
-				
-				if (elementsAndValues.length>0) {
+
+
+		/**
+		 * UTC-Offset Property
+		 */
+		if (property==UTCOffsetNP) {
+
+			if (elementsAndValues.length>0) {
 				// Get the value
 				double val = elementsAndValues[0].getValue();
 				// Standard "String.format" doesn't work, we need a string like "+02.0"
 				// Additionally we have to change +/-, because Autostar needs a value to YIELD UTC
 				// KStars sends the Offset (+02.0) but Autostar needs (-02.0) to get the right time.
 				// The Handbox only displays the correct timezone +02.0 if we send -02.0 to it.  
-				
+
 				String sign = "-";
 				if (val<0) {
 					sign = "+";
 					val = val * -1;
 				}
 				String tmp = String.format("%s%02d.%01d", sign, (int) val, (int) (val % 1));
-				String UTCHoursCmd = String.format(setUTCHoursCmd, tmp);
+				String UTCHoursCmd = String.format(lx200.setUTCHoursCmd, tmp);
 				getCommandInt(UTCHoursCmd);	
 				UTCOffsetN.setValue(val);
 				UTCOffsetNP.setState(PropertyStates.OK);
 				updateProperty(property, "Local Time to UTC difference: "+tmp+"h");
+			}
+		}
+
+		/**
+		 * Geolocation Property
+		 */
+		if (property==GeoNP) {
+			int i = 0;
+			while (i < elementsAndValues.length) {
+				if (elementsAndValues[i].getElement() ==  GeoLatN) {
+					double geolat = elementsAndValues[0].getValue();
+					// Assemble an Autostar Latitude format
+					// Positive = North, Negative = South  Example: "+50*01"
+					String sign = "+";
+					if (geolat<0) {
+						sign ="-";
+						geolat = geolat * -1;
+					}
+					// TODO: Instead of truncating doubles with (int) we should round them 
+					String tmp = String.format("%s%02d*%02d", sign, (int) geolat, (int) ((geolat % 1)*60) );
+					String GeolatCmd = String.format(lx200.setSiteLatCmd, tmp);
+					updateProperty(property,"Latitude sent:" + tmp);
+
+					// Set latitude
+					getCommandChar(GeolatCmd);
 				}
+				if (elementsAndValues[i].getElement() == GeoLongN) {
+					double geolong = 360-elementsAndValues[1].getValue();
+					// Assemble an Autostar longitude format
+					// TODO: Instead of truncating doubles with (int) we should round them 
+					String tmp = String.format("%03d*%02d", (int) geolong, (int) ((geolong % 1)*60) ); 
+					String GeolongCmd = String.format(lx200.setSiteLongCmd, tmp);
+					updateProperty(property,"Longitude sent:" + tmp);
+					// Set longitude
+					getCommandChar(GeolongCmd);
+				}
+				i++; 
+			}
+			//Verify by read and update Properties
+			getGeolocation();
+		}
+
+		/**
+		 * New Equatorial Coords
+		 */
+		if (property == EquatorialCoordsWNP) {
+
+			// Get the coords
+			int i=0;
+			while (i < elementsAndValues.length) {
+				if (elementsAndValues[i].getElement() ==  RAWN) {
+					double RA = elementsAndValues[i].getValue();
+					String RAStr = sexa.format(RA);
+					String RACmd = String.format(lx200.setTargetRACmd,RAStr);
+					if (getCommandInt(RACmd)==1) updateProperty(property,"Target RA set: "+RAStr);
+
+				}
+				if (elementsAndValues[i].getElement() == DECWN) {
+					double DEC = elementsAndValues[i].getValue();
+					String DECStr = sexa.format(DEC);
+					String DECCmd = String.format(lx200.setTargetDECCmd,DECStr);
+					//if (getCommandChar(DECCmd)==1) updateProperty(property,"Target DEC set: "+DECStr);
+					getCommandChar(DECCmd);
+					updateProperty(property,"Target DEC set: "+DECStr);
+				}
+				i++;
 			}
 
-			/**
-			 * Geolocation Property
-			 */
-			if (property==GeoNP) {
-				int i = 0;
-				while (i < elementsAndValues.length) {
-					if (elementsAndValues[i].getElement() ==  GeoLatN) {
-						double geolat = elementsAndValues[0].getValue();
-						// Assemble an Autostar Latitude format
-						// Positive = North, Negative = South  Example: "+50*01"
-						String sign = "+";
-						if (geolat<0) {
-							sign ="-";
-							geolat = geolat * -1;
-						}
-						// TODO: Instead of truncating doubles with (int) we should round them 
-						String tmp = String.format("%s%02d*%02d", sign, (int) geolat, (int) ((geolat % 1)*60) );
-						String GeolatCmd = String.format(setSiteLatCmd, tmp);
-						updateProperty(property,"Latitude sent:" + tmp);
+			// Verify target coords by read 
+			getTargetCoords();
 
-						// Set latitude
-						getCommandChar(GeolatCmd);
-					}
-					if (elementsAndValues[i].getElement() == GeoLongN) {
-						double geolong = 360-elementsAndValues[1].getValue();
-						// Assemble an Autostar longitude format
-						// TODO: Instead of truncating doubles with (int) we should round them 
-						String tmp = String.format("%03d*%02d", (int) geolong, (int) ((geolong % 1)*60) ); 
-						String GeolongCmd = String.format(setSiteLongCmd, tmp);
-						updateProperty(property,"Longitude sent:" + tmp);
-						// Set longitude
-						getCommandChar(GeolongCmd);
-					}
-					i++; 
+			// "Slew on new coord" is set
+			if (SlewS.getValue()==SwitchStatus.ON) {
+
+				// Abort all current slewing
+				AbortSlew = true;
+
+				// Wait a moment for a thread to terminate
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
-				//Verify by read and update Properties
-				getGeolocation();
+
+				// Start new thread for slewing
+				SlewThread slewThread = new SlewThread();
+				slewThread.start();
 			}
-			
-			/**
-			 * New Equatorial Coords
-			 */
-			if (property == EquatorialCoordsWNP) {
-				
-				// Get the coords
-				int i=0;
-				while (i < elementsAndValues.length) {
-					if (elementsAndValues[i].getElement() ==  RAWN) {
-						double RA = elementsAndValues[i].getValue();
-						String RAStr = sexa.format(RA);
-						String RACmd = String.format(setTargetRACmd,RAStr);
-						if (getCommandInt(RACmd)==1) updateProperty(property,"Target RA set: "+RAStr);
 
-					}
-					if (elementsAndValues[i].getElement() == DECWN) {
-						double DEC = elementsAndValues[i].getValue();
-						String DECStr = sexa.format(DEC);
-						String DECCmd = String.format(setTargetDECCmd,DECStr);
-						//if (getCommandChar(DECCmd)==1) updateProperty(property,"Target DEC set: "+DECStr);
-						getCommandChar(DECCmd);
-						updateProperty(property,"Target DEC set: "+DECStr);
-					}
-					i++;
-				}
-
-				// Verify target coords by read 
-				getTargetCoords();
-				
-				// "Slew on new coord" is set
-				if (SlewS.getValue()==SwitchStatus.ON) {
-					
-					// Abort all current slewing
-					AbortSlew = true;
-					
-					// Wait a moment for a thread to terminate
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					
-					// Start new thread for slewing
-					SlewThread slewThread = new SlewThread();
-					slewThread.start();
-				}
-				
-				// "Sync on new coord" is set
-				if (SyncS.getValue()==SwitchStatus.ON) {
-					getCommandString(SyncToTargetCmd);
-					getEqCoords(true);
-					updateProperty(property,"Synced telescope to coordinates");
-				}
-				
+			// "Sync on new coord" is set
+			if (SyncS.getValue()==SwitchStatus.ON) {
+				getCommandString(lx200.SyncToTargetCmd);
+				getEqCoords(true);
+				updateProperty(property,"Synced telescope to coordinates");
 			}
-		
-		} /* else {
-			updateProperty(property,"LX200basic[ProcessNewNumberValue]: Not connected");
-		} */
+
+		}
+		super.processNewNumberValue(property, timestamp, elementsAndValues);
 	}
 
 	/**
@@ -1048,210 +738,193 @@ public class lx200basic extends telescope implements device_driver_interface {
 	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
 			INDIBLOBElementAndValue[] elementsAndValues) {
 		// Leave empty here, not needed. 
+		super.processNewBLOBValue(property, timestamp, elementsAndValues);
 	}
 
 	/**
 	 * Get the Alignment-Mode from the telescope
 	 */
 	protected void getAlignmentMode() {
-		if (isConnected()) {
-			// Send command 2 times!
-			getCommandChar(AlignmentModeCmd);
-			
-			String stmp=null;
 
-			switch (getCommandChar(AlignmentModeCmd)) {
-			case 'A': 			
-				AltAzS.setValue(SwitchStatus.ON);
-				LandS.setValue(SwitchStatus.OFF);
-				PolarS.setValue(SwitchStatus.OFF);
-				AlignmentSP.setState(PropertyStates.OK);
-				stmp="AltAz alignment";
-				break;
-			case 'D': 
-				// I doubt that sending data to the
-				// Handbox while it's in download-mode is very healthy...
-				// Confirmed: It isn't! I had to reflash the Unit. 
-				stmp="WARNING: DOWNLOADER ACTIVE! DISCONNECTING...";
-				disconnect();
-				AlignmentSP.setState(PropertyStates.ALERT);
-				break;
-			case 'L':
-				AltAzS.setValue(SwitchStatus.OFF);
-				LandS.setValue(SwitchStatus.ON);
-				PolarS.setValue(SwitchStatus.OFF);
-				AlignmentSP.setState(PropertyStates.OK);
-				stmp="Land alignment";
-				break;	
-			case 'P': 
-				AltAzS.setValue(SwitchStatus.OFF);
-				LandS.setValue(SwitchStatus.OFF);
-				PolarS.setValue(SwitchStatus.ON);
-				AlignmentSP.setState(PropertyStates.OK);
-				stmp="Polar alignment";
-				break;
-			}
-			updateProperty(AlignmentSP,stmp);
+		// Send command 2 times!
+		getCommandChar(lx200.AlignmentModeCmd);
 
+		String stmp=null;
+
+		switch (getCommandChar(lx200.AlignmentModeCmd)) {
+		case 'A': 			
+			AltAzS.setValue(SwitchStatus.ON);
+			LandS.setValue(SwitchStatus.OFF);
+			PolarS.setValue(SwitchStatus.OFF);
+			AlignmentSP.setState(PropertyStates.OK);
+			stmp="AltAz alignment";
+			break;
+		case 'D': 
+			// I doubt that sending data to the
+			// Handbox while it's in download-mode is very healthy...
+			// Confirmed: It isn't! I had to reflash the Unit. 
+			stmp="WARNING: DOWNLOADER ACTIVE! DISCONNECTING...";
+			disconnect();
+			AlignmentSP.setState(PropertyStates.ALERT);
+			break;
+		case 'L':
+			AltAzS.setValue(SwitchStatus.OFF);
+			LandS.setValue(SwitchStatus.ON);
+			PolarS.setValue(SwitchStatus.OFF);
+			AlignmentSP.setState(PropertyStates.OK);
+			stmp="Land alignment";
+			break;	
+		case 'P': 
+			AltAzS.setValue(SwitchStatus.OFF);
+			LandS.setValue(SwitchStatus.OFF);
+			PolarS.setValue(SwitchStatus.ON);
+			AlignmentSP.setState(PropertyStates.OK);
+			stmp="Polar alignment";
+			break;
 		}
+		updateProperty(AlignmentSP,stmp);
 	}
 
 	/**
 	 * Get alignment status		
 	 */
 	protected void getAlignmentStatus() {
-		if (isConnected()) {
-	
-			String tmp = getCommandString(getAlignmentStatusCmd,3);
-			String stmp = null;
-			switch (tmp.charAt(0)) {
-			case 'A':
-				stmp = "AzEl mount";
-				break;
-			case 'P':
-				stmp = "Eq mount";
-				break;
-			case 'G':
-				stmp = "German Eq mount";
-				break;
-			}
-			
-			switch (tmp.charAt(1)) {
-			case 'T':
-				stmp = stmp + ", Tracking";
-				break;
-			case 'N':
-				stmp = stmp + ", not Tracking";
-				break;
-			}
-			
-			//TODO: Display some warning about not aligned telescope, slewing may be inaccurate
-			switch (tmp.charAt(2)) {
-			case '0':
-				stmp = stmp + ", NOT aligned!";
-				break;
-			case '1':
-				stmp = stmp + ", one-star aligned";
-				break;
-			case '2':
-				stmp = stmp + ", two-star aligned";
-				break;
-			case '3':
-				stmp = stmp + ", three-star aligned";
-				break;
-			}
-			updateProperty(AlignmentSP, stmp);
+		String tmp = getCommandString(lx200.getAlignmentStatusCmd,3);
+		String stmp = null;
+		switch (tmp.charAt(0)) {
+		case 'A':
+			stmp = "AzEl mount";
+			break;
+		case 'P':
+			stmp = "Eq mount";
+			break;
+		case 'G':
+			stmp = "German Eq mount";
+			break;
 		}
+
+		switch (tmp.charAt(1)) {
+		case 'T':
+			stmp = stmp + ", Tracking";
+			break;
+		case 'N':
+			stmp = stmp + ", not Tracking";
+			break;
+		}
+
+		//TODO: Display some warning about not aligned telescope, slewing may be inaccurate
+		switch (tmp.charAt(2)) {
+		case '0':
+			stmp = stmp + ", NOT aligned!";
+			break;
+		case '1':
+			stmp = stmp + ", one-star aligned";
+			break;
+		case '2':
+			stmp = stmp + ", two-star aligned";
+			break;
+		case '3':
+			stmp = stmp + ", three-star aligned";
+			break;
+		}
+		updateProperty(AlignmentSP, stmp);
 	}
-	
+
 	/**
 	 * Get Firmware info
 	 */
 	protected void getFirmwareInformation() {
-		if (isConnected()) {
-			String tmp = getCommandString(getProductNameCmd);
-			tmp = tmp + " " + getCommandString(getFirmwareNumberCmd);
-			tmp = tmp + " " + getCommandString(getFirmwareDateCmd);
-			tmp = tmp + " " + getCommandString(getFirmwareTimeCmd);
-			updateProperty(ConnectSP,tmp);
-		}
+		ProductNameT.setValue(getCommandString(lx200.getProductNameCmd));
+		updateProperty(ProductNameTP);
+		FirmwareVersionT.setValue(getCommandString(lx200.getFirmwareNumberCmd));
+		updateProperty(FirmwareVersionTP);
+		FirmwareDateTimeT.setValue(getCommandString(lx200.getFirmwareDateCmd)+" "+getCommandString(lx200.getFirmwareTimeCmd));
+		updateProperty(FirmwareDateTimeTP);
 	}
-			
+
 	/**
 	 * Get the current Date/Time from telescope
 	 */
 	protected void getDateTime() {
-		if (isConnected()) {
-
-			String dateStr = getCommandString(getTimeCmd)+" "+getCommandString(getDateCmd);
-			try {
-				Date date = new SimpleDateFormat("kk:mm:ss MM/dd/yy").parse(dateStr);
-				TimeT.setValue(INDIDateFormat.formatTimestamp(date));
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			TimeTP.setState(PropertyStates.OK);
-			updateProperty(TimeTP, "Local time:"+dateStr);
+		String dateStr = getCommandString(lx200.getTimeCmd)+" "+getCommandString(lx200.getDateCmd);
+		try {
+			Date date = new SimpleDateFormat("kk:mm:ss MM/dd/yy").parse(dateStr);
+			TimeT.setValue(INDIDateFormat.formatTimestamp(date));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		TimeTP.setState(PropertyStates.OK);
+		updateProperty(TimeTP, "Local time:"+dateStr);
 	}
-	
+
 	/**
 	 * Get the current Geolocation from telescope
 	 */
 	protected void getGeolocation() {
-		if (isConnected()) {
-			GeoLatN.setValue(getCommandSexa(getSiteLatCmd));
-			GeoLongN.setValue(360-getCommandSexa(getSiteLongCmd));
-			GeoNP.setState(PropertyStates.OK);
-			updateProperty(GeoNP, "Geolocation Lat: "+GeoLatN+" Long: "+GeoLongN);
-		}
+		GeoLatN.setValue(getCommandSexa(lx200.getSiteLatCmd));
+		GeoLongN.setValue(360-getCommandSexa(lx200.getSiteLongCmd));
+		GeoNP.setState(PropertyStates.OK);
+		updateProperty(GeoNP, "Geolocation Lat: "+GeoLatN+" Long: "+GeoLongN);
 	}
-	
+
 	/** 
 	 * Get Name of Site site# from telescope
 	 */
 	protected void getSiteName(int site) {
-		if (isConnected()) {
-			switch (site) {
-			case 1: 
-				SiteNameT.setValue(getCommandString(getSite1NameCmd));
-				break;
-			case 2: 
-				SiteNameT.setValue(getCommandString(getSite2NameCmd));
-				break;
-			case 3: 
-				SiteNameT.setValue(getCommandString(getSite3NameCmd));
-				break;
-			case 4: 
-				SiteNameT.setValue(getCommandString(getSite4NameCmd));
-				break;
-			}
-			SiteNameTP.setState(PropertyStates.OK);
-			updateProperty(SiteNameTP,"Site Name: "+SiteNameT.getValue());
+		switch (site) {
+		case 1: 
+			SiteNameT.setValue(getCommandString(lx200.getSite1NameCmd));
+			break;
+		case 2: 
+			SiteNameT.setValue(getCommandString(lx200.getSite2NameCmd));
+			break;
+		case 3: 
+			SiteNameT.setValue(getCommandString(lx200.getSite3NameCmd));
+			break;
+		case 4: 
+			SiteNameT.setValue(getCommandString(lx200.getSite4NameCmd));
+			break;
 		}
+		SiteNameTP.setState(PropertyStates.OK);
+		updateProperty(SiteNameTP,"Site Name: "+SiteNameT.getValue());
 	}
 
-	
+
 	protected String getDisplayMessage() {
-		String tmp="";
-		if (isConnected()) {
-			tmp = getCommandString(getDisplayMsgCmd);
-		}
-		return tmp;
+		return getCommandString(lx200.getDisplayMsgCmd);
 	}
-	
+
 	/**
 	 * Get the current equatorial coords the scope is pointing at
 	 * TODO: some warning if telescope is not aligned, coords may be inaccurate  
 	 */
 	protected synchronized void getEqCoords(boolean updateState) {
-		if (isConnected()) {
-			try {
-				double RA = sexa.parseSexagesimal(getCommandString(getCurrentRACmd));
-				double DEC = sexa.parseSexagesimal(getCommandString(getCurrentDECCmd));
-				RARN.setValue(RA);
-				DECRN.setValue(DEC);
-				if (updateState) EquatorialCoordsRNP.setState(PropertyStates.OK);
-				updateProperty(EquatorialCoordsRNP); //,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
-			} catch (IllegalArgumentException e) {
 
-			}
+		try {
+			double RA = sexa.parseSexagesimal(getCommandString(lx200.getCurrentRACmd));
+			double DEC = sexa.parseSexagesimal(getCommandString(lx200.getCurrentDECCmd));
+			RARN.setValue(RA);
+			DECRN.setValue(DEC);
+			if (updateState) EquatorialCoordsRNP.setState(PropertyStates.OK);
+			updateProperty(EquatorialCoordsRNP); //,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
+		} catch (IllegalArgumentException e) {
+
 		}
+
 	}
-	
+
 	protected void getTargetCoords() {
-		if (isConnected()) {
-			String tmp = getCommandString(getTargetRACmd);
-			double RA = sexa.parseSexagesimal(tmp);
-			String tmp2 = getCommandString(getTargetDECCmd);
-			double DEC = sexa.parseSexagesimal(tmp2);
-			RAWN.setValue(RA);
-			DECWN.setValue(DEC);
-			EquatorialCoordsWNP.setState(PropertyStates.OK);
-			updateProperty(EquatorialCoordsWNP,"Target Object RA: "+RAWN.getValueAsString()+" DEC: "+DECWN.getValueAsString());
-		}
+
+		String tmp = getCommandString(lx200.getTargetRACmd);
+		double RA = sexa.parseSexagesimal(tmp);
+		String tmp2 = getCommandString(lx200.getTargetDECCmd);
+		double DEC = sexa.parseSexagesimal(tmp2);
+		RAWN.setValue(RA);
+		DECWN.setValue(DEC);
+		EquatorialCoordsWNP.setState(PropertyStates.OK);
+		updateProperty(EquatorialCoordsWNP,"Target Object RA: "+RAWN.getValueAsString()+" DEC: "+DECWN.getValueAsString());
+
 	}
 	
 	
@@ -1295,7 +968,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 			com_driver.set_timeout(1000);
 
 			try {
-				com_driver.emptyBuffer();
+				//com_driver.emptyBuffer();
 				com_driver.sendCommand(command);
 				tmp = com_driver.read(1).charAt(0);
 				
@@ -1315,7 +988,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected synchronized String getCommandString(String command) {
 		String tmp="";
 		try {
-			com_driver.emptyBuffer();
+			//com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
 			com_driver.set_timeout(1000);
 			tmp = com_driver.read('#');
@@ -1334,7 +1007,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	protected synchronized String getCommandString(String command, int bytes) {
 		String tmp="";
 		try {
-			com_driver.emptyBuffer();
+			//com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
 			com_driver.set_timeout(1000);
 			tmp = com_driver.read(bytes);
@@ -1353,7 +1026,7 @@ public class lx200basic extends telescope implements device_driver_interface {
 	 */
 	protected synchronized void sendCommand(String command) {
 		try {
-			com_driver.emptyBuffer();
+			//com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
 			
 		} catch (IOException e) {
