@@ -24,6 +24,7 @@ import laazotea.indi.INDIException;
 import laazotea.indi.server.DefaultINDIServer;
 import laazotea.indi.server.INDIDevice;
 import de.hallenbeck.indiserver.R;
+import de.hallenbeck.indiserver.device_drivers.lx200autostar;
 import de.hallenbeck.indiserver.device_drivers.lx200basic;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -85,6 +86,7 @@ public class INDIservice extends Service {
 	public boolean autoconnect = false;
 	
 	private INDIServer server;
+	
 	//max number of clients 
 	private static final int maxClients = 8;
 	
