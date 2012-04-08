@@ -158,7 +158,7 @@ public abstract class telescope extends INDIDriver {
 	/**************************************** END PROPERTIES *********************************************/
 	/*****************************************************************************************************/
 
-<<<<<<< .mine
+
 	/**
 	 * Constructor
 	 * @param in
@@ -175,36 +175,7 @@ public abstract class telescope extends INDIDriver {
 		setCommunicationDevice(device);
 		this.addProperty(ConnectSP);
 		updateProperty(ConnectSP,"INDI4Java Driver "+getName()+ "started");
-=======
 
-	protected telescope(InputStream in, OutputStream out) {
-		 super(in, out);
-		 ConnectSP = new INDISwitchProperty(this, "CONNECTION", "Connection", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		 ConnectS = new INDISwitchElement(ConnectSP, "CONNECT" , "Connect" , SwitchStatus.OFF);
-		 DisconnectS = new INDISwitchElement(ConnectSP, "DISCONNECT" , "Disconnect" , SwitchStatus.ON);
-		 EquatorialCoordsWNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD_REQUEST", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.WO, 120);	// suffix NP = NumberProperty
-		 RAWN = new INDINumberElement(EquatorialCoordsWNP, "RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
-		 DECWN = new INDINumberElement(EquatorialCoordsWNP, "DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
-		 EquatorialCoordsRNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.RO, 120);
-		 RARN = new INDINumberElement(EquatorialCoordsRNP, "RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
-		 DECRN = new INDINumberElement(EquatorialCoordsRNP, "DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
-		 AbortSlewSP = new INDISwitchProperty(this, "TELESCOPE_ABORT_MOTION", "Abort Slew", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		 AbortSlewS = new INDISwitchElement(AbortSlewSP, "ABORT", "Abort", SwitchStatus.OFF);
-		 MovementNSSP = new INDISwitchProperty(this,"TELESCOPE_MOTION_NS", "North/South", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		 MoveNorthS = new INDISwitchElement(MovementNSSP, "MOTION_NORTH", "North", SwitchStatus.OFF);
-		 MoveSouthS = new INDISwitchElement(MovementNSSP, "MOTION_SOUTH", "South", SwitchStatus.OFF);
-		 MovementWESP = new INDISwitchProperty(this,"TELESCOPE_MOTION_WE", "West/East", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-		 MoveWestS = new INDISwitchElement(MovementWESP, "MOTION_WEST", "West", SwitchStatus.OFF);
-		 MoveEastS = new INDISwitchElement(MovementWESP, "MOTION_EAST", "East", SwitchStatus.OFF);
-		 TimeTP = new INDITextProperty(this,  "TIME_UTC", "UTC Time", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		 TimeT = new INDITextElement(TimeTP, "UTC", "UTC", "0");
-		 UTCOffsetNP = new INDINumberProperty(this, "TIME_UTC_OFFSET", "UTC Offset", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		 UTCOffsetN = new INDINumberElement(UTCOffsetNP, "OFFSET", "Offset", 0, -12, 12, 0.5, "%0.3g");
-		 GeoNP = new INDINumberProperty(this,"GEOGRAPHIC_COORD", "Geographic Location", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-		 GeoLatN = new INDINumberElement(GeoNP, "LAT",  "Lat.  D:M:S +N", 0, -90, 90, 0, "%10.6m");
-		 GeoLongN = new INDINumberElement(GeoNP, "LONG",  "Long. D:M:S", 0, 0, 360, 0, "%10.6m");
-		 this.addProperty(ConnectSP);
->>>>>>> .r171
 	}
 	
 	
@@ -235,7 +206,7 @@ public abstract class telescope extends INDIDriver {
 	public boolean connect() {
 		boolean ret=false;
 		if ((!connected) && (com_driver != null) && (device != null)) {
-<<<<<<< .mine
+
 			try {
 				com_driver.connect(device);
 				connected=true;
@@ -253,23 +224,7 @@ public abstract class telescope extends INDIDriver {
 			
 		}	
 		return ret;
-=======
-			com_driver.connect(device);
-			connected=true;
-			addProperty(EquatorialCoordsWNP);
-		    addProperty(EquatorialCoordsRNP);
-		    addProperty(AbortSlewSP);
-		    addProperty(MovementNSSP);
-		    addProperty(MovementWESP);
-		    addProperty(TimeTP);
-		    addProperty(UTCOffsetNP);
-		    addProperty(GeoNP);
-		    updateProperty(ConnectSP);
-		} else {
-			if (com_driver == null) throw new IOException("Telescope: Communication Driver not set");
-			if (device == null) throw new IOException("Telescope: Device not set");
-		}
->>>>>>> .r171
+
 	}
 	
 	/**
@@ -287,21 +242,11 @@ public abstract class telescope extends INDIDriver {
 		if ((connected) && (com_driver != null)) {
 			com_driver.disconnect();
 			connected=false;
-<<<<<<< .mine
 			onDisconnect();
 			DisconnectS.setValue(SwitchStatus.ON);
 			ConnectSP.setState(PropertyStates.IDLE);
 			updateProperty(ConnectSP,"Disconnected from "+device);
-=======
-			removeProperty(EquatorialCoordsWNP);
-			removeProperty(EquatorialCoordsRNP);
-			removeProperty(AbortSlewSP);
-			removeProperty(MovementNSSP);
-			removeProperty(MovementWESP);
-			removeProperty(TimeTP);
-			removeProperty(UTCOffsetNP);
-			removeProperty(GeoNP);
->>>>>>> .r171
+
 		}
 		return true;
 	}
