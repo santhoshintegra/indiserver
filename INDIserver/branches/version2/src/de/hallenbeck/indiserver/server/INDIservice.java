@@ -53,6 +53,7 @@ public class INDIservice extends Service {
 		    // Loads the Java Driver. Please note that this must be in the classpath.
 		    try {
 		      loadJavaDriver(lx200autostar.class);
+		      loadJavaDriver(lx200basic.class);
 		    } catch (INDIException e) {
 		      e.printStackTrace();
 		      

@@ -84,7 +84,14 @@ public class lx200commands {
 	protected final  String setTargetDECCmd = "#:Sd%s#"; //Set target object DEC to %s (sDD*MM or sDD*MM:SS depending on precision setting); Returns:	1 - DEC Accepted 0 - DEC invalid
 	protected final  String setTargetRACmd = "#:Sr%s#"; //Set target object RA to %s (HH:MM.T or HH:MM:SS depending on precision setting); Returns:	1 - RA Accepted 0 - RA invalid
 	protected final  String setSiderealTimeCmd ="#:SS%s#"; //Sets the local sidereal time to %s (HH:MM:SS); Returns: 0 - Invalid 1 - Valid
+	protected final  String setTrackingRateCmd = "#:ST%02.4f#"; //Set tracking rate; Returns: 0 - Invalid 2 -Valid
 
+	/* T - Tracking Commands */
+	protected final  String TrackRateSiderealCmd = "#:TQ#"; //Sidereal Tracking speed
+	protected final  String TrackRateLunarCmd = "#:TL#"; //Lunar tracking speed
+	protected final  String TrackRateManualCmd = "#:TM#"; //Manual tracking speed
+	
+	
 	/* U - Precision Toggle */
 	protected final  String PrecisionToggleCmd = "#:U#"; //Toggle between low/hi precision in DEC/RA
 

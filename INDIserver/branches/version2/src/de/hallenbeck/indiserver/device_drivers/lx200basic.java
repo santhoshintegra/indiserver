@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import laazotea.indi.Constants.LightStates;
 import laazotea.indi.INDIDateFormat;
@@ -151,9 +152,9 @@ public class lx200basic extends telescope {
 	             value. We either track, or sync
 		     to the new coordinates.
 	*********************************************/
-	protected INDISwitchProperty OnCoordSetSP;// = new INDISwitchProperty(this, "ON_COORD_SET", "On Set", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	protected INDISwitchElement SlewS;// = new INDISwitchElement(OnCoordSetSP, "SLEW", "Slew", SwitchStatus.ON);
-	protected INDISwitchElement SyncS;// = new INDISwitchElement(OnCoordSetSP, "SYNC", "Sync", SwitchStatus.OFF);
+	protected INDISwitchProperty OnCoordSetSP = new INDISwitchProperty(this, "ON_COORD_SET", "On Set", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement SlewS = new INDISwitchElement(OnCoordSetSP, "SLEW", "Slew", SwitchStatus.ON);
+	protected INDISwitchElement SyncS = new INDISwitchElement(OnCoordSetSP, "SYNC", "Sync", SwitchStatus.OFF);
 	
 	/**********************************************************************************************/
 	/************************************** GROUP: Motion *****************************************/
@@ -162,39 +163,39 @@ public class lx200basic extends telescope {
 	/********************************************
 	 Property: Slew Speed
 	*********************************************/
-	protected INDISwitchProperty SlewModeSP;// = new INDISwitchProperty(this,"SLEW_RATE","Slew rate", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	protected INDISwitchElement MaxS;// = new INDISwitchElement(SlewModeSP, "MAX", "Max", SwitchStatus.ON);
-	protected INDISwitchElement FindS;// = new INDISwitchElement(SlewModeSP, "FIND", "Find", SwitchStatus.OFF);
-	protected INDISwitchElement CenteringS;// = new INDISwitchElement(SlewModeSP, "CENTERING", "Centering", SwitchStatus.OFF);
-	protected INDISwitchElement GuideS;// = new INDISwitchElement(SlewModeSP, "GUIDE", "Guide", SwitchStatus.OFF);
+	protected INDISwitchProperty SlewModeSP = new INDISwitchProperty(this,"SLEW_RATE","Slew rate", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement MaxS = new INDISwitchElement(SlewModeSP, "MAX", "Max", SwitchStatus.ON);
+	protected INDISwitchElement FindS = new INDISwitchElement(SlewModeSP, "FIND", "Find", SwitchStatus.OFF);
+	protected INDISwitchElement CenteringS = new INDISwitchElement(SlewModeSP, "CENTERING", "Centering", SwitchStatus.OFF);
+	protected INDISwitchElement GuideS = new INDISwitchElement(SlewModeSP, "GUIDE", "Guide", SwitchStatus.OFF);
 	
 	/********************************************
 	 Property: Tracking Mode
 	*********************************************/
-	protected INDISwitchProperty TrackModeSP;// = new INDISwitchProperty(this,"TRACKING_MODE", "Tracking Mode", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	protected INDISwitchElement DefaultModeS;// = new INDISwitchElement(TrackModeSP, "DEFAULT", "Default", SwitchStatus.ON);
-	protected INDISwitchElement LunarModeS;// = new INDISwitchElement(TrackModeSP, "LUNAR", "Lunar", SwitchStatus.OFF);
-	protected INDISwitchElement ManualModeS;// = new INDISwitchElement(TrackModeSP, "MANUAL", "Manual", SwitchStatus.OFF);
+	protected INDISwitchProperty TrackModeSP = new INDISwitchProperty(this,"TRACKING_MODE", "Tracking Mode", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement DefaultModeS = new INDISwitchElement(TrackModeSP, "DEFAULT", "Default", SwitchStatus.ON);
+	protected INDISwitchElement LunarModeS = new INDISwitchElement(TrackModeSP, "LUNAR", "Lunar", SwitchStatus.OFF);
+	protected INDISwitchElement ManualModeS = new INDISwitchElement(TrackModeSP, "MANUAL", "Manual", SwitchStatus.OFF);
 	
 	/********************************************
 	 Property: Tracking Frequency
 	*********************************************/
-	protected INDINumberProperty TrackFreqNP;// = new INDINumberProperty(this,"TRACKING_FREQ", "Tracking Frequency", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-	protected INDINumberElement TrackFreqN;// = new INDINumberElement(TrackFreqNP, "TRACK_FREQ", "Freq", 60.1, 56.4, 60.1, 0.1, "%g");
+	protected INDINumberProperty TrackFreqNP = new INDINumberProperty(this,"TRACKING_FREQ", "Tracking Frequency", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement TrackFreqN = new INDINumberElement(TrackFreqNP, "TRACK_FREQ", "Freq", 60.1, 56.4, 60.1, 0.1, "%g");
 	
 	/********************************************
 	 Property: Timed Guide movement. North/South
 	*********************************************/
-	protected INDINumberProperty GuideNSNP;// = new INDINumberProperty(this,"TELESCOPE_TIMED_GUIDE_NS", "Guide North/South", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-	protected INDINumberElement GuideNorthN;// = new INDINumberElement(GuideNSNP, "TIMED_GUIDE_N", "North (sec)", 0, 0, 10, 0.001, "%g");
-	protected INDINumberElement GuideSouthN;// = new INDINumberElement(GuideNSNP, "TIMED_GUIDE_S", "South (sec)", 0, 0, 10, 0.001, "%g");
+	protected INDINumberProperty GuideNSNP = new INDINumberProperty(this,"TELESCOPE_TIMED_GUIDE_NS", "Guide North/South", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement GuideNorthN = new INDINumberElement(GuideNSNP, "TIMED_GUIDE_N", "North (sec)", 0, 0, 10, 0.001, "%g");
+	protected INDINumberElement GuideSouthN = new INDINumberElement(GuideNSNP, "TIMED_GUIDE_S", "South (sec)", 0, 0, 10, 0.001, "%g");
 	
 	/********************************************
 	 Property: Timed Guide movement. West/East
 	*********************************************/
-	protected INDINumberProperty GuideWENP;// = new INDINumberProperty(this,"TELESCOPE_TIMED_GUIDE_WE", "Guide West/East", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-	protected INDINumberElement GuideWestN;// = new INDINumberElement(GuideWENP, "TIMED_GUIDE_W", "West (sec)", 0, 0, 10, 0.001, "%g");
-	protected INDINumberElement GuideEastN;// = new INDINumberElement(GuideWENP, "TIMED_GUIDE_E", "East (sec)", 0, 0, 10, 0.001, "%g");
+	protected INDINumberProperty GuideWENP = new INDINumberProperty(this,"TELESCOPE_TIMED_GUIDE_WE", "Guide West/East", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement GuideWestN = new INDINumberElement(GuideWENP, "TIMED_GUIDE_W", "West (sec)", 0, 0, 10, 0.001, "%g");
+	protected INDINumberElement GuideEastN = new INDINumberElement(GuideWENP, "TIMED_GUIDE_E", "East (sec)", 0, 0, 10, 0.001, "%g");
 	
 	/********************************************
 	 Property: Slew Accuracy
@@ -203,9 +204,9 @@ public class lx200basic extends telescope {
 		     the tracking operation to be successull
 		     i.e. returns OK
 	*********************************************/
-	protected INDINumberProperty SlewAccuracyNP;// = new INDINumberProperty(this,"SLEW_ACCURACY", "Slew Accuracy", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-	protected INDINumberElement SlewAccuracyRAN;// = new INDINumberElement(SlewAccuracyNP, "SLEW_RA",  "RA (arcmin)", 3, 0, 60, 1, "%g");
-	protected INDINumberElement SlewAccuracyDECN;// = new INDINumberElement(SlewAccuracyNP, "SLEW_DEC", "Dec (arcmin)", 3, 0, 60, 1, "%g");
+	protected INDINumberProperty SlewAccuracyNP = new INDINumberProperty(this,"SLEW_ACCURACY", "Slew Accuracy", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement SlewAccuracyRAN = new INDINumberElement(SlewAccuracyNP, "SLEW_RA",  "RA (arcmin)", 3, 0, 60, 1, "%g");
+	protected INDINumberElement SlewAccuracyDECN = new INDINumberElement(SlewAccuracyNP, "SLEW_DEC", "Dec (arcmin)", 3, 0, 60, 1, "%g");
 	
 	/********************************************
 	 Property: Use pulse-guide commands
@@ -214,9 +215,9 @@ public class lx200basic extends telescope {
 	             be no way to query this information from
 	             the mount
 	*********************************************/
-	protected INDISwitchProperty UsePulseCommandSP;// = new INDISwitchProperty(this,"USE_PULSE_CMD", "Use PulseCMd", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	protected INDISwitchElement UsePulseCommandOnS;// = new INDISwitchElement(UsePulseCommandSP, "PULSE_ON", "On", SwitchStatus.OFF);
-	protected INDISwitchElement UsePulseCommandOffS;// = new INDISwitchElement(UsePulseCommandSP, "PULSE_OFF", "Off", SwitchStatus.ON);
+	protected INDISwitchProperty UsePulseCommandSP = new INDISwitchProperty(this,"USE_PULSE_CMD", "Use PulseCMd", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement UsePulseCommandOnS = new INDISwitchElement(UsePulseCommandSP, "PULSE_ON", "On", SwitchStatus.OFF);
+	protected INDISwitchElement UsePulseCommandOffS = new INDISwitchElement(UsePulseCommandSP, "PULSE_OFF", "Off", SwitchStatus.ON);
 
 	/**********************************************************************************************/
 	/************************************** GROUP: Focus ******************************************/
@@ -225,23 +226,23 @@ public class lx200basic extends telescope {
 	/********************************************
 	 Property: Focus Direction
 	*********************************************/
-	protected INDISwitchProperty FocusMotionSP;// = new INDISwitchProperty(this,"FOCUS_MOTION", "Motion", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	protected INDISwitchElement FocusInS;// = new INDISwitchElement(FocusMotionSP, "IN", "Focus in", SwitchStatus.OFF);
-	protected INDISwitchElement FocusOutS;// = new INDISwitchElement(FocusMotionSP, "OUT", "Focus out", SwitchStatus.OFF);
+	protected INDISwitchProperty FocusMotionSP = new INDISwitchProperty(this,"FOCUS_MOTION", "Motion", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement FocusInS = new INDISwitchElement(FocusMotionSP, "IN", "Focus in", SwitchStatus.OFF);
+	protected INDISwitchElement FocusOutS = new INDISwitchElement(FocusMotionSP, "OUT", "Focus out", SwitchStatus.OFF);
 
 	/********************************************
 	 Property: Focus Timer
 	*********************************************/
-	protected INDINumberProperty FocusTimerNP;// = new INDINumberProperty(this,"FOCUS_TIMER", "Focus Timer", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-	protected INDINumberElement FocusTimerN;// = new INDINumberElement(FocusTimerNP, "TIMER", "Timer (ms)", 50, 0, 10000, 1000, "%g");
+	protected INDINumberProperty FocusTimerNP = new INDINumberProperty(this,"FOCUS_TIMER", "Focus Timer", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement FocusTimerN = new INDINumberElement(FocusTimerNP, "TIMER", "Timer (ms)", 50, 0, 10000, 1000, "%g");
 	
 	/********************************************
 	 Property: Focus Mode
 	*********************************************/
-	protected INDISwitchProperty FocusModesSP;// = new INDISwitchProperty(this,"FOCUS_MODE", "Mode", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	protected INDISwitchElement FocusHaltS;// = new INDISwitchElement(FocusModesSP, "FOCUS_HALT", "Halt", SwitchStatus.ON);
-	protected INDISwitchElement FocusSlowS;// = new INDISwitchElement(FocusModesSP, "FOCUS_SLOW", "Slow", SwitchStatus.OFF);
-	protected INDISwitchElement FocusFastS;// = new INDISwitchElement(FocusModesSP, "FOCUS_FAST", "Fast", SwitchStatus.OFF);
+	protected INDISwitchProperty FocusModesSP = new INDISwitchProperty(this,"FOCUS_MODE", "Mode", FOCUS_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement FocusHaltS = new INDISwitchElement(FocusModesSP, "FOCUS_HALT", "Halt", SwitchStatus.ON);
+	protected INDISwitchElement FocusSlowS = new INDISwitchElement(FocusModesSP, "FOCUS_SLOW", "Slow", SwitchStatus.OFF);
+	protected INDISwitchElement FocusFastS = new INDISwitchElement(FocusModesSP, "FOCUS_FAST", "Fast", SwitchStatus.OFF);
 
 	/**********************************************************************************************/
 	/*********************************** GROUP: Date & Time ***************************************/
@@ -250,8 +251,8 @@ public class lx200basic extends telescope {
 	/********************************************
 	 Property: Sidereal Time
 	*********************************************/
-	protected INDINumberProperty SDTimeNP;// = new INDINumberProperty(this,"TIME_LST", "Sidereal Time", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-	protected INDINumberElement SDTimeN;// = new INDINumberElement(SDTimeNP, "LST", "Sidereal time", 0, 0, 24, 0, "%10.6m");
+	protected INDINumberProperty SDTimeNP = new INDINumberProperty(this,"TIME_LST", "Sidereal Time", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement SDTimeN = new INDINumberElement(SDTimeNP, "LST", "Sidereal time", 0, 0, 24, 0, "%10.6m");
 
 	/**********************************************************************************************/
 	/************************************* GROUP: Sites *******************************************/
@@ -260,17 +261,17 @@ public class lx200basic extends telescope {
 	/********************************************
 	 Property: Site Management
 	*********************************************/
-	protected INDISwitchProperty SitesSP;// = new INDISwitchProperty(this,"SITES", "Sites", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	protected INDISwitchElement Sites1S;// = new INDISwitchElement(SitesSP, "SITE1", "Site 1", SwitchStatus.ON);
-	protected INDISwitchElement Sites2S;// = new INDISwitchElement(SitesSP, "SITE2", "Site 2", SwitchStatus.OFF);
-	protected INDISwitchElement Sites3S;// = new INDISwitchElement(SitesSP, "SITE3", "Site 3", SwitchStatus.OFF);
-	protected INDISwitchElement Sites4S;// = new INDISwitchElement(SitesSP, "SITE4", "Site 4", SwitchStatus.OFF);
+	protected INDISwitchProperty SitesSP = new INDISwitchProperty(this,"SITES", "Sites", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement Sites1S = new INDISwitchElement(SitesSP, "SITE1", "Site 1", SwitchStatus.ON);
+	protected INDISwitchElement Sites2S = new INDISwitchElement(SitesSP, "SITE2", "Site 2", SwitchStatus.OFF);
+	protected INDISwitchElement Sites3S = new INDISwitchElement(SitesSP, "SITE3", "Site 3", SwitchStatus.OFF);
+	protected INDISwitchElement Sites4S = new INDISwitchElement(SitesSP, "SITE4", "Site 4", SwitchStatus.OFF);
 
 	/********************************************
 	 Property: Site Name
 	*********************************************/
-	protected INDITextProperty SiteNameTP;// = new INDITextProperty(this,  "SITE NAME", "Site Name", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-	protected INDITextElement SiteNameT;// = new INDITextElement(SiteNameTP, "NAME", "Name", "");
+	protected INDITextProperty SiteNameTP = new INDITextProperty(this,  "SITE NAME", "Site Name", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDITextElement SiteNameT = new INDITextElement(SiteNameTP, "NAME", "Name", "");
 
 	/**********************************************************************************************/
 	/************************************* GROUP: Information *************************************/
@@ -324,8 +325,8 @@ public class lx200basic extends telescope {
 	 * TODO: extend with com_driver and device interface string
 	 */
 
-	public lx200basic(InputStream in, OutputStream out, String driver, String device) {
-		super(in,out, driver, device);
+	public lx200basic(InputStream in, OutputStream out) {
+		super(in,out, "de.hallenbeck.indiserver.communication_drivers.bluetooth_serial", "00:80:37:14:9F:E7");
 
 	}
 
@@ -343,7 +344,7 @@ public class lx200basic extends telescope {
 		
 		super.processNewTextValue(property, timestamp, elementsAndValues);
 		
-		boolean ret = false;
+
 	
 	}
 
@@ -370,7 +371,7 @@ public class lx200basic extends telescope {
 			if (elem==LandS) ret = setAlignmentMode('L');
 			if (ret) property.setState(PropertyStates.OK);
 			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
+			updateProperty(property);
 		}
 	
 		/**
@@ -383,7 +384,7 @@ public class lx200basic extends telescope {
 			if (elem==Sites4S) ret = setSite(4);
 			if (ret) property.setState(PropertyStates.OK);
 			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
+			updateProperty(property);
 		}
 	
 		/**
@@ -392,12 +393,54 @@ public class lx200basic extends telescope {
 		if (property==OnCoordSetSP) {
 			if (elem==SlewS) SlewS.setValue(SwitchStatus.ON);				
 			if (elem==SyncS) SyncS.setValue(SwitchStatus.ON);
-			ret=true;
+			property.setState(PropertyStates.OK);
+			updateProperty(property);
+		}
+		
+		if (property==SlewModeSP) {
+			if (elem==GuideS) ret = setSlewMode(1);
+			if (elem==CenteringS) ret = setSlewMode(2);
+			if (elem==FindS) ret = setSlewMode(8);
+			if (elem==MaxS) ret = setSlewMode(9);
 			if (ret) property.setState(PropertyStates.OK);
 			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
+			updateProperty(property);
 		}
-		propertyUpdateInfo = null;
+	
+		if (property==TrackModeSP) {
+			if (elem==DefaultModeS) ret = setTrackMode(1);
+			if (elem==LunarModeS) ret = setTrackMode(2);
+			if (elem==ManualModeS) ret = setTrackMode(3);
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property);
+		}
+		
+		if (property==UsePulseCommandSP) {
+			if (elem==UsePulseCommandOnS) ret = setPulseCommand(true);
+			if (elem==UsePulseCommandOffS) ret = setPulseCommand(false);
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property);
+		}
+		
+		if (property==FocusMotionSP) {
+			if (elem==FocusInS) ret = setFocusMotion(1);
+			if (elem==FocusOutS) ret = setFocusMotion(2);
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property);
+		}
+		
+		if (property==FocusModesSP) {
+			if (elem==FocusHaltS) ret = setFocusMode(0);
+			if (elem==FocusSlowS) ret = setFocusMode(1);
+			if (elem==FocusFastS) ret = setFocusMode(2);
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property);
+		}
+		
 	}
 
 	/**
@@ -408,9 +451,20 @@ public class lx200basic extends telescope {
 			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
 		
 		super.processNewNumberValue(property, timestamp, elementsAndValues);
+		
+		boolean ret = false;
+		
+		if (property==TrackFreqNP) {
+			if (elementsAndValues.length>0) ret = setTrackRate(elementsAndValues[0].getValue());
+			if (!ret) propertyUpdateInfo="Error setting new Tracking Frequency";
+			if (ret) property.setState(PropertyStates.OK); else property.setState(PropertyStates.ALERT);
+			updateProperty(property, propertyUpdateInfo);
+		}
+	
 
 	}
 
+	
 	/**
 	 * Not needed, telescope doesn't use BLOBs
 	 */
@@ -421,6 +475,8 @@ public class lx200basic extends telescope {
 		super.processNewBLOBValue(property, timestamp, elementsAndValues);
 	}
 
+	
+	
 	/* (non-Javadoc)
 	 * @see de.hallenbeck.indiserver.device_drivers.telescope#onConnect()
 	 */
@@ -453,6 +509,7 @@ public class lx200basic extends telescope {
 		getAlignmentMode();
 		getFirmwareInformation();
 		getAlignmentStatus();
+		getTrackRate();
 
 		// Always use high-precision coords
 		if (getCommandString(lx200.getCurrentRACmd).length() == 7) {
@@ -790,6 +847,12 @@ public class lx200basic extends telescope {
 		updateProperty(EquatorialCoordsWNP,"Target Object RA: "+RAWN.getValueAsString()+" DEC: "+DECWN.getValueAsString());
 	
 	}
+	
+	protected void getTrackRate() {
+		TrackFreqN.setValue(Double.parseDouble(getCommandString(lx200.getTrackingRateCmd)));
+		TrackFreqNP.setState(PropertyStates.OK);
+		updateProperty(TrackFreqNP);
+	}
 
 	protected boolean setAlignmentMode(char Mode) {
 		return false;
@@ -906,13 +969,45 @@ public class lx200basic extends telescope {
 		if (getCommandChar(DECCmd)=='1') return true; else return false;
 	}
 
-
+	protected boolean setSlewMode(int mode) {
+		if (mode==1) { sendCommand(lx200.SlewRateGuidingCmd); GuideS.setValue(SwitchStatus.ON); }
+		if (mode==2) { sendCommand(lx200.SlewRateCenteringCmd); CenteringS.setValue(SwitchStatus.ON); }
+		if (mode==8) { sendCommand(lx200.SlewRateFindCmd); FindS.setValue(SwitchStatus.ON); }
+		if (mode==9) { sendCommand(lx200.SlewRateMaxCmd); MaxS.setValue(SwitchStatus.ON); }
+		return true;
+	}
 	
+	protected boolean setTrackMode(int mode) {
+		if (mode==1) { sendCommand(lx200.TrackRateSiderealCmd); DefaultModeS.setValue(SwitchStatus.ON); }
+		if (mode==2) { sendCommand(lx200.TrackRateLunarCmd); LunarModeS.setValue(SwitchStatus.ON); }
+		if (mode==3) { sendCommand(lx200.TrackRateManualCmd); ManualModeS.setValue(SwitchStatus.ON); }
+		getTrackRate();
+		return true;
+	}
 	
+	protected boolean setTrackRate(double rate) {
+		String tmp = String.format(Locale.US,lx200.setTrackingRateCmd,rate);
+		if (getCommandChar(tmp)=='1') {
+			getTrackRate();
+			ManualModeS.setValue(SwitchStatus.ON);
+			TrackModeSP.setState(PropertyStates.OK);
+			updateProperty(TrackModeSP);
+			return true; 
+		}
+		else return false;
+	}
 	
+	protected boolean setPulseCommand(boolean state) {
+		return true;
+	}
 	
+	protected boolean setFocusMotion(int direction) {
+		return true;
+	}
 	
-	
+	protected boolean setFocusMode(int mode) {
+		return true;
+	}
 	
 	
 	
@@ -953,7 +1048,7 @@ public class lx200basic extends telescope {
 	protected synchronized char getCommandChar(String command) {
 		char tmp='-';
 		if (command!=null){
-			com_driver.set_timeout(1000);
+			com_driver.set_timeout(3000);
 
 			try {
 				//com_driver.emptyBuffer();
@@ -978,7 +1073,7 @@ public class lx200basic extends telescope {
 		try {
 			//com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
-			com_driver.set_timeout(1000);
+			com_driver.set_timeout(3000);
 			tmp = com_driver.read('#');
 			tmp = tmp.replaceAll("#", "");
 			tmp = tmp.replaceAll("<", "");
@@ -997,7 +1092,7 @@ public class lx200basic extends telescope {
 		try {
 			//com_driver.emptyBuffer();
 			com_driver.sendCommand(command);
-			com_driver.set_timeout(1000);
+			com_driver.set_timeout(3000);
 			tmp = com_driver.read(bytes);
 			
 		} catch (IOException e) {
