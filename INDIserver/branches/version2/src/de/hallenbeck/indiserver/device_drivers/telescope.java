@@ -78,9 +78,9 @@ public abstract class telescope extends INDIDriver {
 	/********************************************
 	 Property: Connection
 	*********************************************/
-	protected INDISwitchProperty ConnectSP;// = new INDISwitchProperty(this, "CONNECTION", "Connection", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);			// suffix SP = SwitchProperty
-	protected INDISwitchElement ConnectS;// = new INDISwitchElement(ConnectSP, "CONNECT" , "Connect" , SwitchStatus.OFF);			
-	protected INDISwitchElement DisconnectS;// = new INDISwitchElement(ConnectSP, "DISCONNECT" , "Disconnect" , SwitchStatus.ON);		
+	protected INDISwitchProperty ConnectSP = new INDISwitchProperty(this, "CONNECTION", "Connection", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);			// suffix SP = SwitchProperty
+	protected INDISwitchElement ConnectS = new INDISwitchElement(ConnectSP, "CONNECT" , "Connect" , SwitchStatus.OFF);			
+	protected INDISwitchElement DisconnectS = new INDISwitchElement(ConnectSP, "DISCONNECT" , "Disconnect" , SwitchStatus.ON);		
 	
 	/**********************************************************************************************/
 	/************************************ GROUP: Main Control *************************************/
@@ -91,23 +91,23 @@ public abstract class telescope extends INDIDriver {
 	 Perm: Transient WO.
 	 Timeout: 120 seconds.
 	*********************************************/
-	protected INDINumberProperty EquatorialCoordsWNP;// = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD_REQUEST", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.WO, 120);	// suffix NP = NumberProperty
-	protected INDINumberElement RAWN;// = new INDINumberElement(EquatorialCoordsWNP, "RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
-	protected INDINumberElement DECWN;// = new INDINumberElement(EquatorialCoordsWNP, "DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
+	protected INDINumberProperty EquatorialCoordsWNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD_REQUEST", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.WO, 120);	// suffix NP = NumberProperty
+	protected INDINumberElement RAWN = new INDINumberElement(EquatorialCoordsWNP, "RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
+	protected INDINumberElement DECWN = new INDINumberElement(EquatorialCoordsWNP, "DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
 	
 	/********************************************
 	 Property: Equatorial Coordinates JNow
 	 Perm: RO
 	*********************************************/
-	protected INDINumberProperty EquatorialCoordsRNP;// = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.RO, 120);
-	protected INDINumberElement RARN;// = new INDINumberElement(EquatorialCoordsRNP, "RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
-	protected INDINumberElement DECRN;// = new INDINumberElement(EquatorialCoordsRNP, "DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
+	protected INDINumberProperty EquatorialCoordsRNP = new INDINumberProperty(this, "EQUATORIAL_EOD_COORD", "Equatorial JNow", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.RO, 120);
+	protected INDINumberElement RARN = new INDINumberElement(EquatorialCoordsRNP, "RA", "RA  H:M:S", 0, 0, 24, 0, "%10.6m");
+	protected INDINumberElement DECRN = new INDINumberElement(EquatorialCoordsRNP, "DEC", "Dec D:M:S", 0, -90, 90, 0, "%10.6m");
 	
 	/********************************************
 	 Property: Abort telescope motion
 	*********************************************/
-	protected INDISwitchProperty AbortSlewSP;// = new INDISwitchProperty(this, "TELESCOPE_ABORT_MOTION", "Abort Slew", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	protected INDISwitchElement AbortSlewS;// = new INDISwitchElement(AbortSlewSP, "ABORT", "Abort", SwitchStatus.OFF);
+	protected INDISwitchProperty AbortSlewSP = new INDISwitchProperty(this, "TELESCOPE_ABORT_MOTION", "Abort Slew", BASIC_GROUP,PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement AbortSlewS = new INDISwitchElement(AbortSlewSP, "ABORT", "Abort", SwitchStatus.OFF);
 	
 	/**********************************************************************************************/
 	/************************************** GROUP: Motion *****************************************/
@@ -116,16 +116,16 @@ public abstract class telescope extends INDIDriver {
 	/********************************************
 	 Property: Movement (Arrow keys on handset). North/South
 	*********************************************/
-	protected INDISwitchProperty MovementNSSP;// = new INDISwitchProperty(this,"TELESCOPE_MOTION_NS", "North/South", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	protected INDISwitchElement MoveNorthS;// = new INDISwitchElement(MovementNSSP, "MOTION_NORTH", "North", SwitchStatus.OFF);
-	protected INDISwitchElement MoveSouthS;// = new INDISwitchElement(MovementNSSP, "MOTION_SOUTH", "South", SwitchStatus.OFF);
+	protected INDISwitchProperty MovementNSSP = new INDISwitchProperty(this,"TELESCOPE_MOTION_NS", "North/South", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement MoveNorthS = new INDISwitchElement(MovementNSSP, "MOTION_NORTH", "North", SwitchStatus.OFF);
+	protected INDISwitchElement MoveSouthS = new INDISwitchElement(MovementNSSP, "MOTION_SOUTH", "South", SwitchStatus.OFF);
 	
 	/********************************************
 	 Property: Movement (Arrow keys on handset). West/East
 	*********************************************/
-	protected INDISwitchProperty MovementWESP;// = new INDISwitchProperty(this,"TELESCOPE_MOTION_WE", "West/East", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
-	protected INDISwitchElement MoveWestS;// = new INDISwitchElement(MovementWESP, "MOTION_WEST", "West", SwitchStatus.OFF);
-	protected INDISwitchElement MoveEastS;// = new INDISwitchElement(MovementWESP, "MOTION_EAST", "East", SwitchStatus.OFF);
+	protected INDISwitchProperty MovementWESP = new INDISwitchProperty(this,"TELESCOPE_MOTION_WE", "West/East", MOTION_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchElement MoveWestS = new INDISwitchElement(MovementWESP, "MOTION_WEST", "West", SwitchStatus.OFF);
+	protected INDISwitchElement MoveEastS = new INDISwitchElement(MovementWESP, "MOTION_EAST", "East", SwitchStatus.OFF);
 	
 	/**********************************************************************************************/
 	/*********************************** GROUP: Date & Time ***************************************/
@@ -134,14 +134,14 @@ public abstract class telescope extends INDIDriver {
 	/********************************************
 	 Property: UTC Time
 	*********************************************/
-	protected INDITextProperty TimeTP;// = new INDITextProperty(this,  "TIME_UTC", "UTC Time", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-	protected INDITextElement TimeT;// = new INDITextElement(TimeTP, "UTC", "UTC", "0");
+	protected INDITextProperty TimeTP = new INDITextProperty(this,  "TIME_UTC", "UTC Time", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDITextElement TimeT = new INDITextElement(TimeTP, "UTC", "UTC", "0");
 
 	/********************************************
 	 Property: DST Corrected UTC Offfset
 	*********************************************/
-	protected INDINumberProperty UTCOffsetNP;// = new INDINumberProperty(this, "TIME_UTC_OFFSET", "UTC Offset", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-	protected INDINumberElement UTCOffsetN;// = new INDINumberElement(UTCOffsetNP, "OFFSET", "Offset", 0, -12, 12, 0.5, "%0.3g");
+	protected INDINumberProperty UTCOffsetNP = new INDINumberProperty(this, "TIME_UTC_OFFSET", "UTC Offset", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement UTCOffsetN = new INDINumberElement(UTCOffsetNP, "OFFSET", "Offset", 0, -12, 12, 0.5, "%0.3g");
 
 	/**********************************************************************************************/
 	/************************************* GROUP: Sites *******************************************/
@@ -150,9 +150,9 @@ public abstract class telescope extends INDIDriver {
 	/********************************************
 	 Property: Geographical Location
 	*********************************************/
-	protected INDINumberProperty GeoNP;// = new INDINumberProperty(this,"GEOGRAPHIC_COORD", "Geographic Location", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-	protected INDINumberElement GeoLatN;// = new INDINumberElement(GeoNP, "LAT",  "Lat.  D:M:S +N", 0, -90, 90, 0, "%10.6m");
-	protected INDINumberElement GeoLongN;// = new INDINumberElement(GeoNP, "LONG",  "Long. D:M:S", 0, 0, 360, 0, "%10.6m");
+	protected INDINumberProperty GeoNP = new INDINumberProperty(this,"GEOGRAPHIC_COORD", "Geographic Location", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
+	protected INDINumberElement GeoLatN = new INDINumberElement(GeoNP, "LAT",  "Lat.  D:M:S +N", 0, -90, 90, 0, "%10.6m");
+	protected INDINumberElement GeoLongN = new INDINumberElement(GeoNP, "LONG",  "Long. D:M:S", 0, 0, 360, 0, "%10.6m");
 	
 	/*****************************************************************************************************/
 	/**************************************** END PROPERTIES *********************************************/
@@ -228,14 +228,6 @@ public abstract class telescope extends INDIDriver {
 	}
 	
 	/**
-	 * Are we connected?
-	 * @return
-	 */
-	public boolean isConnected() {
-		return connected;
-	}
-	
-	/**
 	 * Disconnect from telescope
 	 */
 	public boolean disconnect() {
@@ -246,11 +238,165 @@ public abstract class telescope extends INDIDriver {
 			DisconnectS.setValue(SwitchStatus.ON);
 			ConnectSP.setState(PropertyStates.IDLE);
 			updateProperty(ConnectSP,"Disconnected from "+device);
-
+	
 		}
 		return true;
 	}
+
+
+	/* (non-Javadoc)
+	 * @see laazotea.indi.driver.INDIDriver#processNewTextValue(laazotea.indi.driver.INDITextProperty, java.util.Date, laazotea.indi.driver.INDITextElementAndValue[])
+	 */
+	@Override
+	public void processNewTextValue(INDITextProperty property, Date timestamp,
+			INDITextElementAndValue[] elementsAndValues) {
+		
+		boolean ret=false;
+		
+		/**
+		 * UTC Time Property
+		 */
+		if (property==TimeTP) {
+			Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
+			ret = setDateTime(date);
+		}
+		
+		if (ret) property.setState(PropertyStates.OK);
+		else property.setState(PropertyStates.ALERT); 
+		updateProperty(property, propertyUpdateInfo);
+		
+	}
+
+
+	/* (non-Javadoc)
+	 * @see laazotea.indi.driver.INDIDriver#processNewSwitchValue(laazotea.indi.driver.INDISwitchProperty, java.util.Date, laazotea.indi.driver.INDISwitchElementAndValue[])
+	 */
+	@Override
+	public void processNewSwitchValue(INDISwitchProperty property,
+			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
 	
+		boolean ret = false;
+		// Get the Element
+		INDISwitchElement elem = elementsAndValues[0].getElement();
+	
+		/**
+		 * Connect Property always available
+		 */
+		if (property==ConnectSP) {
+			if (elem == DisconnectS) ret = disconnect();
+			if (elem == ConnectS) ret = connect();
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property, propertyUpdateInfo);
+		}
+	
+		/**
+		 * Abort all current slewing
+		 */
+		if (property==AbortSlewSP) {
+			ret = onAbortSlew();
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property, propertyUpdateInfo);
+		}
+	
+		/**
+		 * Move North/South
+		 */
+		if (property==MovementNSSP) {
+			if (elem == MoveNorthS) ret = onMovementNS('N');
+			if (elem == MoveSouthS) ret = onMovementNS('S');
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property, propertyUpdateInfo);
+		}
+	
+		/**
+		 * Move West/East
+		 */
+		if (property==MovementWESP) {
+			if (elem == MoveWestS) ret = onMovementNS('W');
+			if (elem == MoveEastS) ret = onMovementNS('E');
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property, propertyUpdateInfo);
+		}
+		
+		propertyUpdateInfo = null;
+	
+	}
+
+
+	/* (non-Javadoc)
+	 * @see laazotea.indi.driver.INDIDriver#processNewNumberValue(laazotea.indi.driver.INDINumberProperty, java.util.Date, laazotea.indi.driver.INDINumberElementAndValue[])
+	 */
+	@Override
+	public void processNewNumberValue(INDINumberProperty property,
+			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
+		
+		boolean ret=false;
+		
+		/**
+		 * UTC-Offset Property
+		 */
+		if (property==UTCOffsetNP) {
+			if (elementsAndValues.length>0) ret = setUTCOffset(elementsAndValues[0].getValue());
+			if (!ret) propertyUpdateInfo="Error setting new UTC offset";
+			if (ret) property.setState(PropertyStates.OK); else property.setState(PropertyStates.ALERT);
+			updateProperty(property, propertyUpdateInfo);
+		}
+	
+		/**
+		 * Geolocation Property
+		 */
+		if (property==GeoNP) {
+			ret = true;
+			for (int i=0; i < elementsAndValues.length; i++) {
+				if (elementsAndValues[i].getElement() ==  GeoLatN) ret = ret && setLatitude(elementsAndValues[i].getValue());
+				if (elementsAndValues[i].getElement() == GeoLongN) ret = ret && setLongitude(elementsAndValues[i].getValue());
+			}
+			if (!ret) propertyUpdateInfo="Error setting new geolocation";
+			if (ret) property.setState(PropertyStates.OK); else property.setState(PropertyStates.ALERT);
+			updateProperty(property, propertyUpdateInfo);
+		}
+	
+		/**
+		 * New Equatorial Coords
+		 */
+		if (property == EquatorialCoordsWNP) {
+			ret = true;
+			for (int i=0; i < elementsAndValues.length; i++) {
+				if (elementsAndValues[i].getElement() ==  RAWN) ret = ret && setTargetRA(elementsAndValues[i].getValue()); 
+				if (elementsAndValues[i].getElement() == DECWN) ret = ret && setTargetDEC(elementsAndValues[i].getValue());
+			}
+			if (ret) {
+				getTargetCoords();
+				ret = onNewEquatorialCoords(); 
+			} else propertyUpdateInfo="Error setting new target coords";
+			if (ret) property.setState(PropertyStates.OK); else property.setState(PropertyStates.ALERT);
+			updateProperty(property, propertyUpdateInfo);
+		}
+		
+	}
+
+
+	/* (non-Javadoc)
+	 * @see laazotea.indi.driver.INDIDriver#processNewBLOBValue(laazotea.indi.driver.INDIBLOBProperty, java.util.Date, laazotea.indi.driver.INDIBLOBElementAndValue[])
+	 */
+	@Override
+	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
+			INDIBLOBElementAndValue[] elementsAndValues) {
+		
+		boolean ret=false;
+		
+		if (ret) property.setState(PropertyStates.OK);
+		else property.setState(PropertyStates.ALERT);
+		updateProperty(property);
+		propertyUpdateInfo = null;
+		
+	}
+
+
 	/**
 	 * Called from connect(), after Connection has been established
 	 */
@@ -280,6 +426,44 @@ public abstract class telescope extends INDIDriver {
 	}
 	
 	/**
+	 * Called when new equatorial target coords have been succesfully set
+	 * @return true if OK, false on Error
+	 */
+	protected boolean onNewEquatorialCoords() {
+		return false;
+	}
+
+
+	/**
+	 * Called when Abort button is clicked
+	 * @return true if OK, false on Error
+	 */
+	protected boolean onAbortSlew() {
+		return false;
+	}
+
+
+	/**
+	 * Called when Move North/South buttons are clicked
+	 * @param direction N=North, S=South
+	 * @return true if OK, false on Error
+	 */
+	protected boolean onMovementNS(char direction) {
+		return false;
+	}
+
+
+	/**
+	 * Called when Move West/East buttons are clicked
+	 * @param direction W=West, E=East
+	 * @return true if OK, false on Error
+	 */
+	protected boolean onMovementWE(char direction) {
+		return false;
+	}
+
+
+	/**
 	 * Called when a new Date/Time is set by the client
 	 * @param date
 	 * @return true if OK, false on Error
@@ -294,41 +478,6 @@ public abstract class telescope extends INDIDriver {
 	 * @return true if OK, false on Error
 	 */
 	protected boolean setUTCOffset(double offset) {
-		return false;
-	}
-	
-	/**
-	 * Called when new equatorial target coords have been succesfully set
-	 * @return true if OK, false on Error
-	 */
-	protected boolean onNewEquatorialCoords() {
-		return false;
-	}
-	
-	
-	/**
-	 * Called when Abort button is clicked
-	 * @return true if OK, false on Error
-	 */
-	protected boolean onAbortSlew() {
-		return false;
-	}
-	
-	/**
-	 * Called when Move North/South buttons are clicked
-	 * @param direction N=North, S=South
-	 * @return true if OK, false on Error
-	 */
-	protected boolean onMovementNS(char direction) {
-		return false;
-	}
-	
-	/**
-	 * Called when Move West/East buttons are clicked
-	 * @param direction W=West, E=East
-	 * @return true if OK, false on Error
-	 */
-	protected boolean onMovementWE(char direction) {
 		return false;
 	}
 	
@@ -369,166 +518,18 @@ public abstract class telescope extends INDIDriver {
 	}
 	
 	
-	/* (non-Javadoc)
-	 * @see laazotea.indi.driver.INDIDriver#getName()
+	/**
+	 * Get the Driver name
 	 */
 	@Override
 	public String getName() {
 		return null;
 	}
 	
+	/**
+	 * Called to update the Target Coords from the Telescope
+	 */
 	protected void getTargetCoords() {
-		
-	}
-
-
-	/* (non-Javadoc)
-	 * @see laazotea.indi.driver.INDIDriver#processNewTextValue(laazotea.indi.driver.INDITextProperty, java.util.Date, laazotea.indi.driver.INDITextElementAndValue[])
-	 */
-	@Override
-	public void processNewTextValue(INDITextProperty property, Date timestamp,
-			INDITextElementAndValue[] elementsAndValues) {
-		
-		boolean ret=false;
-		
-		/**
-		 * UTC Time Property
-		 */
-		if (property==TimeTP) {
-			Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
-			ret = setDateTime(date);
-		}
-		
-		if (ret) property.setState(PropertyStates.OK);
-		else property.setState(PropertyStates.ALERT); 
-		updateProperty(property, propertyUpdateInfo);
-		
-	}
-
-
-	/* (non-Javadoc)
-	 * @see laazotea.indi.driver.INDIDriver#processNewSwitchValue(laazotea.indi.driver.INDISwitchProperty, java.util.Date, laazotea.indi.driver.INDISwitchElementAndValue[])
-	 */
-	@Override
-	public void processNewSwitchValue(INDISwitchProperty property,
-			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
-
-		boolean ret = false;
-		// Get the Element
-		INDISwitchElement elem = elementsAndValues[0].getElement();
-
-		/**
-		 * Connect Property always available
-		 */
-		if (property==ConnectSP) {
-			if (elem == DisconnectS) ret = disconnect();
-			if (elem == ConnectS) ret = connect();
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
-		}
-
-		/**
-		 * Abort all current slewing
-		 */
-		if (property==AbortSlewSP) {
-			ret = onAbortSlew();
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
-		}
-
-		/**
-		 * Move North/South
-		 */
-		if (property==MovementNSSP) {
-			if (elem == MoveNorthS) ret = onMovementNS('N');
-			if (elem == MoveSouthS) ret = onMovementNS('S');
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
-		}
-
-		/**
-		 * Move West/East
-		 */
-		if (property==MovementWESP) {
-			if (elem == MoveWestS) ret = onMovementNS('W');
-			if (elem == MoveEastS) ret = onMovementNS('E');
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
-		}
-		
-		propertyUpdateInfo = null;
-
-	}
-
-
-	/* (non-Javadoc)
-	 * @see laazotea.indi.driver.INDIDriver#processNewNumberValue(laazotea.indi.driver.INDINumberProperty, java.util.Date, laazotea.indi.driver.INDINumberElementAndValue[])
-	 */
-	@Override
-	public void processNewNumberValue(INDINumberProperty property,
-			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
-		
-		boolean ret=false;
-		
-		/**
-		 * UTC-Offset Property
-		 */
-		if (property==UTCOffsetNP) {
-			if (elementsAndValues.length>0) ret = setUTCOffset(elementsAndValues[0].getValue());
-			if (!ret) propertyUpdateInfo="Error setting new UTC offset";
-		}
-
-		/**
-		 * Geolocation Property
-		 */
-		if (property==GeoNP) {
-			ret = true;
-			for (int i=0; i < elementsAndValues.length; i++) {
-				if (elementsAndValues[i].getElement() ==  GeoLatN) ret = ret && setLatitude(elementsAndValues[i].getValue());
-				if (elementsAndValues[i].getElement() == GeoLongN) ret = ret && setLongitude(elementsAndValues[i].getValue());
-			}
-			if (!ret) propertyUpdateInfo="Error setting new geolocation";
-		}
-
-		/**
-		 * New Equatorial Coords
-		 */
-		if (property == EquatorialCoordsWNP) {
-			ret = true;
-			for (int i=0; i < elementsAndValues.length; i++) {
-				if (elementsAndValues[i].getElement() ==  RAWN) ret = ret && setTargetRA(elementsAndValues[i].getValue()); 
-				if (elementsAndValues[i].getElement() == DECWN) ret = ret && setTargetDEC(elementsAndValues[i].getValue());
-			}
-			if (ret) {
-				getTargetCoords();
-				ret = onNewEquatorialCoords(); 
-			} else propertyUpdateInfo="Error setting new target coords";
-		}
-		
-		if (ret) property.setState(PropertyStates.OK); else property.setState(PropertyStates.ALERT);
-		updateProperty(property, propertyUpdateInfo);
-		propertyUpdateInfo = null;
-		
-	}
-
-
-	/* (non-Javadoc)
-	 * @see laazotea.indi.driver.INDIDriver#processNewBLOBValue(laazotea.indi.driver.INDIBLOBProperty, java.util.Date, laazotea.indi.driver.INDIBLOBElementAndValue[])
-	 */
-	@Override
-	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
-			INDIBLOBElementAndValue[] elementsAndValues) {
-		
-		boolean ret=false;
-		
-		if (ret) property.setState(PropertyStates.OK);
-		else property.setState(PropertyStates.ALERT);
-		updateProperty(property);
-		propertyUpdateInfo = null;
 		
 	}
 

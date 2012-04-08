@@ -10,10 +10,12 @@ import java.util.Date;
 
 import laazotea.indi.INDIDateFormat;
 import laazotea.indi.Constants.PropertyStates;
+import laazotea.indi.Constants.SwitchStatus;
 import laazotea.indi.driver.INDIBLOBElementAndValue;
 import laazotea.indi.driver.INDIBLOBProperty;
 import laazotea.indi.driver.INDINumberElementAndValue;
 import laazotea.indi.driver.INDINumberProperty;
+import laazotea.indi.driver.INDISwitchElement;
 import laazotea.indi.driver.INDISwitchElementAndValue;
 import laazotea.indi.driver.INDISwitchProperty;
 import laazotea.indi.driver.INDITextElementAndValue;
@@ -21,12 +23,22 @@ import laazotea.indi.driver.INDITextProperty;
 
 public class lx200autostar extends lx200basic {
 	
+	
+	
 	private final static String driverName = "LX200autostar";
 
 	public lx200autostar(InputStream in, OutputStream out) {
 		
-		super(in, out, "de.hallenbeck.indiserver.communication_drivers.bluetooth_serial", "00:80:37:14:9F:E7");
+		super(in, out);
 	}
+	
+	
+		protected INDISwitchElement SlewSpeed3S = new INDISwitchElement(SlewModeSP, "8X", "8x", SwitchStatus.OFF);
+		protected INDISwitchElement SlewSpeed4S = new INDISwitchElement(SlewModeSP, "16X", "16x", SwitchStatus.OFF);
+		protected INDISwitchElement SlewSpeed5S = new INDISwitchElement(SlewModeSP, "64X", "64x", SwitchStatus.OFF);
+		protected INDISwitchElement SlewSpeed6S = new INDISwitchElement(SlewModeSP, "05D", "0.5 deg/sec", SwitchStatus.OFF);
+		protected INDISwitchElement SlewSpeed7S = new INDISwitchElement(SlewModeSP, "10D", "1.0 deg/sec", SwitchStatus.OFF);
+	
 	
 	/* (non-Javadoc)
 	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#processNewTextValue(laazotea.indi.driver.INDITextProperty, java.util.Date, laazotea.indi.driver.INDITextElementAndValue[])
@@ -44,8 +56,23 @@ public class lx200autostar extends lx200basic {
 	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
-		super.processNewSwitchValue(property, timestamp, elementsAndValues);
+		
+		boolean ret=false;
+		INDISwitchElement elem = elementsAndValues[0].getElement();
+		
+		if (property==SlewModeSP) {
+			if (elem==SlewSpeed3S) ret = setSlewMode(3);
+			if (elem==SlewSpeed4S) ret = setSlewMode(4);
+			if (elem==SlewSpeed5S) ret = setSlewMode(5);
+			if (elem==SlewSpeed6S) ret = setSlewMode(6);
+			if (elem==SlewSpeed7S) ret = setSlewMode(7);
+			if (ret) { 
+				property.setState(PropertyStates.OK); 
+				updateProperty(property); 
+			} else 
+				super.processNewSwitchValue(property, timestamp, elementsAndValues);
+		} else
+			super.processNewSwitchValue(property, timestamp, elementsAndValues);
 	}
 
 	/* (non-Javadoc)
@@ -194,5 +221,17 @@ public class lx200autostar extends lx200basic {
 		getDateTime();
 		return true;
 	}
-
+	
+	@Override
+	protected boolean setSlewMode(int mode) {
+		super.setSlewMode(mode);
+		
+		if (mode==3) { sendCommand("#:EK 51#"); SlewSpeed3S.setValue(SwitchStatus.ON); }
+		if (mode==4) { sendCommand("#:EK 52#"); SlewSpeed4S.setValue(SwitchStatus.ON); }
+		if (mode==5) { sendCommand("#:EK 53#"); SlewSpeed5S.setValue(SwitchStatus.ON); }
+		if (mode==6) { sendCommand("#:EK 54#"); SlewSpeed6S.setValue(SwitchStatus.ON); }
+		if (mode==7) { sendCommand("#:EK 55#"); SlewSpeed7S.setValue(SwitchStatus.ON); }
+		
+		return true;
+	}
 }
