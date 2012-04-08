@@ -3,8 +3,13 @@ package de.hallenbeck.indiserver.device_drivers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
+import laazotea.indi.INDIDateFormat;
+import laazotea.indi.Constants.PropertyStates;
 import laazotea.indi.driver.INDIBLOBElementAndValue;
 import laazotea.indi.driver.INDIBLOBProperty;
 import laazotea.indi.driver.INDINumberElementAndValue;
@@ -14,54 +19,22 @@ import laazotea.indi.driver.INDISwitchProperty;
 import laazotea.indi.driver.INDITextElementAndValue;
 import laazotea.indi.driver.INDITextProperty;
 
-public class lx200autostar extends lx200basic implements device_driver_interface {
+public class lx200autostar extends lx200basic {
 	
 	private final static String driverName = "LX200autostar";
 
 	public lx200autostar(InputStream in, OutputStream out) {
-		super(in, out);
-
+		
+		super(in, out, "de.hallenbeck.indiserver.communication_drivers.bluetooth_serial", "00:80:37:14:9F:E7");
 	}
 	
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#getName()
-	 */
-	@Override
-	public String getName() {
-		return driverName;
-	}
-
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#connect()
-	 */
-	@Override
-	public void connect() throws IOException {
-		// TODO Auto-generated method stub
-		super.connect();
-		
-		// EXPERIMENTAL! Works only with Firmware 43Eg (Display messages are localized!)
-		// Navigate Handbox to main menu after power-on, skipping all data entry prompts,
-		// because Handbox does NOT save any parameters as long as it is NOT in main menu.
-		if (FirmwareVersionT.getValue().compareTo("43Eg")==0) {
-
-			if (getDisplayMessage().compareTo("*Press 0 to Alignor MODE for Menu")==0) {
-				int i=0;
-				while (i < 7) {
-					// "Press" the MODE-Key 7 times
-					sendCommand("#:EK9#");
-					i++;
-				}
-			}
-		}
-	}
-
 	/* (non-Javadoc)
 	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#processNewTextValue(laazotea.indi.driver.INDITextProperty, java.util.Date, laazotea.indi.driver.INDITextElementAndValue[])
 	 */
 	@Override
 	public void processNewTextValue(INDITextProperty property, Date timestamp,
 			INDITextElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
+
 		super.processNewTextValue(property, timestamp, elementsAndValues);
 	}
 
@@ -96,12 +69,130 @@ public class lx200autostar extends lx200basic implements device_driver_interface
 	}
 
 	/* (non-Javadoc)
+	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#connect()
+	 */
+	@Override
+	public void onConnect() {
+		super.onConnect();
+		
+		// EXPERIMENTAL! Works only with Firmware 43Eg (Display messages are localized!)
+		// Navigate Handbox to main menu after power-on, skipping all data entry prompts,
+		// because Handbox does NOT save any parameters as long as it is NOT in main menu.
+		if (FirmwareVersionT.getValue().compareTo("43Eg")==0) {
+	
+			if (getDisplayMessage().compareTo("*Press 0 to Alignor MODE for Menu")==0) {
+				int i=0;
+				while (i < 7) {
+					// "Press" the MODE-Key 7 times
+					sendCommand("#:EK9#");
+					i++;
+				}
+			}
+		}
+	}
+
+	/* (non-Javadoc)
 	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#disconnect()
 	 */
 	@Override
-	public void disconnect() {
+	public void onDisconnect() {
 		// TODO Auto-generated method stub
-		super.disconnect();
+		super.onDisconnect();
+	}
+
+	/* (non-Javadoc)
+	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#getName()
+	 */
+	@Override
+	public String getName() {
+		return driverName;
+	}
+
+	@Override
+	protected void getUTCOffset() {
+		String tmp = getCommandString(lx200.getUTCHoursCmd);
+		double offset = Double.parseDouble(tmp)*-1;
+		UTCOffsetN.setValue(offset);
+		UTCOffsetNP.setState(PropertyStates.OK);
+		updateProperty(UTCOffsetNP, "Local time to UTC difference: "+tmp+"h");
+	}
+	
+	/**
+	 * Get the current Date/Time from telescope
+	 */
+	@Override
+	protected void getDateTime() {
+		//Subtract UTC-Offset to get UTC-Time from Local Time
+		String dateStr = getCommandString(lx200.getTimeCmd)+" "+getCommandString(lx200.getDateCmd);
+		try {
+			//This is in local Time!
+			Date date = new SimpleDateFormat("kk:mm:ss MM/dd/yy").parse(dateStr);
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(date);
+			cal.add(Calendar.HOUR, UTCOffsetN.getValue().intValue()*-1);
+			cal.add(Calendar.MINUTE, (int) ((UTCOffsetN.getValue()%1)*60)*-1);
+			date = cal.getTime();
+			TimeT.setValue(INDIDateFormat.formatTimestamp(date));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		TimeTP.setState(PropertyStates.OK);
+		updateProperty(TimeTP, "Local time:"+dateStr);
+	}
+	
+	/* (non-Javadoc)
+	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#setUTCOffset(double)
+	 */
+	@Override
+	protected boolean setUTCOffset(double offset) {
+		// Standard "String.format" doesn't work, we need a string like "+02.0"
+        // Additionally we have to change +/-, because Autostar needs a value to yield UTC from local Time.
+        // KStars sends the Offset (+02.0) but Autostar needs (-02.0) to get the right time.
+        // The Handbox only displays the correct timezone +02.0 if we send -02.0 to it.  
+        
+        String sign = "-";
+        if (offset<0) {
+                sign = "+";
+                offset = offset * -1;
+        }
+        String tmp = String.format("%s%02d.%01d", sign, (int) offset, (int) (offset % 1));
+        String UTCHoursCmd = String.format(lx200.setUTCHoursCmd, tmp);
+        getCommandInt(UTCHoursCmd);     
+        getUTCOffset();
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#setDateTime(java.util.Date)
+	 */
+	@Override
+	protected boolean setDateTime(Date date) {
+		// Autostar expects local time, but INDI clients send UTC!
+		// We have to add the UTC-Offset to get the local time
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		cal.add(Calendar.HOUR, UTCOffsetN.getValue().intValue());
+		cal.add(Calendar.MINUTE, (int) ((UTCOffsetN.getValue()%1)*60));
+		date = cal.getTime();
+	
+		// assemble Autostar-format date/time 
+		String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
+		String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
+		String DateCmd = String.format(lx200.setDateCmd, dateStr);
+		String TimeCmd = String.format(lx200.setTimeCmd, timeStr);
+	
+		// send to Autostar
+		getCommandChar(TimeCmd);
+		getCommandChar(DateCmd);
+		try {
+			com_driver.read('#'); // Return String "Updating planetary data... #"
+			com_driver.read('#'); // Return String "                           #"
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		getDateTime();
+		return true;
 	}
 
 }
