@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 
+import laazotea.indi.INDIDateFormat;
 import laazotea.indi.INDISexagesimalFormatter;
 import laazotea.indi.Constants.PropertyPermissions;
 import laazotea.indi.Constants.PropertyStates;
@@ -47,21 +48,24 @@ import laazotea.indi.driver.INDITextElementAndValue;
 import laazotea.indi.driver.INDITextProperty;
 import de.hallenbeck.indiserver.communication_drivers.communication_driver_interface;
 
+
 /**
  * Abstract telescope-class with basic functions and basic INDI interface
  * 
  * @author atuschen
  *
  */
-public abstract class telescope extends INDIDriver implements device_driver_interface {
+public abstract class telescope extends INDIDriver {
 	
 	protected final static String COMM_GROUP = "Communication";
 	protected final static String BASIC_GROUP = "Main Control";
 	protected final static String MOTION_GROUP	= "Motion Control";
 	protected final static String DATETIME_GROUP = "Date/Time";
 	protected final static String SITE_GROUP = "Site Management";
+	
 	protected static INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
 	protected static communication_driver_interface com_driver=null;
+	protected static String propertyUpdateInfo = null;
 	private static String device=null;
 	private static boolean connected=false;
 
@@ -154,6 +158,24 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	/**************************************** END PROPERTIES *********************************************/
 	/*****************************************************************************************************/
 
+<<<<<<< .mine
+	/**
+	 * Constructor
+	 * @param in
+	 * @param out
+	 */
+	protected telescope(InputStream in, OutputStream out, String driver, String device) {
+		super(in, out);
+		try {
+			setCommunicationDriver(driver);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		setCommunicationDevice(device);
+		this.addProperty(ConnectSP);
+		updateProperty(ConnectSP,"INDI4Java Driver "+getName()+ "started");
+=======
 
 	protected telescope(InputStream in, OutputStream out) {
 		 super(in, out);
@@ -182,6 +204,7 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 		 GeoLatN = new INDINumberElement(GeoNP, "LAT",  "Lat.  D:M:S +N", 0, -90, 90, 0, "%10.6m");
 		 GeoLongN = new INDINumberElement(GeoNP, "LONG",  "Long. D:M:S", 0, 0, 360, 0, "%10.6m");
 		 this.addProperty(ConnectSP);
+>>>>>>> .r171
 	}
 	
 	
@@ -189,7 +212,7 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	 * Set the driver for communication with the telescope
 	 * @param driver fully qualified name of driver class
 	 */
-	public void set_communication_driver(String driver) throws ClassNotFoundException {
+	public void setCommunicationDriver(String driver) throws ClassNotFoundException {
 		try {
 			if (driver != null) com_driver = (communication_driver_interface) Class.forName(driver).newInstance();
 		} catch (IllegalAccessException e) {
@@ -199,16 +222,38 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 		}
 	}
 	
-	public void set_device(String sdevice) {
+	/**
+	 * Set com device/interface
+	 */
+	public void setCommunicationDevice(String sdevice) {
 		device = sdevice;
 	}
 	
 	/**
 	 * Connect to the telescope
 	 */
-	@Override
-	public void connect() throws IOException {
+	public boolean connect() {
+		boolean ret=false;
 		if ((!connected) && (com_driver != null) && (device != null)) {
+<<<<<<< .mine
+			try {
+				com_driver.connect(device);
+				connected=true;
+				ConnectS.setValue(SwitchStatus.ON);
+				ConnectSP.setState(PropertyStates.OK);
+				updateProperty(ConnectSP,"Connected to "+device);
+				onConnect();
+				ret=true;
+			} catch (IOException e) {
+				connected=false;
+				DisconnectS.setValue(SwitchStatus.ON);
+				ConnectSP.setState(PropertyStates.ALERT);
+				updateProperty(ConnectSP,"Error connecting "+device+" "+e.getMessage());
+			}
+			
+		}	
+		return ret;
+=======
 			com_driver.connect(device);
 			connected=true;
 			addProperty(EquatorialCoordsWNP);
@@ -224,13 +269,13 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 			if (com_driver == null) throw new IOException("Telescope: Communication Driver not set");
 			if (device == null) throw new IOException("Telescope: Device not set");
 		}
+>>>>>>> .r171
 	}
 	
 	/**
 	 * Are we connected?
 	 * @return
 	 */
-	@Override
 	public boolean isConnected() {
 		return connected;
 	}
@@ -238,11 +283,16 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	/**
 	 * Disconnect from telescope
 	 */
-	@Override
-	public void disconnect() {
+	public boolean disconnect() {
 		if ((connected) && (com_driver != null)) {
 			com_driver.disconnect();
 			connected=false;
+<<<<<<< .mine
+			onDisconnect();
+			DisconnectS.setValue(SwitchStatus.ON);
+			ConnectSP.setState(PropertyStates.IDLE);
+			updateProperty(ConnectSP,"Disconnected from "+device);
+=======
 			removeProperty(EquatorialCoordsWNP);
 			removeProperty(EquatorialCoordsRNP);
 			removeProperty(AbortSlewSP);
@@ -251,17 +301,139 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 			removeProperty(TimeTP);
 			removeProperty(UTCOffsetNP);
 			removeProperty(GeoNP);
+>>>>>>> .r171
 		}
+		return true;
 	}
-
-
+	
+	/**
+	 * Called from connect(), after Connection has been established
+	 */
+	protected void onConnect() {
+		this.addProperty(EquatorialCoordsWNP);
+	    this.addProperty(EquatorialCoordsRNP);
+	    this.addProperty(AbortSlewSP);
+	    this.addProperty(MovementNSSP);
+	    this.addProperty(MovementWESP);
+	    this.addProperty(TimeTP);
+	    this.addProperty(UTCOffsetNP);
+	    this.addProperty(GeoNP);
+	}
+	
+	/**
+	 * Called from disconnect(), after Connection is down
+	 */
+	protected void onDisconnect() {
+		this.removeProperty(EquatorialCoordsWNP);
+		this.removeProperty(EquatorialCoordsRNP);
+		this.removeProperty(AbortSlewSP);
+		this.removeProperty(MovementNSSP);
+		this.removeProperty(MovementWESP);
+		this.removeProperty(TimeTP);
+		this.removeProperty(UTCOffsetNP);
+		this.removeProperty(GeoNP);
+	}
+	
+	/**
+	 * Called when a new Date/Time is set by the client
+	 * @param date
+	 * @return true if OK, false on Error
+	 */
+	protected boolean setDateTime(Date date) {
+		return false;
+	}
+	
+	/**
+	 * Called when a new UTC Offset value is set by the client
+	 * @param offset
+	 * @return true if OK, false on Error
+	 */
+	protected boolean setUTCOffset(double offset) {
+		return false;
+	}
+	
+	/**
+	 * Called when new equatorial target coords have been succesfully set
+	 * @return true if OK, false on Error
+	 */
+	protected boolean onNewEquatorialCoords() {
+		return false;
+	}
+	
+	
+	/**
+	 * Called when Abort button is clicked
+	 * @return true if OK, false on Error
+	 */
+	protected boolean onAbortSlew() {
+		return false;
+	}
+	
+	/**
+	 * Called when Move North/South buttons are clicked
+	 * @param direction N=North, S=South
+	 * @return true if OK, false on Error
+	 */
+	protected boolean onMovementNS(char direction) {
+		return false;
+	}
+	
+	/**
+	 * Called when Move West/East buttons are clicked
+	 * @param direction W=West, E=East
+	 * @return true if OK, false on Error
+	 */
+	protected boolean onMovementWE(char direction) {
+		return false;
+	}
+	
+	/**
+	 * Called when client sets a new Geolocation Latitude value
+	 * @param latitude
+	 * @return true if OK, false on Error
+	 */
+	protected boolean setLatitude(double latitude) {
+		return false;
+	}
+	
+	/**
+	 * Called when client sets a new Geolocation Longitude value
+	 * @param longitude
+	 * @return true if OK, false on Error
+	 */
+	protected boolean setLongitude(double longitude) {
+		return false;
+	}
+	
+	/**
+	 * Called when client sets a new Target RA value
+	 * @param RA
+	 * @return true if OK, false on Error
+	 */
+	protected boolean setTargetRA(double RA) {
+		return false;
+	}
+	
+	/**
+	 * Called when client sets a new Target declination
+	 * @param DEC
+	 * @return true if OK, false on Error
+	 */
+	protected boolean setTargetDEC(double DEC) {
+		return false;
+	}
+	
+	
 	/* (non-Javadoc)
 	 * @see laazotea.indi.driver.INDIDriver#getName()
 	 */
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	protected void getTargetCoords() {
+		
 	}
 
 
@@ -271,7 +443,20 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	@Override
 	public void processNewTextValue(INDITextProperty property, Date timestamp,
 			INDITextElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
+		
+		boolean ret=false;
+		
+		/**
+		 * UTC Time Property
+		 */
+		if (property==TimeTP) {
+			Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
+			ret = setDateTime(date);
+		}
+		
+		if (ret) property.setState(PropertyStates.OK);
+		else property.setState(PropertyStates.ALERT); 
+		updateProperty(property, propertyUpdateInfo);
 		
 	}
 
@@ -282,8 +467,56 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
+
+		boolean ret = false;
+		// Get the Element
+		INDISwitchElement elem = elementsAndValues[0].getElement();
+
+		/**
+		 * Connect Property always available
+		 */
+		if (property==ConnectSP) {
+			if (elem == DisconnectS) ret = disconnect();
+			if (elem == ConnectS) ret = connect();
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property, propertyUpdateInfo);
+		}
+
+		/**
+		 * Abort all current slewing
+		 */
+		if (property==AbortSlewSP) {
+			ret = onAbortSlew();
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property, propertyUpdateInfo);
+		}
+
+		/**
+		 * Move North/South
+		 */
+		if (property==MovementNSSP) {
+			if (elem == MoveNorthS) ret = onMovementNS('N');
+			if (elem == MoveSouthS) ret = onMovementNS('S');
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property, propertyUpdateInfo);
+		}
+
+		/**
+		 * Move West/East
+		 */
+		if (property==MovementWESP) {
+			if (elem == MoveWestS) ret = onMovementNS('W');
+			if (elem == MoveEastS) ret = onMovementNS('E');
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property, propertyUpdateInfo);
+		}
 		
+		propertyUpdateInfo = null;
+
 	}
 
 
@@ -293,7 +526,47 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	@Override
 	public void processNewNumberValue(INDINumberProperty property,
 			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
+		
+		boolean ret=false;
+		
+		/**
+		 * UTC-Offset Property
+		 */
+		if (property==UTCOffsetNP) {
+			if (elementsAndValues.length>0) ret = setUTCOffset(elementsAndValues[0].getValue());
+			if (!ret) propertyUpdateInfo="Error setting new UTC offset";
+		}
+
+		/**
+		 * Geolocation Property
+		 */
+		if (property==GeoNP) {
+			ret = true;
+			for (int i=0; i < elementsAndValues.length; i++) {
+				if (elementsAndValues[i].getElement() ==  GeoLatN) ret = ret && setLatitude(elementsAndValues[i].getValue());
+				if (elementsAndValues[i].getElement() == GeoLongN) ret = ret && setLongitude(elementsAndValues[i].getValue());
+			}
+			if (!ret) propertyUpdateInfo="Error setting new geolocation";
+		}
+
+		/**
+		 * New Equatorial Coords
+		 */
+		if (property == EquatorialCoordsWNP) {
+			ret = true;
+			for (int i=0; i < elementsAndValues.length; i++) {
+				if (elementsAndValues[i].getElement() ==  RAWN) ret = ret && setTargetRA(elementsAndValues[i].getValue()); 
+				if (elementsAndValues[i].getElement() == DECWN) ret = ret && setTargetDEC(elementsAndValues[i].getValue());
+			}
+			if (ret) {
+				getTargetCoords();
+				ret = onNewEquatorialCoords(); 
+			} else propertyUpdateInfo="Error setting new target coords";
+		}
+		
+		if (ret) property.setState(PropertyStates.OK); else property.setState(PropertyStates.ALERT);
+		updateProperty(property, propertyUpdateInfo);
+		propertyUpdateInfo = null;
 		
 	}
 
@@ -304,7 +577,13 @@ public abstract class telescope extends INDIDriver implements device_driver_inte
 	@Override
 	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
 			INDIBLOBElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
+		
+		boolean ret=false;
+		
+		if (ret) property.setState(PropertyStates.OK);
+		else property.setState(PropertyStates.ALERT);
+		updateProperty(property);
+		propertyUpdateInfo = null;
 		
 	}
 
