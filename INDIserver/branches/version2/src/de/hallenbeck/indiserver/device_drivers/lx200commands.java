@@ -84,7 +84,7 @@ public class lx200commands {
 	protected final  String setTargetDECCmd = "#:Sd%s#"; //Set target object DEC to %s (sDD*MM or sDD*MM:SS depending on precision setting); Returns:	1 - DEC Accepted 0 - DEC invalid
 	protected final  String setTargetRACmd = "#:Sr%s#"; //Set target object RA to %s (HH:MM.T or HH:MM:SS depending on precision setting); Returns:	1 - RA Accepted 0 - RA invalid
 	protected final  String setSiderealTimeCmd ="#:SS%s#"; //Sets the local sidereal time to %s (HH:MM:SS); Returns: 0 - Invalid 1 - Valid
-	protected final  String setTrackingRateCmd = "#:ST%02.4f#"; //Set tracking rate; Returns: 0 - Invalid 2 -Valid
+	protected final  String setTrackingRateCmd = "#:ST%02.4f#"; //Set tracking rate; Returns: 0 - Invalid 1 -Valid
 
 	/* T - Tracking Commands */
 	protected final  String TrackRateSiderealCmd = "#:TQ#"; //Sidereal Tracking speed
@@ -108,7 +108,9 @@ public class lx200commands {
 	 * :EK 50#	2 Key
 	 * :EK 51#  3 Key ... and so on until
 	 * :EK 57#  9 Key
+	 * 
 	 * EK9 and EK13 without space! 
+	 * 
 	 * Before using any key, check the actual display message! 
 	 * One can accidentally navigate to the Download-Function, which can result in a need to reflash the Autostar  
 	 */

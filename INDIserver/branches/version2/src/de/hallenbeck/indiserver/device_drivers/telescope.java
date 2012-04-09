@@ -65,7 +65,6 @@ public abstract class telescope extends INDIDriver {
 	
 	protected static INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
 	protected static communication_driver com_driver=null;
-	protected static String propertyUpdateInfo = null;
 	private static String device=null;
 	private static boolean connected=false;
 
@@ -244,9 +243,6 @@ public abstract class telescope extends INDIDriver {
 	}
 
 
-	/* (non-Javadoc)
-	 * @see laazotea.indi.driver.INDIDriver#processNewTextValue(laazotea.indi.driver.INDITextProperty, java.util.Date, laazotea.indi.driver.INDITextElementAndValue[])
-	 */
 	@Override
 	public void processNewTextValue(INDITextProperty property, Date timestamp,
 			INDITextElementAndValue[] elementsAndValues) {
@@ -261,17 +257,10 @@ public abstract class telescope extends INDIDriver {
 			ret = setDateTime(date);
 			if (ret) property.setState(PropertyStates.OK);
 			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
+			updateProperty(property);
 		}
-		
-		
-		
 	}
 
-
-	/* (non-Javadoc)
-	 * @see laazotea.indi.driver.INDIDriver#processNewSwitchValue(laazotea.indi.driver.INDISwitchProperty, java.util.Date, laazotea.indi.driver.INDISwitchElementAndValue[])
-	 */
 	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
@@ -288,7 +277,7 @@ public abstract class telescope extends INDIDriver {
 			if (elem == ConnectS) ret = connect();
 			if (ret) property.setState(PropertyStates.OK);
 			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
+			updateProperty(property);
 		}
 	
 		/**
@@ -298,7 +287,7 @@ public abstract class telescope extends INDIDriver {
 			ret = onAbortSlew();
 			if (ret) property.setState(PropertyStates.OK);
 			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
+			updateProperty(property);
 		}
 	
 		/**
@@ -309,7 +298,7 @@ public abstract class telescope extends INDIDriver {
 			if (elem == MoveSouthS) ret = onMovementNS('S');
 			if (ret) property.setState(PropertyStates.OK);
 			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
+			updateProperty(property);
 		}
 	
 		/**
@@ -320,30 +309,31 @@ public abstract class telescope extends INDIDriver {
 			if (elem == MoveEastS) ret = onMovementNS('E');
 			if (ret) property.setState(PropertyStates.OK);
 			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property, propertyUpdateInfo);
+			updateProperty(property);
 		}
 		
-		propertyUpdateInfo = null;
-	
 	}
 
-
-	/* (non-Javadoc)
-	 * @see laazotea.indi.driver.INDIDriver#processNewNumberValue(laazotea.indi.driver.INDINumberProperty, java.util.Date, laazotea.indi.driver.INDINumberElementAndValue[])
-	 */
 	@Override
 	public void processNewNumberValue(INDINumberProperty property,
 			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
 		
-		boolean ret=false;
+		boolean ret = false;
+		String propertyUpdateInfo = null;
 		
 		/**
 		 * UTC-Offset Property
 		 */
 		if (property==UTCOffsetNP) {
-			if (elementsAndValues.length>0) ret = setUTCOffset(elementsAndValues[0].getValue());
-			if (!ret) propertyUpdateInfo="Error setting new UTC offset";
-			if (ret) property.setState(PropertyStates.OK); else property.setState(PropertyStates.ALERT);
+			if (elementsAndValues.length>0) ret = setUTCOffset(elementsAndValues[0].getValue()); 
+			
+			if (ret) {
+				property.setState(PropertyStates.OK);
+			}
+			else {	
+					property.setState(PropertyStates.ALERT);
+					propertyUpdateInfo="Error setting new UTC offset";
+				}
 			updateProperty(property, propertyUpdateInfo);
 		}
 	
@@ -356,8 +346,15 @@ public abstract class telescope extends INDIDriver {
 				if (elementsAndValues[i].getElement() ==  GeoLatN) ret = ret && setLatitude(elementsAndValues[i].getValue());
 				if (elementsAndValues[i].getElement() == GeoLongN) ret = ret && setLongitude(elementsAndValues[i].getValue());
 			}
-			if (!ret) propertyUpdateInfo="Error setting new geolocation";
-			if (ret) property.setState(PropertyStates.OK); else property.setState(PropertyStates.ALERT);
+			
+			if (ret) {
+				getGeolocation();
+				property.setState(PropertyStates.OK);
+			}
+			else {
+				property.setState(PropertyStates.ALERT);
+				propertyUpdateInfo="Error setting new geolocation";
+			}
 			updateProperty(property, propertyUpdateInfo);
 		}
 	
@@ -370,11 +367,16 @@ public abstract class telescope extends INDIDriver {
 				if (elementsAndValues[i].getElement() ==  RAWN) ret = ret && setTargetRA(elementsAndValues[i].getValue()); 
 				if (elementsAndValues[i].getElement() == DECWN) ret = ret && setTargetDEC(elementsAndValues[i].getValue());
 			}
+			
 			if (ret) {
+				ret = onNewEquatorialCoords();
 				getTargetCoords();
-				ret = onNewEquatorialCoords(); 
-			} else propertyUpdateInfo="Error setting new target coords";
-			if (ret) property.setState(PropertyStates.OK); else property.setState(PropertyStates.ALERT);
+				property.setState(PropertyStates.OK); 
+			}
+			else { 
+				property.setState(PropertyStates.ALERT);
+				propertyUpdateInfo="Error setting new target coords";
+			}
 			updateProperty(property, propertyUpdateInfo);
 		}
 		
@@ -393,7 +395,7 @@ public abstract class telescope extends INDIDriver {
 		if (ret) property.setState(PropertyStates.OK);
 		else property.setState(PropertyStates.ALERT);
 		updateProperty(property);
-		propertyUpdateInfo = null;
+		
 		
 	}
 
@@ -531,7 +533,11 @@ public abstract class telescope extends INDIDriver {
 	 * Called to update the Target Coords from the Telescope
 	 */
 	protected void getTargetCoords() {
-		
 	}
-
+	
+	/**
+	 * Called to update the geolocation
+	 */
+	protected void getGeolocation() {
+	}
 }

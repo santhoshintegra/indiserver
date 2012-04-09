@@ -74,8 +74,8 @@ public class lx200basic extends telescope {
 	
 	protected static boolean AbortSlew = false; 
 	private final static String driverName = "LX200basic";
-	//private final static int majorVersion = 0;
-	//private final static int minorVersion = 1;	
+	private final static int majorVersion = 0;
+	private final static int minorVersion = 1;	
 	protected final static String FOCUS_GROUP = "Focus Control";
 	protected final static String INFO_GROUP = "Information";
 	
@@ -89,7 +89,7 @@ public class lx200basic extends telescope {
 
 			AbortSlew = false;
 
-			// get return of MoveToTarget Command (starts slewing immediately, if possible)
+			// get return of MoveToTarget-Command (starts slewing immediately, if possible)
 			int err = getCommandInt(lx200.MoveToTargetCmd); 
 			if (err !=0) {
 				// if Error exit with message
@@ -98,30 +98,31 @@ public class lx200basic extends telescope {
 				if (err==2) updateProperty(EquatorialCoordsWNP, "Slew not possible: Target object not reachable");
 
 			} else { 
-
+				// Set the ReadOnly property to busy 
+				// There are 2 EquatorialCoords Properties: RNP is ReadOnly for clients, WNP is WriteOnly
 				EquatorialCoordsRNP.setState(PropertyStates.BUSY);
 				updateProperty(EquatorialCoordsRNP,"Slewing...");
 
 				// Loop until slewing completed or aborted
 				while ((!AbortSlew) && (getCommandString(lx200.DistanceBarsCmd).length()==1)) {
 
-					//Continually update equatorial coordinates without updating the property-state
+					//Continually update equatorial coordinates (ReadOnly) without updating the property-state
 					getEqCoords(false);
 
 				}
 
 				if (AbortSlew) {
-
+					// Stop Movement and update WriteOnly property
 					sendCommand(lx200.StopAllMovementCmd);
 					updateProperty(EquatorialCoordsWNP,"Slew aborted");
 
 				} else {
-
+					
 					updateProperty(EquatorialCoordsWNP,"Slew complete");
 				}
 
 			}
-			getEqCoords(true); // Update equatorial coordinates and property
+			getEqCoords(true); // Update equatorial coordinates (ReadOnly) and property-state
 		}
 	}
 			
@@ -385,6 +386,9 @@ public class lx200basic extends telescope {
 			updateProperty(property);
 		}
 		
+		/**
+		 * Select SlewSpeed
+		 */
 		if (property==SlewModeSP) {
 			if (elem==GuideS) ret = setSlewMode(1);
 			if (elem==CenteringS) ret = setSlewMode(2);
@@ -395,6 +399,9 @@ public class lx200basic extends telescope {
 			updateProperty(property);
 		}
 	
+		/**
+		 * Set Tracking rate
+		 */
 		if (property==TrackModeSP) {
 			if (elem==DefaultModeS) ret = setTrackMode(1);
 			if (elem==LunarModeS) ret = setTrackMode(2);
@@ -404,6 +411,9 @@ public class lx200basic extends telescope {
 			updateProperty(property);
 		}
 		
+		/**
+		 * Use pulse commands for guiding
+		 */
 		if (property==UsePulseCommandSP) {
 			if (elem==UsePulseCommandOnS) ret = setPulseCommand(true);
 			if (elem==UsePulseCommandOffS) ret = setPulseCommand(false);
@@ -412,6 +422,9 @@ public class lx200basic extends telescope {
 			updateProperty(property);
 		}
 		
+		/**
+		 * Move focuser in or out
+		 */
 		if (property==FocusMotionSP) {
 			if (elem==FocusInS) ret = setFocusMotion(1);
 			if (elem==FocusOutS) ret = setFocusMotion(2);
@@ -420,6 +433,9 @@ public class lx200basic extends telescope {
 			updateProperty(property);
 		}
 		
+		/**
+		 * Set focuser mode
+		 */
 		if (property==FocusModesSP) {
 			if (elem==FocusHaltS) ret = setFocusMode(0);
 			if (elem==FocusSlowS) ret = setFocusMode(1);
@@ -440,10 +456,17 @@ public class lx200basic extends telescope {
 		super.processNewNumberValue(property, timestamp, elementsAndValues);
 		
 		boolean ret = false;
+		String propertyUpdateInfo = null;
+		
 		if (property==TrackFreqNP) {
 			if (elementsAndValues.length>0) ret = setTrackRate(elementsAndValues[0].getValue());
-			if (!ret) propertyUpdateInfo="Error setting new Tracking Frequency";
-			if (ret) property.setState(PropertyStates.OK); else property.setState(PropertyStates.ALERT);
+			if (ret) {
+				property.setState(PropertyStates.OK);  
+			} else {
+				property.setState(PropertyStates.ALERT);
+				propertyUpdateInfo="Error setting new Tracking Frequency";
+			}
+			
 			updateProperty(property, propertyUpdateInfo);
 		}
 	}
@@ -459,10 +482,16 @@ public class lx200basic extends telescope {
 		super.processNewBLOBValue(property, timestamp, elementsAndValues);
 	}
 
+	/**
+	 * Called after successfull connection
+	 */
 	@Override
 	protected void onConnect() {
+		
+		// setup the standard telescope properties
 		super.onConnect();
 		
+		// Setup lx200 properties
 		this.addProperty(AlignmentSP);
 		this.addProperty(OnCoordSetSP);
 		this.addProperty(SlewModeSP);
@@ -485,12 +514,16 @@ public class lx200basic extends telescope {
 		this.addProperty(AlignmentLP);
 		this.addProperty(TrackingLP);
 		
+		// Always call this as first telescope command after connecting
+		// It will determine, if the Handbox is in Download-Mode an disconnect immediately
 		getAlignmentMode();
+		
+		// get/set initial values
 		getFirmwareInformation();
 		getAlignmentStatus();
 		getTrackRate();
 
-		// Always use high-precision coords
+		// Always use high-precision coords for DA and DEC
 		if (getCommandString(lx200.getCurrentRACmd).length() == 7) {
 			sendCommand(lx200.PrecisionToggleCmd);
 			updateProperty(ConnectSP,"Setting high precision coords");
@@ -504,14 +537,24 @@ public class lx200basic extends telescope {
 		// Get current equatorial coords the scope is pointing at
 		getEqCoords(true);
 		getTargetCoords();
-
-		ConnectS.setValue(SwitchStatus.ON);
-		ConnectSP.setState(PropertyStates.OK);
+		
+		// update property state 
 		updateProperty(ConnectSP,"Telescope ready, awaiting commmands...");
 	}
 
+	
+	/** 
+	 * Called after disconnect from telescope
+	 * Clean up here
+	 */
 	@Override
 	protected void onDisconnect() {
+		
+		// This terminates any running SlewThread, but not
+		// Slewing itself, because we're already disconnected
+		onAbortSlew();
+		
+		// remove lx200 properties
 		this.removeProperty(AlignmentSP);
 	    this.removeProperty(OnCoordSetSP);
 	    this.removeProperty(SlewModeSP);
@@ -534,52 +577,64 @@ public class lx200basic extends telescope {
 		this.removeProperty(MountLP);
 		this.removeProperty(TrackingLP);
 		
-		AbortSlew=true;
+		// remove standard telescope properties 
 		super.onDisconnect();
 	}
-
+	
+	/**
+	 * Called on Movement North/South command
+	 */
 	@Override
 	protected boolean onMovementNS(char direction) {
-		return super.onMovementNS(direction);
+		return true;
 	}
 
+	/**
+	 * Called on Movement North/South command
+	 */
 	@Override
 	protected boolean onMovementWE(char direction) {
-		return super.onMovementWE(direction);
+		return true;
 	}
 
+	/**
+	 * Called after successfully setting new Target Coords
+	 */
 	@Override
 	protected boolean onNewEquatorialCoords() {
+		
+		// We either slew the telescope to the target
 		if (SlewS.getValue()==SwitchStatus.ON) {
-			onAbortSlew();
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				
-			}
+			
+			// Abort all current slewing
+			onAbortSlew();	
+			
+			// Start a new SlewThread
 			SlewThread s = new SlewThread();
 			s.start();
 		}
 		
+		// or sync the current coords to the target ones
 		if (SyncS.getValue()==SwitchStatus.ON) {
 			getCommandString(lx200.SyncToTargetCmd);
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				
-			}
+			
+			// Update current coords
 			getEqCoords(true);
 		}
 		return true;
 	}
 
-	protected boolean onStartSlew() {
-		return false;
-	}
-
+	/**
+	 * Abort all current slewing
+	 */
 	@Override
 	protected boolean onAbortSlew() {
 		AbortSlew = true;
+		// Wait a moment for SlewThread to terminate
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+		}
 		return true;
 	}
 
@@ -596,17 +651,12 @@ public class lx200basic extends telescope {
 	 */
 	protected void getAlignmentMode() {
 	
-		// Send command 2 times!
-		getCommandChar(lx200.AlignmentModeCmd);
-	
 		String error = null;
 		AlignmentSP.setState(PropertyStates.OK);
 		
 		switch (getCommandChar(lx200.AlignmentModeCmd)) {
 		case 'A': 			
 			AltAzS.setValue(SwitchStatus.ON);
-			LandS.setValue(SwitchStatus.OFF);
-			PolarS.setValue(SwitchStatus.OFF);
 			break;
 		case 'D': 
 			// I doubt that sending data to the
@@ -617,16 +667,13 @@ public class lx200basic extends telescope {
 			AlignmentSP.setState(PropertyStates.ALERT);
 			break;
 		case 'L':
-			AltAzS.setValue(SwitchStatus.OFF);
 			LandS.setValue(SwitchStatus.ON);
-			PolarS.setValue(SwitchStatus.OFF);
 			break;	
 		case 'P': 
-			AltAzS.setValue(SwitchStatus.OFF);
-			LandS.setValue(SwitchStatus.OFF);
 			PolarS.setValue(SwitchStatus.ON);
 			break;
 		}
+		
 		updateProperty(AlignmentSP, error);
 	}
 
@@ -714,6 +761,8 @@ public class lx200basic extends telescope {
 	
 	/**
 	 * Get the UTCoffet
+	 * NOTE: For LX200-Telescopes this is the UTC-Offset to yield local time
+	 * but for Autostar#497 this is the value to yield UTC from local time (see LX200autostar-driver)
 	 */
 	protected void getUTCOffset() {
 		String tmp = getCommandString(lx200.getUTCHoursCmd);
@@ -725,6 +774,8 @@ public class lx200basic extends telescope {
 	
 	/**
 	 * Get the current Date/Time from telescope
+	 * NOTE: For LX200-Telescopes this is in UTC
+	 * but Autostar#497 uses Local time (see LX200autostar-driver)  
 	 */
 	protected void getDateTime() {
 		String dateStr = getCommandString(lx200.getTimeCmd)+" "+getCommandString(lx200.getDateCmd);
@@ -753,83 +804,76 @@ public class lx200basic extends telescope {
 	 * Get Name of Site site# from telescope
 	 */
 	protected void getSiteName(int site) {
-		switch (site) {
-		case 1: 
-			SiteNameT.setValue(getCommandString(lx200.getSite1NameCmd));
-			break;
-		case 2: 
-			SiteNameT.setValue(getCommandString(lx200.getSite2NameCmd));
-			break;
-		case 3: 
-			SiteNameT.setValue(getCommandString(lx200.getSite3NameCmd));
-			break;
-		case 4: 
-			SiteNameT.setValue(getCommandString(lx200.getSite4NameCmd));
-			break;
-		}
+		if (site==1) SiteNameT.setValue(getCommandString(lx200.getSite1NameCmd));
+		if (site==2) SiteNameT.setValue(getCommandString(lx200.getSite2NameCmd));
+		if (site==3) SiteNameT.setValue(getCommandString(lx200.getSite3NameCmd));
+		if (site==4) SiteNameT.setValue(getCommandString(lx200.getSite4NameCmd));
 		SiteNameTP.setState(PropertyStates.OK);
 		updateProperty(SiteNameTP,"Site Name: "+SiteNameT.getValue());
 	}
 	
 	/**
 	 * Get the message currently displayed on the Handbox
-	 * @return
+	 * @return message
 	 */
 	protected String getDisplayMessage() {
 		return getCommandString(lx200.getDisplayMsgCmd);
 	}
 
 	/**
-	 * Get the current equatorial coords the scope is pointing at
-	 * TODO: some warning if telescope is not aligned, coords may be inaccurate  
+	 * Get the current equatorial coords the scope is pointing at  
 	 */
 	protected synchronized void getEqCoords(boolean updateState) {
-	
 		try {
-			double RA = sexa.parseSexagesimal(getCommandString(lx200.getCurrentRACmd));
-			double DEC = sexa.parseSexagesimal(getCommandString(lx200.getCurrentDECCmd));
-			RARN.setValue(RA);
-			DECRN.setValue(DEC);
+			RARN.setValue(sexa.parseSexagesimal(getCommandString(lx200.getCurrentRACmd)));
+			DECRN.setValue(sexa.parseSexagesimal(getCommandString(lx200.getCurrentDECCmd)));
 			if (updateState) {
+				getAlignmentStatus();
 				EquatorialCoordsRNP.setState(PropertyStates.OK);
-				if (NotAlignedL.getValue()==LightStates.ALERT) {
-					EquatorialCoordsRNP.setState(PropertyStates.ALERT);
-					updateProperty(EquatorialCoordsRNP,"WARNING: Telescope not aligned - Coordinates may be inaccurate!");
-				}
 				updateProperty(EquatorialCoordsRNP,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
-			} else updateProperty(EquatorialCoordsRNP);
-			
+			} else 
+				updateProperty(EquatorialCoordsRNP);
+
 		} catch (IllegalArgumentException e) {
-	
+
 		}
-	
+
 	}
 	
+	/**
+	 *  Get the current target coords from the telescope 
+	 */
 	@Override
 	protected void getTargetCoords() {
-		String tmp = getCommandString(lx200.getTargetRACmd);
-		double RA = sexa.parseSexagesimal(tmp);
-		String tmp2 = getCommandString(lx200.getTargetDECCmd);
-		double DEC = sexa.parseSexagesimal(tmp2);
-		RAWN.setValue(RA);
-		DECWN.setValue(DEC);
+		RAWN.setValue(sexa.parseSexagesimal(getCommandString(lx200.getTargetRACmd)));
+		DECWN.setValue(sexa.parseSexagesimal(getCommandString(lx200.getTargetDECCmd)));
 		EquatorialCoordsWNP.setState(PropertyStates.OK);
 		updateProperty(EquatorialCoordsWNP,"Target Object RA: "+RAWN.getValueAsString()+" DEC: "+DECWN.getValueAsString());
-	
 	}
 	
+	/**
+	 * Get the current tracking rate from the telescope
+	 */
 	protected void getTrackRate() {
 		TrackFreqN.setValue(Double.parseDouble(getCommandString(lx200.getTrackingRateCmd)));
 		TrackFreqNP.setState(PropertyStates.OK);
 		updateProperty(TrackFreqNP);
 	}
 
+	/**
+	 * set the Alignment Mode
+	 * @param Mode (A = AltAz, P = Polar, L = Land)
+	 * @return true on success, false on error
+	 */
 	protected boolean setAlignmentMode(char Mode) {
+		// TODO: not yet implemented
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.telescope#setUTCOffset(double)
+	/**
+	 * set the UTC offset 
+	 * @param hours to yield local time from UTC
+	 * @return true on success, false on error
 	 */
 	@Override
 	protected boolean setUTCOffset(double offset) {
@@ -839,36 +883,53 @@ public class lx200basic extends telescope {
 			offset = offset * -1;
 		}
 		String tmp = String.format("%s%02d.%01d", sign, (int) offset, (int) (offset % 1));
-		String UTCHoursCmd = String.format(lx200.setUTCHoursCmd, tmp);
-		if (getCommandInt(UTCHoursCmd)==1) {     
+		
+		if (getCommandInt(String.format(lx200.setUTCHoursCmd, tmp))==1) {     
 			getUTCOffset();
 			return true;
-		} else return false;
+		} else 
+			return false;
 	}
 
-
+	/**
+	 * set current Date/Time in UTC
+	 * @param Date
+	 * @return true on success, false on error
+	 */
 	@Override
 	protected boolean setDateTime(Date date) {
-		// This is UTC-Time!
-		// assemble date/time 
+		
+		// assemble date/time lx200-format  
 		String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
 		String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
 		String DateCmd = String.format(lx200.setDateCmd, dateStr);
 		String TimeCmd = String.format(lx200.setTimeCmd, timeStr);
 	
-		// send to Autostar
+		// send Time first and at last the Date
+		// Telescope is calculating planetary objects after a new date is set
 		if ((getCommandInt(TimeCmd)==1) && (getCommandInt(DateCmd)==1)) {
+			
+			// Read 2 Strings from the Telescope and throw them away
 			try {
 				com_driver.read('#'); // Return String "Updating planetary data... #"
 				com_driver.read('#'); // Return String "                           #"
 			} catch (IOException e) {
 				e.printStackTrace();
+				return false;
 			}
+			
+			// Read the Date/Time from telescope to update the property 
 			getDateTime();
 			return true;
-		} else return false;
+		} else 
+			return false;
 	}
 
+	/**
+	 * set the selected Site number
+	 * @param site number
+	 * @return always true  
+	 */
 	protected boolean setSite(int site) {
 		sendCommand(String.format(lx200.SiteSelectCmd,site));
 		if (site==1) Sites1S.setValue(SwitchStatus.ON);
@@ -882,8 +943,10 @@ public class lx200basic extends telescope {
 		return true;
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.telescope#setLatitude(double)
+	/**
+	 * set current site latitude
+	 * @param latitude
+	 * @return true on success, false on error
 	 */
 	@Override
 	protected boolean setLatitude(double latitude) {
@@ -895,50 +958,56 @@ public class lx200basic extends telescope {
 			latitude = latitude * -1;
 		}
 		// TODO: Instead of truncating doubles with (int) we should round them 
-		String tmp = String.format("%s%02d*%02d", sign, (int) latitude, (int) ((latitude % 1)*60) );
-		String GeolatCmd = String.format(lx200.setSiteLatCmd, tmp);
+		String GeolatCmd = String.format(lx200.setSiteLatCmd, String.format("%s%02d*%02d", sign, (int) latitude, (int) ((latitude % 1)*60) ));
 
 		// Set latitude
-		if (getCommandChar(GeolatCmd)=='1') return true; else return false;
+		if (getCommandInt(GeolatCmd)==1) return true; 
+		else return false;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.telescope#setLongitude(double)
+	/**
+	 * set current site longitude
+	 * @param longitude
+	 * @return true on success, false on error
 	 */
 	@Override
 	protected boolean setLongitude(double longitude) {
 		// Assemble an Autostar longitude format
-		// TODO: Instead of truncating doubles with (int) we should round them 
-		String tmp = String.format("%03d*%02d", (int) longitude, (int) ((longitude % 1)*60) ); 
-		String GeolongCmd = String.format(lx200.setSiteLongCmd, tmp);
-		//updateProperty(property,"Longitude sent:" + tmp);
+		// TODO: Instead of truncating doubles with (int) we should round them  
+		String GeolongCmd = String.format(lx200.setSiteLongCmd, String.format("%03d*%02d", (int) longitude, (int) ((longitude % 1)*60) ));
+		
 		// Set longitude
-		if (getCommandChar(GeolongCmd)=='1') return true; else return false;
+		if (getCommandInt(GeolongCmd)==1) return true; 
+		else return false;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.telescope#setRA(double)
+	/**
+	 * set target object RA
+	 * @param RA
+	 * @return true on success, false on error
 	 */
 	@Override
 	protected boolean setTargetRA(double RA) {
-		String RAStr = sexa.format(RA);
-		String RACmd = String.format(lx200.setTargetRACmd,RAStr);
-		if (getCommandChar(RACmd)=='1') return true; else return false;
+		if (getCommandInt(String.format(lx200.setTargetRACmd, sexa.format(RA)))==1) return true; 
+		else return false;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.telescope#setDEC(double)
+	/**
+	 * set target object DEC
+	 * @param DEC
+	 * @return true on success, false on error
 	 */
 	@Override
 	protected boolean setTargetDEC(double DEC) {
-		String DECStr = sexa.format(DEC);
-		String DECCmd = String.format(lx200.setTargetDECCmd,DECStr);
-		if (getCommandChar(DECCmd)=='1') return true; else return false;
+		if (getCommandInt(String.format(lx200.setTargetDECCmd, sexa.format(DEC)))==1) return true;
+		else return false;
 	}
 
+	/**
+	 * set slew speed
+	 * @param speed 1,2,8,9 (values 3-7 resreved)
+	 * @return always true 
+	 */
 	protected boolean setSlewMode(int mode) {
 		if (mode==1) { sendCommand(lx200.SlewRateGuidingCmd); GuideS.setValue(SwitchStatus.ON); }
 		if (mode==2) { sendCommand(lx200.SlewRateCenteringCmd); CenteringS.setValue(SwitchStatus.ON); }
@@ -947,6 +1016,11 @@ public class lx200basic extends telescope {
 		return true;
 	}
 	
+	/**
+	 * set tracking speed
+	 * @param speed 1 = sidereal, 2 = lunar , 3 = manual
+	 * @return always true
+	 */
 	protected boolean setTrackMode(int mode) {
 		if (mode==1) { sendCommand(lx200.TrackRateSiderealCmd); DefaultModeS.setValue(SwitchStatus.ON); }
 		if (mode==2) { sendCommand(lx200.TrackRateLunarCmd); LunarModeS.setValue(SwitchStatus.ON); }
@@ -955,9 +1029,13 @@ public class lx200basic extends telescope {
 		return true;
 	}
 	
+	/**
+	 * set manual tracking speed
+	 * @param rate
+	 * @return true on success, false on error
+	 */
 	protected boolean setTrackRate(double rate) {
-		String tmp = String.format(Locale.US,lx200.setTrackingRateCmd,rate);
-		if (getCommandChar(tmp)=='1') {
+		if (getCommandInt(String.format(Locale.US,lx200.setTrackingRateCmd,rate))==1) {
 			getTrackRate();
 			ManualModeS.setValue(SwitchStatus.ON);
 			TrackModeSP.setState(PropertyStates.OK);
@@ -967,15 +1045,33 @@ public class lx200basic extends telescope {
 		else return false;
 	}
 	
+	/**
+	 * use pulsed guiding
+	 * @param state
+	 * @return
+	 */
 	protected boolean setPulseCommand(boolean state) {
+		// TODO: not yet implemented
 		return true;
 	}
 	
+	/**
+	 * Move focuser in / out
+	 * @param direction
+	 * @return
+	 */
 	protected boolean setFocusMotion(int direction) {
+		// TODO: not yet implemented
 		return true;
 	}
 	
+	/**
+	 * Set focuser mode
+	 * @param mode
+	 * @return
+	 */
 	protected boolean setFocusMode(int mode) {
+		// TODO: not yet implemented
 		return true;
 	}
 	
@@ -996,47 +1092,34 @@ public class lx200basic extends telescope {
 	 * @return double
 	 */
 	protected synchronized double getCommandSexa(String command){
-		double tmp = sexa.parseSexagesimal(getCommandString(command));
-		return tmp;
+		return sexa.parseSexagesimal(getCommandString(command));
 	}
 	
 	/**
-	 * Get an integer from the device 
-	 * @param command
+	 * Get one digit from the device 
+	 * @param command send
 	 * @return integer 
 	 */
 	protected synchronized int getCommandInt(String command){
 		return Integer.parseInt(getCommandString(command,1));
-		
 	}
 	
 	/**
-	 * Get a char from the device
-	 * @param command
+	 * Get one char from the device
+	 * @param command to send
 	 * @return char
 	 */
 	protected synchronized char getCommandChar(String command) {
-		char tmp='-';
-		if (command!=null){
-			try {
-				com_driver.write(command);
-				tmp = com_driver.read(1).charAt(0);
-				
-			} catch (IOException e) {
-				updateProperty(ConnectSP,e.getMessage());
-				disconnect();
-			}
-		}
-		return tmp;
+		return getCommandString(command,1).charAt(0);
 	}
 	
 	/**
 	 * Get a string from the device without the #-suffix and < >
-	 * @param command 
+	 * @param command to send 
 	 * @return string 
 	 */
 	protected synchronized String getCommandString(String command) {
-		String tmp="";
+		String tmp=null;
 		try {
 			com_driver.write(command);
 			tmp = com_driver.read('#');
@@ -1052,11 +1135,17 @@ public class lx200basic extends telescope {
 		return tmp;
 	}
 	
-	protected synchronized String getCommandString(String command, int bytes) {
-		String tmp="";
+	/**
+	 * Get len bytes from the device
+	 * @param command to send
+	 * @param len 
+	 * @return
+	 */
+	protected synchronized String getCommandString(String command, int len) {
+		String tmp=null;
 		try {
 			com_driver.write(command);
-			tmp = com_driver.read(bytes);
+			tmp = com_driver.read(len);
 			
 		} catch (IOException e) {
 			updateProperty(ConnectSP,e.getMessage());
@@ -1072,7 +1161,6 @@ public class lx200basic extends telescope {
 	 */
 	protected synchronized void sendCommand(String command) {
 		try {
-			//com_driver.emptyBuffer();
 			com_driver.write(command);
 			
 		} catch (IOException e) {
