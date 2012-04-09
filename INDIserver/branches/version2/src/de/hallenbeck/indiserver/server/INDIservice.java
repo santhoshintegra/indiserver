@@ -37,57 +37,57 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 
 /**
+ * Android Background-Service for INDI-Server
  * @author Alexander Tuschen <atuschen75 at gmail dot com>
  *
  */
 public class INDIservice extends Service {
 	
+	private boolean autoconnect = false;
+	private INDIServer server;
+			
+
+	/**
+	 * Seperate Server-Class
+	 * @author atuschen
+	 *
+	 */
 	public class INDIServer extends DefaultINDIServer {
 
-		  /**
-		   * Just loads the available driver.
-		   */
-		  public INDIServer() {
-		    super();
-
-		    // Loads the Java Driver. Please note that this must be in the classpath.
-		    try {
-		      loadJavaDriver(lx200autostar.class);
-		      loadJavaDriver(lx200basic.class);
-		    } catch (INDIException e) {
-		      e.printStackTrace();
-		      
-		      System.exit(-1);
-		    }
-		  }
-
-		 
-
-		  /* (non-Javadoc)
-		 * @see laazotea.indi.server.DefaultINDIServer#getDevice(java.lang.String)
+		/**
+		 * Just loads the available driver.
 		 */
+		public INDIServer() {
+			super();
+
+			// Loads the Java Driver. Please note that this must be in the classpath.
+			try {
+				loadJavaDriver(lx200autostar.class);
+				loadJavaDriver(lx200basic.class);
+			} catch (INDIException e) {
+				e.printStackTrace();
+
+				System.exit(-1);
+			}
+		}
+
 		@Override
 		protected INDIDevice getDevice(String deviceName) {
 			// TODO Auto-generated method stub
 			return super.getDevice(deviceName);
 		}
 
-
-
 		/**
-		   * Just creates one instance of this server.
-		   * @param args 
-		   */
-		  public void main(String[] args) {
-		    INDIServer s = new INDIServer();  
-		  }
+		 * Just creates one instance of this server.
+		 * @param args 
+		 */
+		public void main(String[] args) {
+			INDIServer s = new INDIServer();  
 		}
+	}
 
 	
-	public boolean autoconnect = false;
 	
-	private INDIServer server;
-			
 	/**
 	 * Notify user about running server and connected clients
 	 */
@@ -104,9 +104,7 @@ public class INDIservice extends Service {
 		notificationbuilder.setSmallIcon(R.drawable.ic_launcher);
 		notificationbuilder.setOngoing(ongoing);
 		Notification notification = notificationbuilder.getNotification();
-		
 		mNotificationManager.notify(1, notification);
-		
 	}
 	
 	/**
@@ -116,13 +114,17 @@ public class INDIservice extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
 		// Get the settings from shared preferences
+		// This does NOT work at the moment! 
+		// TODO: Communication Driver and Device are hardcoded at the time
+		
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 		String DeviceDriver = settings.getString("device_driver", null);
 		String ComDriver = settings.getString("com_driver", null);
 		String Device = settings.getString("device", null);
 		autoconnect = settings.getBoolean("autoconnect", false);
+		
+		// just start the server, no parameters are given at the moment
 		server = new INDIServer();
-		//INDIDevice d = server.getDevice("LX200basic");
 		
 		notifyUser("INDIserver started","Waiting for Clients...",true);
 		
@@ -131,7 +133,6 @@ public class INDIservice extends Service {
 
 	@Override
 	public void onTrimMemory(int level) {
-		// TODO Auto-generated method stub
 		super.onTrimMemory(level);
 	}
 
@@ -142,28 +143,22 @@ public class INDIservice extends Service {
 
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
-		// TODO Auto-generated method stub
 		super.onConfigurationChanged(newConfig);
 	}
 
 	@Override
 	public void onCreate() {
-		// TODO Auto-generated method stub
 		super.onCreate();
 	}
 
 	@Override
 	public void onDestroy() {
-		
-		
-
 		notifyUser("INDIServer stopped", "All Clients disconnected", false);
 		super.onDestroy();
 	}
 
 	@Override
 	public void onLowMemory() {
-		// TODO Auto-generated method stub
 		super.onLowMemory();
 	}
 }
