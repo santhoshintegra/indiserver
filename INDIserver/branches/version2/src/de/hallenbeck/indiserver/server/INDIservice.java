@@ -87,14 +87,7 @@ public class INDIservice extends Service {
 	public boolean autoconnect = false;
 	
 	private INDIServer server;
-	
-	//max number of clients 
-	private static final int maxClients = 8;
-	
-	//max number of devices/drivers
-	private static final int maxDevices = 4;
-	
-		
+			
 	/**
 	 * Notify user about running server and connected clients
 	 */

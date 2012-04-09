@@ -30,50 +30,31 @@ import java.io.IOException;
 public interface communication_driver_interface {
 	
 	/**
-	 * Wait the specified amount of time before reading from device
-	 * @param delay in ms
-	 * @deprecated
-	 */
-	
-	/**
-	 * set global timeout for read/write operations
-	 * @param timeout milliseconds
-	 */
-	public void set_timeout(int timeout);
-	
-	/**
 	 * Connect to device
 	 * @param device
 	 * 
 	 */
-	public void connect(String device) throws IOException;
+	public void onConnect(String device) throws IOException;
 	
 	/**
 	 * Disconnect from device
 	 * 
 	 */
-	public void disconnect();
-	
-	/**
-	 * Send command string to device
-	 * @param command
-	 * @deprecated
-	 */
-	public void sendCommand(String command) throws IOException;
+	public void onDisconnect();
 	
 	/**
 	 * Try to write a string to the device
 	 * @param command string to send
 	 * @throws IOException timeout
 	 */
-	public void write(String command) throws IOException;
+	public void onWrite(String data) throws IOException;
 	
 	/**
 	 * Try to write a byte to the device
 	 * @param command byte to send
 	 * @throws IOException timeout
 	 */
-	public void write(byte command) throws IOException;
+	public void onWrite(byte data) throws IOException;
 
 	/**
 	 * Try to read from device until stopchar is detected
@@ -81,7 +62,7 @@ public interface communication_driver_interface {
 	 * @return String
 	 * @throws IOException timeout
 	 */
-	public String read(char stopchar) throws IOException;
+	public String onRead(char stopchar) throws IOException;
 	
 	/**
 	 * Try to read at least num bytes from device
@@ -89,12 +70,6 @@ public interface communication_driver_interface {
 	 * @return String 
 	 * @throws IOException timeout
 	 */
-	public String read(int bytes) throws IOException;
-	
-	/**
-	 * Read until end of stream and throw it away
-	 * @throws IOException 
-	 */
-	public void emptyBuffer() throws IOException;
+	public String onRead(int len) throws IOException;
 
 }

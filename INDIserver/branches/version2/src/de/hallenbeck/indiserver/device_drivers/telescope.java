@@ -46,7 +46,7 @@ import laazotea.indi.driver.INDISwitchProperty;
 import laazotea.indi.driver.INDITextElement;
 import laazotea.indi.driver.INDITextElementAndValue;
 import laazotea.indi.driver.INDITextProperty;
-import de.hallenbeck.indiserver.communication_drivers.communication_driver_interface;
+import de.hallenbeck.indiserver.communication_drivers.communication_driver;
 
 
 /**
@@ -64,7 +64,7 @@ public abstract class telescope extends INDIDriver {
 	protected final static String SITE_GROUP = "Site Management";
 	
 	protected static INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
-	protected static communication_driver_interface com_driver=null;
+	protected static communication_driver com_driver=null;
 	protected static String propertyUpdateInfo = null;
 	private static String device=null;
 	private static boolean connected=false;
@@ -141,7 +141,7 @@ public abstract class telescope extends INDIDriver {
 	 Property: DST Corrected UTC Offfset
 	*********************************************/
 	protected INDINumberProperty UTCOffsetNP = new INDINumberProperty(this, "TIME_UTC_OFFSET", "UTC Offset", DATETIME_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
-	protected INDINumberElement UTCOffsetN = new INDINumberElement(UTCOffsetNP, "OFFSET", "Offset", 0, -12, 12, 0.5, "%0.3g");
+	protected INDINumberElement UTCOffsetN = new INDINumberElement(UTCOffsetNP, "OFFSET", "Offset", 0, -12, 12, 0.5, "%2.1g");
 
 	/**********************************************************************************************/
 	/************************************* GROUP: Sites *******************************************/
@@ -185,7 +185,7 @@ public abstract class telescope extends INDIDriver {
 	 */
 	public void setCommunicationDriver(String driver) throws ClassNotFoundException {
 		try {
-			if (driver != null) com_driver = (communication_driver_interface) Class.forName(driver).newInstance();
+			if (driver != null) com_driver = (communication_driver) Class.forName(driver).newInstance();
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		} catch (InstantiationException e) {
@@ -208,7 +208,7 @@ public abstract class telescope extends INDIDriver {
 		if ((!connected) && (com_driver != null) && (device != null)) {
 
 			try {
-				com_driver.connect(device);
+				com_driver.connect(device,3000);
 				connected=true;
 				ConnectS.setValue(SwitchStatus.ON);
 				ConnectSP.setState(PropertyStates.OK);
