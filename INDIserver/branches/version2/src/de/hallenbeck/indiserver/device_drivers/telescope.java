@@ -259,11 +259,12 @@ public abstract class telescope extends INDIDriver {
 		if (property==TimeTP) {
 			Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
 			ret = setDateTime(date);
+			if (ret) property.setState(PropertyStates.OK);
+			else property.setState(PropertyStates.ALERT); 
+			updateProperty(property, propertyUpdateInfo);
 		}
 		
-		if (ret) property.setState(PropertyStates.OK);
-		else property.setState(PropertyStates.ALERT); 
-		updateProperty(property, propertyUpdateInfo);
+		
 		
 	}
 
