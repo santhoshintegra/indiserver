@@ -330,10 +330,6 @@ public class lx200basic extends telescope {
 
 	}
 
-	
-
-
-	
 
 	/**
 	 * Set new text-values received from clients
@@ -343,8 +339,6 @@ public class lx200basic extends telescope {
 			INDITextElementAndValue[] elementsAndValues) {
 		
 		super.processNewTextValue(property, timestamp, elementsAndValues);
-		
-
 	
 	}
 
