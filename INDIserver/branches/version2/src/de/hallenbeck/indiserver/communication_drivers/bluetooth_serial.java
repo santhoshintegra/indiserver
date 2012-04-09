@@ -38,7 +38,7 @@ import android.bluetooth.BluetoothSocket;
  *
  */
 
-public class bluetooth_serial extends serial implements communication_driver_interface {
+public class bluetooth_serial extends serial {
 
 	private BluetoothAdapter btAdapter;
 	private BluetoothSocket btSocket;
@@ -96,7 +96,7 @@ public class bluetooth_serial extends serial implements communication_driver_int
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
 		}
-		super.onConnect(device);
+		
 	}
 
 	/**

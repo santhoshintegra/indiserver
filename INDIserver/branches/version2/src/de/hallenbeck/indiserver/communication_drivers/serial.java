@@ -42,7 +42,7 @@ public class serial extends communication_driver implements communication_driver
 
 	@Override
     public void onConnect(String device) throws IOException {
-		// TODO Open serial device and construct Readers;
+		
 	}
 
 	@Override
