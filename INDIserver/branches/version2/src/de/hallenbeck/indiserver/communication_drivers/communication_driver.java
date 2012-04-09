@@ -44,7 +44,7 @@ public abstract class communication_driver {
 	}
 	
 	/**
-	 * Try to read at least num bytes from device
+	 * Try to read at least len bytes from device
 	 * @param bytes number of bytes to read
 	 * @return String 
 	 * @throws IOException timeout
