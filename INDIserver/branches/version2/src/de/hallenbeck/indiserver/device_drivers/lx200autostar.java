@@ -21,28 +21,27 @@ import laazotea.indi.driver.INDISwitchProperty;
 import laazotea.indi.driver.INDITextElementAndValue;
 import laazotea.indi.driver.INDITextProperty;
 
+/**
+ * Extended Driver for Autostar #497
+ * 
+ * @author atuschen
+ *
+ */
 public class lx200autostar extends lx200basic {
-	
-	
-	
+
 	private final static String driverName = "LX200autostar";
 
 	public lx200autostar(InputStream in, OutputStream out) {
-		
 		super(in, out);
 	}
 	
-	
-		protected INDISwitchElement SlewSpeed3S = new INDISwitchElement(SlewModeSP, "8X", "8x", SwitchStatus.OFF);
-		protected INDISwitchElement SlewSpeed4S = new INDISwitchElement(SlewModeSP, "16X", "16x", SwitchStatus.OFF);
-		protected INDISwitchElement SlewSpeed5S = new INDISwitchElement(SlewModeSP, "64X", "64x", SwitchStatus.OFF);
-		protected INDISwitchElement SlewSpeed6S = new INDISwitchElement(SlewModeSP, "05D", "0.5 deg/sec", SwitchStatus.OFF);
-		protected INDISwitchElement SlewSpeed7S = new INDISwitchElement(SlewModeSP, "10D", "1.0 deg/sec", SwitchStatus.OFF);
-	
-	
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#processNewTextValue(laazotea.indi.driver.INDITextProperty, java.util.Date, laazotea.indi.driver.INDITextElementAndValue[])
-	 */
+	protected INDISwitchElement SlewSpeed3S = new INDISwitchElement(SlewModeSP, "8X", "8x", SwitchStatus.OFF);
+	protected INDISwitchElement SlewSpeed4S = new INDISwitchElement(SlewModeSP, "16X", "16x", SwitchStatus.OFF);
+	protected INDISwitchElement SlewSpeed5S = new INDISwitchElement(SlewModeSP, "64X", "64x", SwitchStatus.OFF);
+	protected INDISwitchElement SlewSpeed6S = new INDISwitchElement(SlewModeSP, "05D", "0.5 deg/sec", SwitchStatus.OFF);
+	protected INDISwitchElement SlewSpeed7S = new INDISwitchElement(SlewModeSP, "10D", "1.0 deg/sec", SwitchStatus.OFF);
+
+
 	@Override
 	public void processNewTextValue(INDITextProperty property, Date timestamp,
 			INDITextElementAndValue[] elementsAndValues) {
@@ -50,9 +49,6 @@ public class lx200autostar extends lx200basic {
 		super.processNewTextValue(property, timestamp, elementsAndValues);
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#processNewSwitchValue(laazotea.indi.driver.INDISwitchProperty, java.util.Date, laazotea.indi.driver.INDISwitchElementAndValue[])
-	 */
 	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
@@ -75,29 +71,20 @@ public class lx200autostar extends lx200basic {
 			super.processNewSwitchValue(property, timestamp, elementsAndValues);
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#processNewNumberValue(laazotea.indi.driver.INDINumberProperty, java.util.Date, laazotea.indi.driver.INDINumberElementAndValue[])
-	 */
 	@Override
 	public void processNewNumberValue(INDINumberProperty property,
 			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
+
 		super.processNewNumberValue(property, timestamp, elementsAndValues);
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#processNewBLOBValue(laazotea.indi.driver.INDIBLOBProperty, java.util.Date, laazotea.indi.driver.INDIBLOBElementAndValue[])
-	 */
 	@Override
 	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
 			INDIBLOBElementAndValue[] elementsAndValues) {
-		// TODO Auto-generated method stub
+
 		super.processNewBLOBValue(property, timestamp, elementsAndValues);
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#connect()
-	 */
 	@Override
 	public void onConnect() {
 		super.onConnect();
@@ -105,6 +92,7 @@ public class lx200autostar extends lx200basic {
 		// EXPERIMENTAL! Works only with Firmware 43Eg (Display messages are localized!)
 		// Navigate Handbox to main menu after power-on, skipping all data entry prompts,
 		// because Handbox does NOT save any parameters as long as it is NOT in main menu.
+		
 		if (FirmwareVersionT.getValue().compareTo("43Eg")==0) {
 	
 			if (getDisplayMessage().compareTo("*Press 0 to Alignor MODE for Menu")==0) {
@@ -118,18 +106,13 @@ public class lx200autostar extends lx200basic {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#disconnect()
-	 */
+
 	@Override
 	public void onDisconnect() {
-		// TODO Auto-generated method stub
+
 		super.onDisconnect();
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#getName()
-	 */
 	@Override
 	public String getName() {
 		return driverName;
@@ -150,6 +133,7 @@ public class lx200autostar extends lx200basic {
 	@Override
 	protected void getDateTime() {
 		//Subtract UTC-Offset to get UTC-Time from Local Time
+		
 		String dateStr = getCommandString(lx200.getTimeCmd)+" "+getCommandString(lx200.getDateCmd);
 		try {
 			//This is in local Time!
@@ -168,13 +152,10 @@ public class lx200autostar extends lx200basic {
 		updateProperty(TimeTP, "Local time:"+dateStr);
 	}
 	
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#setUTCOffset(double)
-	 */
 	@Override
 	protected boolean setUTCOffset(double offset) {
 		// Standard "String.format" doesn't work, we need a string like "+02.0"
-        // Additionally we have to change +/-, because Autostar needs a value to yield UTC from local Time.
+        // Additionally we have to change +/-, because Autostar#497 needs a value to yield UTC from local Time.
         // KStars sends the Offset (+02.0) but Autostar needs (-02.0) to get the right time.
         // The Handbox only displays the correct timezone +02.0 if we send -02.0 to it.  
         
@@ -190,13 +171,11 @@ public class lx200autostar extends lx200basic {
 		return true;
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.lx200basic#setDateTime(java.util.Date)
-	 */
 	@Override
 	protected boolean setDateTime(Date date) {
-		// Autostar expects local time, but INDI clients send UTC!
+		// Autostar#497 expects local time, but INDI clients send UTC!
 		// We have to add the UTC-Offset to get the local time
+		
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(date);
 		cal.add(Calendar.HOUR, UTCOffsetN.getValue().intValue());
