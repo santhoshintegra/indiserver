@@ -44,7 +44,7 @@ public class lx200autostar extends lx200basic {
 		super(in, out);
 	}
 	
-	// Additional Slew speed properties
+	// Additional Slew speed elements (Speed 3-7)
 	protected INDISwitchElement SlewSpeed3S = new INDISwitchElement(SlewModeSP, "8X", "8x", SwitchStatus.OFF);
 	protected INDISwitchElement SlewSpeed4S = new INDISwitchElement(SlewModeSP, "16X", "16x", SwitchStatus.OFF);
 	protected INDISwitchElement SlewSpeed5S = new INDISwitchElement(SlewModeSP, "64X", "64x", SwitchStatus.OFF);
