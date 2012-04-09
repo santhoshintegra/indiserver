@@ -1048,11 +1048,8 @@ public class lx200basic extends telescope {
 	protected synchronized char getCommandChar(String command) {
 		char tmp='-';
 		if (command!=null){
-			com_driver.set_timeout(3000);
-
 			try {
-				//com_driver.emptyBuffer();
-				com_driver.sendCommand(command);
+				com_driver.write(command);
 				tmp = com_driver.read(1).charAt(0);
 				
 			} catch (IOException e) {
@@ -1071,9 +1068,7 @@ public class lx200basic extends telescope {
 	protected synchronized String getCommandString(String command) {
 		String tmp="";
 		try {
-			//com_driver.emptyBuffer();
-			com_driver.sendCommand(command);
-			com_driver.set_timeout(3000);
+			com_driver.write(command);
 			tmp = com_driver.read('#');
 			tmp = tmp.replaceAll("#", "");
 			tmp = tmp.replaceAll("<", "");
@@ -1090,9 +1085,7 @@ public class lx200basic extends telescope {
 	protected synchronized String getCommandString(String command, int bytes) {
 		String tmp="";
 		try {
-			//com_driver.emptyBuffer();
-			com_driver.sendCommand(command);
-			com_driver.set_timeout(3000);
+			com_driver.write(command);
 			tmp = com_driver.read(bytes);
 			
 		} catch (IOException e) {
@@ -1110,7 +1103,7 @@ public class lx200basic extends telescope {
 	protected synchronized void sendCommand(String command) {
 		try {
 			//com_driver.emptyBuffer();
-			com_driver.sendCommand(command);
+			com_driver.write(command);
 			
 		} catch (IOException e) {
 			updateProperty(ConnectSP,e.getMessage());

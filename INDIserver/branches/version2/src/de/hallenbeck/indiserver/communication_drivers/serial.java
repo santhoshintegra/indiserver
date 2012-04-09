@@ -33,64 +33,38 @@ import java.io.OutputStream;
  *
  */
 
-public class serial implements communication_driver_interface {
+public class serial extends communication_driver implements communication_driver_interface {
 
 	protected InputStream InStream;
 	protected OutputStream OutStream;
 	protected InputStreamReader InReader;
 	protected BufferedReader BufReader;
-    private int timeout = 100; 
-    
- 
-
-    
-    /**
-     * Class Constructor
-     */
-    public serial() {
-        
-    }
 
 	@Override
-    public void connect(String device) throws IOException {
+    public void onConnect(String device) throws IOException {
 		// TODO Open serial device and construct Readers;
 	}
 
 	@Override
-	public void disconnect() {
+	public void onDisconnect() {
 
 	}
 	
-	/**
-	 * Send a String to the device
-	 * @param command: String
-	 */
+
 	@Override
-	public synchronized void sendCommand(String command) throws IOException {
-		byte[] buffer=command.getBytes();
+	public void onWrite(String data) throws IOException {
+		byte[] buffer=data.getBytes();
 		OutStream.write(buffer);
-		
 	}
 
 	@Override
-	public void set_timeout(int timeout_ms) {
-		timeout = timeout_ms;
-	}
-
-	@Override
-	public void write(String command) throws IOException {
+	public void onWrite(byte data) throws IOException {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void write(byte command) throws IOException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public synchronized String read(char stopchar) throws IOException {
+	public synchronized String onRead(char stopchar) throws IOException {
 		char c = (char) 255 ;
 		char[] chararray = new char[255];
 		String ret = null;
@@ -99,7 +73,7 @@ public class serial implements communication_driver_interface {
 		
 		int pos = 0;
 		
-		long endTimeMillis = System.currentTimeMillis() + timeout;
+		long endTimeMillis = System.currentTimeMillis() + Timeout;
 		
 		while ((c != stopchar) && (System.currentTimeMillis()<endTimeMillis)) {
 			int b=0;
@@ -118,21 +92,21 @@ public class serial implements communication_driver_interface {
 	}
 
 	@Override
-	public synchronized String read(int bytes) throws IOException {
+	public synchronized String onRead(int len) throws IOException {
 		char[] chararray = new char[255];
 		String ret = null;
 		
 		//Try to read num bytes or until a timeout occurs
 
 		int pos = 0;
-		long endTimeMillis = System.currentTimeMillis() + timeout;
+		long endTimeMillis = System.currentTimeMillis() + Timeout;
 		
-		while ((pos != bytes) && (System.currentTimeMillis()<endTimeMillis)) {
+		while ((pos != len) && (System.currentTimeMillis()<endTimeMillis)) {
 			int b=0;
 			if (BufReader.ready()) b = BufReader.read(chararray, pos, 1);
 			if (b == 1) pos++;
 		}
-		if (pos != bytes) throw new IOException("Timeout");
+		if (pos != len) throw new IOException("Timeout");
 		
 		ret = String.copyValueOf(chararray);
 		ret = ret.trim();
@@ -140,12 +114,4 @@ public class serial implements communication_driver_interface {
 		return ret;
 	}
 	
-	@Override
-	public synchronized void emptyBuffer() throws IOException {
-		//while (BufReader.ready()) {
-	//		int b = BufReader.read();
-		//}
-			
-	}
-
 }

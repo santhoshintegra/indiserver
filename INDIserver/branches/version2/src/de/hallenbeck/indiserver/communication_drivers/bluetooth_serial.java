@@ -50,7 +50,7 @@ public class bluetooth_serial extends serial implements communication_driver_int
      * @param device: String containing the device-address 
      */
     @Override
-	public void connect(String device) throws IOException {
+	public void onConnect(String device) throws IOException {
 
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -96,17 +96,17 @@ public class bluetooth_serial extends serial implements communication_driver_int
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
 		}
-		super.connect(device);
+		super.onConnect(device);
 	}
 
 	/**
 	 * Disconnect from bluetooth-device
 	 */
     @Override
-	public void disconnect() {
+	public void onDisconnect() {
 		try {
 			btSocket.close();
-			super.disconnect();
+			super.onDisconnect();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
