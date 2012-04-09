@@ -791,7 +791,7 @@ public class lx200basic extends telescope {
 	 */
 	protected void getGeolocation() {
 		GeoLatN.setValue(getCommandSexa(lx200.getSiteLatCmd));
-		GeoLongN.setValue(getCommandSexa(lx200.getSiteLongCmd));
+		GeoLongN.setValue(360-getCommandSexa(lx200.getSiteLongCmd));
 		GeoNP.setState(PropertyStates.OK);
 		updateProperty(GeoNP, "Geolocation Lat: "+GeoLatN.getValueAsString()+" Long: "+GeoLongN.getValueAsString());
 	}
@@ -970,7 +970,7 @@ public class lx200basic extends telescope {
 	protected boolean setLongitude(double longitude) {
 		// Assemble an Autostar longitude format
 		// TODO: Instead of truncating doubles with (int) we should round them  
-		String GeolongCmd = String.format(lx200.setSiteLongCmd, String.format("%03d*%02d", (int) longitude, (int) ((longitude % 1)*60) ));
+		String GeolongCmd = String.format(lx200.setSiteLongCmd, String.format("%03d*%02d", (int) (360-longitude), (int) (((360-longitude) % 1)*60) ));
 		
 		// Set longitude
 		if (getCommandInt(GeolongCmd)==1) return true; 
