@@ -22,9 +22,18 @@ import laazotea.indi.driver.INDITextElementAndValue;
 import laazotea.indi.driver.INDITextProperty;
 
 /**
- * Extended Driver for Autostar #497
+ * Extended Driver for Autostar#497 compatible telescopes, only covering the basic commandset.
+ * There are some errors in the official Meade LX200 protocol sheet.
+ * i.e. some answer-strings are localized (command ":P#" gives "HOCH PRAEZISION" or 
+ * "NIEDER PRAEZISION" on german Firmware 42Gg)
  * 
- * @author atuschen
+ * This class is based on lx200generic.cpp of indilib and my own tests with 
+ * Autostar #497 Firmware 43Eg (english)
+ * No guarantee that this will work with the newer Autostar #497-EP models or 
+ * any other firmware version than 43Eg!
+ *   
+ * @author atuschen75 at gmail.com
+ *
  *
  */
 public class lx200autostar extends lx200basic {
@@ -35,6 +44,7 @@ public class lx200autostar extends lx200basic {
 		super(in, out);
 	}
 	
+	// Additional Slew speed properties
 	protected INDISwitchElement SlewSpeed3S = new INDISwitchElement(SlewModeSP, "8X", "8x", SwitchStatus.OFF);
 	protected INDISwitchElement SlewSpeed4S = new INDISwitchElement(SlewModeSP, "16X", "16x", SwitchStatus.OFF);
 	protected INDISwitchElement SlewSpeed5S = new INDISwitchElement(SlewModeSP, "64X", "64x", SwitchStatus.OFF);
@@ -188,17 +198,24 @@ public class lx200autostar extends lx200basic {
 		String DateCmd = String.format(lx200.setDateCmd, dateStr);
 		String TimeCmd = String.format(lx200.setTimeCmd, timeStr);
 	
-		// send to Autostar
-		getCommandChar(TimeCmd);
-		getCommandChar(DateCmd);
-		try {
-			com_driver.read('#'); // Return String "Updating planetary data... #"
-			com_driver.read('#'); // Return String "                           #"
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		getDateTime();
-		return true;
+		// send Time first and at last the Date
+		// Telescope is calculating planetary objects after a new date is set
+		if ((getCommandInt(TimeCmd)==1) && (getCommandInt(DateCmd)==1)) {
+
+			// Read 2 Strings from the Telescope and throw them away
+			try {
+				com_driver.read('#'); // Return String "Updating planetary data... #"
+				com_driver.read('#'); // Return String "                           #"
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+
+			// Read the Date/Time from telescope to update the property 
+			getDateTime();
+			return true;
+		} else 
+			return false;
 	}
 	
 	@Override
