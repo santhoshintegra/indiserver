@@ -371,9 +371,6 @@ public class lx200basic extends telescope {
 			if (elem==Sites2S) ret = setSite(2);
 			if (elem==Sites3S) ret = setSite(3);
 			if (elem==Sites4S) ret = setSite(4);
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property);
 		}
 	
 		/**
@@ -520,7 +517,6 @@ public class lx200basic extends telescope {
 		
 		// get/set initial values
 		getFirmwareInformation();
-		getAlignmentStatus();
 		getTrackRate();
 
 		// Always use high-precision coords for DA and DEC

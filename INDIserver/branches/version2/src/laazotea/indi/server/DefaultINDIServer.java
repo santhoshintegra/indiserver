@@ -192,4 +192,12 @@ public class DefaultINDIServer extends AbstractINDIServer {
     return true;
   }
 
+  @Override
+  protected void onClientConnected(String address) {
+  }
+  
+  @Override
+  protected void onClientDisconnected(String address) {
+  }
+
 }

@@ -255,9 +255,9 @@ public abstract class telescope extends INDIDriver {
 		if (property==TimeTP) {
 			Date date = INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue());
 			ret = setDateTime(date);
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property);
+			if (!ret) {// property.setState(PropertyStates.OK);
+			property.setState(PropertyStates.ALERT); 
+			updateProperty(property);}
 		}
 	}
 
@@ -275,18 +275,14 @@ public abstract class telescope extends INDIDriver {
 		if (property==ConnectSP) {
 			if (elem == DisconnectS) ret = disconnect();
 			if (elem == ConnectS) ret = connect();
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property);
 		}
 	
 		/**
 		 * Abort all current slewing
 		 */
 		if (property==AbortSlewSP) {
-			ret = onAbortSlew();
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
+			onAbortSlew();
+			property.setState(PropertyStates.OK);
 			updateProperty(property);
 		}
 	
@@ -294,10 +290,9 @@ public abstract class telescope extends INDIDriver {
 		 * Move North/South
 		 */
 		if (property==MovementNSSP) {
-			if (elem == MoveNorthS) ret = onMovementNS('N');
-			if (elem == MoveSouthS) ret = onMovementNS('S');
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
+			if (elem == MoveNorthS) onMovementNS('N');
+			if (elem == MoveSouthS) onMovementNS('S');
+			property.setState(PropertyStates.OK); 
 			updateProperty(property);
 		}
 	
@@ -305,10 +300,9 @@ public abstract class telescope extends INDIDriver {
 		 * Move West/East
 		 */
 		if (property==MovementWESP) {
-			if (elem == MoveWestS) ret = onMovementNS('W');
-			if (elem == MoveEastS) ret = onMovementNS('E');
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
+			if (elem == MoveWestS) onMovementNS('W');
+			if (elem == MoveEastS) onMovementNS('E');
+			property.setState(PropertyStates.OK);
 			updateProperty(property);
 		}
 		
@@ -327,14 +321,14 @@ public abstract class telescope extends INDIDriver {
 		if (property==UTCOffsetNP) {
 			if (elementsAndValues.length>0) ret = setUTCOffset(elementsAndValues[0].getValue()); 
 			
-			if (ret) {
-				property.setState(PropertyStates.OK);
+			if (!ret) {
+			/*	property.setState(PropertyStates.OK);
 			}
-			else {	
+			else {	*/
 					property.setState(PropertyStates.ALERT);
 					propertyUpdateInfo="Error setting new UTC offset";
-				}
-			updateProperty(property, propertyUpdateInfo);
+				
+			updateProperty(property, propertyUpdateInfo); }
 		}
 	
 		/**
@@ -369,7 +363,7 @@ public abstract class telescope extends INDIDriver {
 			}
 			
 			if (ret) {
-				ret = onNewEquatorialCoords();
+				onNewEquatorialCoords();
 				getTargetCoords();
 				property.setState(PropertyStates.OK); 
 			}

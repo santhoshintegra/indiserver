@@ -66,17 +66,17 @@ public class INDIservice extends Service {
 				loadJavaDriver(lx200basic.class);
 			} catch (INDIException e) {
 				e.printStackTrace();
-
-				System.exit(-1);
+				notifyUser("INDIserver", "ERROR loading drivers", false);
+				//System.exit(-1);
 			}
 		}
 
-		@Override
-		protected INDIDevice getDevice(String deviceName) {
-			// TODO Auto-generated method stub
-			return super.getDevice(deviceName);
+		
+		public void stopServer() {
+			destroyJavaDriver(lx200autostar.class);
+			destroyJavaDriver(lx200basic.class);
+			super.stopServer();
 		}
-
 		/**
 		 * Just creates one instance of this server.
 		 * @param args 
@@ -84,14 +84,23 @@ public class INDIservice extends Service {
 		public void main(String[] args) {
 			INDIServer s = new INDIServer();  
 		}
+
+		@Override
+		protected void onClientConnected(String address) {
+			notifyUser("INDIserver running", getNumDevices()+" Devices, "+getNumClients()+" Clients", true);
+		}
+		
+		@Override
+		protected void onClientDisconnected(String address) {
+			notifyUser("INDIserver running", getNumDevices()+" Devices, "+getNumClients()+" Clients", true);
+		}
+		
 	}
 
-	
-	
 	/**
 	 * Notify user about running server and connected clients
 	 */
-	public void notifyUser(String title, String message, boolean ongoing) {
+	public synchronized void notifyUser(String title, String message, boolean ongoing) {
 		
 		String ns = Context.NOTIFICATION_SERVICE;
 		NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
@@ -153,6 +162,7 @@ public class INDIservice extends Service {
 
 	@Override
 	public void onDestroy() {
+		server.stopServer();
 		notifyUser("INDIServer stopped", "All Clients disconnected", false);
 		super.onDestroy();
 	}

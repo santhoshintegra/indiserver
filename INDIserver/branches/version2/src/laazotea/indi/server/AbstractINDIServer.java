@@ -64,6 +64,8 @@ public abstract class AbstractINDIServer implements Runnable {
    */
   private ServerSocket socket;
 
+  private boolean running = true;
+  
   /**
    * Constructs a new Server. The Server begins to listen to the default port.
    */
@@ -120,14 +122,14 @@ public abstract class AbstractINDIServer implements Runnable {
     System.err.println("Listening to port " + listeningPort);
     System.err.flush();
 
-    while (true) {
+    while (running) {
       Socket clientSocket = null;
 
       try {
         clientSocket = socket.accept();
       } catch (IOException e) {
         System.err.println("Accept failed: " + listeningPort);
-        System.exit(-1);
+        //System.exit(-1);
       }
 
       if (clientSocket != null) {
@@ -135,7 +137,9 @@ public abstract class AbstractINDIServer implements Runnable {
           INDIClient client = new INDIClient(clientSocket, this);
 
           clients.add(client);
-
+          
+          onClientConnected(client.getInetAddress());
+          
           System.err.println("Client " + client.getInetAddress() + " connected");
         } else {
           try {
@@ -149,6 +153,15 @@ public abstract class AbstractINDIServer implements Runnable {
     }
   }
 
+  public void stopServer() {
+	  running = false;
+	  try {
+		socket.close();
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+  }
+  
   /**
    * Loads all INDI for Java Drivers in a JAR file.
    *
@@ -450,6 +463,7 @@ public abstract class AbstractINDIServer implements Runnable {
    */
   protected void removeClient(INDIClient client) {
     clients.remove(client);
+    onClientDisconnected(client.getInetAddress());
   }
 
   /**
@@ -623,6 +637,18 @@ public abstract class AbstractINDIServer implements Runnable {
     return list;
   }
 
+  protected int getNumClients() {
+	  return clients.size() - devices.size();
+  }
+  
+  protected int getNumDevices() {
+	  return devices.size();
+  }
+  
+  protected abstract void onClientConnected(String address);
+  
+  protected abstract void onClientDisconnected(String address);
+  
   /**
    * Must return
    * <code>true</code> is the Client that stablished this connection must be
