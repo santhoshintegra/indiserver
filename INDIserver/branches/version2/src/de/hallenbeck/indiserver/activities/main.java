@@ -36,12 +36,9 @@ import android.widget.Button;
 
 /**
  * Main activity. This is where you could control the server, i.e. set the drivers.
- * Setting should be saved in preferences.
- * 
- * 
- *  
+ * Setting are saved in preferences.
+ * There is also one button to start the background-service with the actual server
  * @author atuschen
- *
  */
 public class main extends PreferenceActivity {
 
@@ -71,7 +68,6 @@ public class main extends PreferenceActivity {
             start.setText("Start Server");
             start.setOnClickListener(startListener);
             setListFooter(start);
-            
             
         }
     }
