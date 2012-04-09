@@ -82,9 +82,7 @@ public class lx200basic extends telescope {
 	/**
 	 * Seperate Thread for slewing and continually updating equatorial coordinates
 	 * @author atuschen
-	 *
 	 */
-	
 	protected class SlewThread extends Thread {
 
 		public void run() {
@@ -322,14 +320,11 @@ public class lx200basic extends telescope {
 	
 	/**
 	 * Constructor with input and outputstream for indi-xml-messages.
-	 * TODO: extend with com_driver and device interface string
 	 */
 
 	public lx200basic(InputStream in, OutputStream out) {
 		super(in,out, "de.hallenbeck.indiserver.communication_drivers.bluetooth_serial", "00:80:37:14:9F:E7");
-
 	}
-
 
 	/**
 	 * Set new text-values received from clients
@@ -339,7 +334,6 @@ public class lx200basic extends telescope {
 			INDITextElementAndValue[] elementsAndValues) {
 		
 		super.processNewTextValue(property, timestamp, elementsAndValues);
-	
 	}
 
 	/**
@@ -434,7 +428,6 @@ public class lx200basic extends telescope {
 			else property.setState(PropertyStates.ALERT); 
 			updateProperty(property);
 		}
-		
 	}
 
 	/**
@@ -447,15 +440,12 @@ public class lx200basic extends telescope {
 		super.processNewNumberValue(property, timestamp, elementsAndValues);
 		
 		boolean ret = false;
-		
 		if (property==TrackFreqNP) {
 			if (elementsAndValues.length>0) ret = setTrackRate(elementsAndValues[0].getValue());
 			if (!ret) propertyUpdateInfo="Error setting new Tracking Frequency";
 			if (ret) property.setState(PropertyStates.OK); else property.setState(PropertyStates.ALERT);
 			updateProperty(property, propertyUpdateInfo);
 		}
-	
-
 	}
 
 	
@@ -469,11 +459,6 @@ public class lx200basic extends telescope {
 		super.processNewBLOBValue(property, timestamp, elementsAndValues);
 	}
 
-	
-	
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.telescope#onConnect()
-	 */
 	@Override
 	protected void onConnect() {
 		super.onConnect();
@@ -525,10 +510,6 @@ public class lx200basic extends telescope {
 		updateProperty(ConnectSP,"Telescope ready, awaiting commmands...");
 	}
 
-
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.telescope#onDisconnect()
-	 */
 	@Override
 	protected void onDisconnect() {
 		this.removeProperty(AlignmentSP);
@@ -557,26 +538,16 @@ public class lx200basic extends telescope {
 		super.onDisconnect();
 	}
 
-
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.telescope#onMovementNS(char)
-	 */
 	@Override
 	protected boolean onMovementNS(char direction) {
 		return super.onMovementNS(direction);
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.telescope#onMovementWE(char)
-	 */
 	@Override
 	protected boolean onMovementWE(char direction) {
 		return super.onMovementWE(direction);
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.telescope#onNewEquatorialCoords()
-	 */
 	@Override
 	protected boolean onNewEquatorialCoords() {
 		if (SlewS.getValue()==SwitchStatus.ON) {
@@ -606,9 +577,6 @@ public class lx200basic extends telescope {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hallenbeck.indiserver.device_drivers.telescope#onAbortSlew()
-	 */
 	@Override
 	protected boolean onAbortSlew() {
 		AbortSlew = true;
@@ -734,15 +702,19 @@ public class lx200basic extends telescope {
 		ProductNameT.setValue(getCommandString(lx200.getProductNameCmd));
 		ProductNameTP.setState(PropertyStates.OK);
 		updateProperty(ProductNameTP);
+		
 		FirmwareVersionT.setValue(getCommandString(lx200.getFirmwareNumberCmd));
 		FirmwareVersionTP.setState(PropertyStates.OK);
 		updateProperty(FirmwareVersionTP);
+		
 		FirmwareDateTimeT.setValue(getCommandString(lx200.getFirmwareDateCmd)+" "+getCommandString(lx200.getFirmwareTimeCmd));
 		FirmwareDateTimeTP.setState(PropertyStates.OK);
 		updateProperty(FirmwareDateTimeTP);
-
 	}
-
+	
+	/**
+	 * Get the UTCoffet
+	 */
 	protected void getUTCOffset() {
 		String tmp = getCommandString(lx200.getUTCHoursCmd);
 		double offset = Double.parseDouble(tmp);
@@ -798,7 +770,11 @@ public class lx200basic extends telescope {
 		SiteNameTP.setState(PropertyStates.OK);
 		updateProperty(SiteNameTP,"Site Name: "+SiteNameT.getValue());
 	}
-
+	
+	/**
+	 * Get the message currently displayed on the Handbox
+	 * @return
+	 */
 	protected String getDisplayMessage() {
 		return getCommandString(lx200.getDisplayMsgCmd);
 	}
