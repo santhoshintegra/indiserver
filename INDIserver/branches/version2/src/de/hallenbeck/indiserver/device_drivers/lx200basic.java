@@ -318,7 +318,6 @@ public class lx200basic extends telescope {
 	/*****************************************************************************************************/
 
 	
-	
 	/**
 	 * Constructor with input and outputstream for indi-xml-messages.
 	 */
@@ -367,10 +366,10 @@ public class lx200basic extends telescope {
 		 * SiteSwitch Property
 		 */
 		if (property==SitesSP) {
-			if (elem==Sites1S) ret = setSite(1);
-			if (elem==Sites2S) ret = setSite(2);
-			if (elem==Sites3S) ret = setSite(3);
-			if (elem==Sites4S) ret = setSite(4);
+			if (elem==Sites1S) setSite(1);
+			if (elem==Sites2S) setSite(2);
+			if (elem==Sites3S) setSite(3);
+			if (elem==Sites4S) setSite(4);
 		}
 	
 		/**
@@ -387,12 +386,11 @@ public class lx200basic extends telescope {
 		 * Select SlewSpeed
 		 */
 		if (property==SlewModeSP) {
-			if (elem==GuideS) ret = setSlewMode(1);
-			if (elem==CenteringS) ret = setSlewMode(2);
-			if (elem==FindS) ret = setSlewMode(8);
-			if (elem==MaxS) ret = setSlewMode(9);
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
+			if (elem==GuideS) setSlewMode(1);
+			if (elem==CenteringS) setSlewMode(2);
+			if (elem==FindS) setSlewMode(8);
+			if (elem==MaxS) setSlewMode(9);
+			property.setState(PropertyStates.OK); 
 			updateProperty(property);
 		}
 	
@@ -400,11 +398,10 @@ public class lx200basic extends telescope {
 		 * Set Tracking rate
 		 */
 		if (property==TrackModeSP) {
-			if (elem==DefaultModeS) ret = setTrackMode(1);
-			if (elem==LunarModeS) ret = setTrackMode(2);
-			if (elem==ManualModeS) ret = setTrackMode(3);
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
+			if (elem==DefaultModeS) setTrackMode(1);
+			if (elem==LunarModeS) setTrackMode(2);
+			if (elem==ManualModeS) setTrackMode(3);
+			property.setState(PropertyStates.OK);
 			updateProperty(property);
 		}
 		
@@ -412,10 +409,9 @@ public class lx200basic extends telescope {
 		 * Use pulse commands for guiding
 		 */
 		if (property==UsePulseCommandSP) {
-			if (elem==UsePulseCommandOnS) ret = setPulseCommand(true);
-			if (elem==UsePulseCommandOffS) ret = setPulseCommand(false);
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
+			if (elem==UsePulseCommandOnS) setPulseCommand(true);
+			if (elem==UsePulseCommandOffS) setPulseCommand(false);
+			property.setState(PropertyStates.OK); 
 			updateProperty(property);
 		}
 		
@@ -426,7 +422,7 @@ public class lx200basic extends telescope {
 			if (elem==FocusInS) ret = setFocusMotion(1);
 			if (elem==FocusOutS) ret = setFocusMotion(2);
 			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
+			property.setState(PropertyStates.OK); 
 			updateProperty(property);
 		}
 		
@@ -434,11 +430,10 @@ public class lx200basic extends telescope {
 		 * Set focuser mode
 		 */
 		if (property==FocusModesSP) {
-			if (elem==FocusHaltS) ret = setFocusMode(0);
-			if (elem==FocusSlowS) ret = setFocusMode(1);
-			if (elem==FocusFastS) ret = setFocusMode(2);
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
+			if (elem==FocusHaltS) setFocusMode(0);
+			if (elem==FocusSlowS) setFocusMode(1);
+			if (elem==FocusFastS) setFocusMode(2);
+			property.setState(PropertyStates.OK); 
 			updateProperty(property);
 		}
 	}
@@ -452,31 +447,15 @@ public class lx200basic extends telescope {
 		
 		super.processNewNumberValue(property, timestamp, elementsAndValues);
 		
-		boolean ret = false;
-		String propertyUpdateInfo = null;
-		
 		if (property==TrackFreqNP) {
-			if (elementsAndValues.length>0) ret = setTrackRate(elementsAndValues[0].getValue());
-			if (ret) {
-				property.setState(PropertyStates.OK);  
+			if ((elementsAndValues.length>0) && (setTrackRate(elementsAndValues[0].getValue()))) {
+				property.setState(PropertyStates.OK);
+				updateProperty(property);
 			} else {
 				property.setState(PropertyStates.ALERT);
-				propertyUpdateInfo="Error setting new Tracking Frequency";
+				updateProperty(property, "Error setting new Tracking Frequency");
 			}
-			
-			updateProperty(property, propertyUpdateInfo);
 		}
-	}
-
-	
-	/**
-	 * Not needed, telescope doesn't use BLOBs
-	 */
-	@Override
-	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
-			INDIBLOBElementAndValue[] elementsAndValues) {
-		// Leave empty here, not needed. 
-		super.processNewBLOBValue(property, timestamp, elementsAndValues);
 	}
 
 	/**
@@ -484,9 +463,6 @@ public class lx200basic extends telescope {
 	 */
 	@Override
 	protected void onConnect() {
-		
-		// setup the standard telescope properties
-		super.onConnect();
 		
 		// Setup lx200 properties
 		this.addProperty(AlignmentSP);
@@ -572,32 +548,30 @@ public class lx200basic extends telescope {
 	    this.removeProperty(AlignmentLP);
 		this.removeProperty(MountLP);
 		this.removeProperty(TrackingLP);
-		
-		// remove standard telescope properties 
-		super.onDisconnect();
+
 	}
 	
 	/**
 	 * Called on Movement North/South command
 	 */
 	@Override
-	protected boolean onMovementNS(char direction) {
-		return true;
+	protected void onMovementNS(char direction) {
+		
 	}
 
 	/**
 	 * Called on Movement North/South command
 	 */
 	@Override
-	protected boolean onMovementWE(char direction) {
-		return true;
+	protected void onMovementWE(char direction) {
+		
 	}
 
 	/**
 	 * Called after successfully setting new Target Coords
 	 */
 	@Override
-	protected boolean onNewEquatorialCoords() {
+	protected void onNewTargetCoords() {
 		
 		// We either slew the telescope to the target
 		if (SlewS.getValue()==SwitchStatus.ON) {
@@ -617,21 +591,19 @@ public class lx200basic extends telescope {
 			// Update current coords
 			getEqCoords(true);
 		}
-		return true;
 	}
 
 	/**
 	 * Abort all current slewing
 	 */
 	@Override
-	protected boolean onAbortSlew() {
+	protected void onAbortSlew() {
 		AbortSlew = true;
 		// Wait a moment for SlewThread to terminate
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
 		}
-		return true;
 	}
 
 	/**
@@ -779,7 +751,6 @@ public class lx200basic extends telescope {
 			Date date = new SimpleDateFormat("kk:mm:ss MM/dd/yy").parse(dateStr);
 			TimeT.setValue(INDIDateFormat.formatTimestamp(date));
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		TimeTP.setState(PropertyStates.OK);
@@ -881,10 +852,9 @@ public class lx200basic extends telescope {
 		}
 		String tmp = String.format("%s%02d.%01d", sign, (int) offset, (int) (offset % 1));
 		
-		if (getCommandInt(String.format(lx200.setUTCHoursCmd, tmp))==1) {     
-			getUTCOffset();
+		if (getCommandInt(String.format(lx200.setUTCHoursCmd, tmp))==1) 
 			return true;
-		} else 
+		else 
 			return false;
 	}
 
@@ -899,12 +869,11 @@ public class lx200basic extends telescope {
 		// assemble date/time lx200-format  
 		String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
 		String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
-		String DateCmd = String.format(lx200.setDateCmd, dateStr);
-		String TimeCmd = String.format(lx200.setTimeCmd, timeStr);
-	
+		
 		// send Time first and at last the Date
 		// Telescope is calculating planetary objects after a new date is set
-		if ((getCommandInt(TimeCmd)==1) && (getCommandInt(DateCmd)==1)) {
+		if ((getCommandInt(String.format(lx200.setTimeCmd, timeStr))==1) && 
+				(getCommandInt(String.format(lx200.setDateCmd, dateStr))==1)) {
 			
 			// Read 2 Strings from the Telescope and throw them away
 			try {
@@ -915,8 +884,6 @@ public class lx200basic extends telescope {
 				return false;
 			}
 			
-			// Read the Date/Time from telescope to update the property 
-			getDateTime();
 			return true;
 		} else 
 			return false;
@@ -927,7 +894,7 @@ public class lx200basic extends telescope {
 	 * @param site number
 	 * @return always true  
 	 */
-	protected boolean setSite(int site) {
+	protected void setSite(int site) {
 		sendCommand(String.format(lx200.SiteSelectCmd,site));
 		if (site==1) Sites1S.setValue(SwitchStatus.ON);
 		if (site==2) Sites2S.setValue(SwitchStatus.ON);
@@ -937,7 +904,6 @@ public class lx200basic extends telescope {
 		updateProperty(SitesSP);
 		getSiteName(site);
 		getGeolocation();
-		return true;
 	}
 
 	/**
@@ -1005,12 +971,11 @@ public class lx200basic extends telescope {
 	 * @param speed 1,2,8,9 (values 3-7 resreved)
 	 * @return always true 
 	 */
-	protected boolean setSlewMode(int mode) {
+	protected void setSlewMode(int mode) {
 		if (mode==1) { sendCommand(lx200.SlewRateGuidingCmd); GuideS.setValue(SwitchStatus.ON); }
 		if (mode==2) { sendCommand(lx200.SlewRateCenteringCmd); CenteringS.setValue(SwitchStatus.ON); }
 		if (mode==8) { sendCommand(lx200.SlewRateFindCmd); FindS.setValue(SwitchStatus.ON); }
 		if (mode==9) { sendCommand(lx200.SlewRateMaxCmd); MaxS.setValue(SwitchStatus.ON); }
-		return true;
 	}
 	
 	/**
@@ -1018,12 +983,11 @@ public class lx200basic extends telescope {
 	 * @param speed 1 = sidereal, 2 = lunar , 3 = manual
 	 * @return always true
 	 */
-	protected boolean setTrackMode(int mode) {
+	protected void setTrackMode(int mode) {
 		if (mode==1) { sendCommand(lx200.TrackRateSiderealCmd); DefaultModeS.setValue(SwitchStatus.ON); }
 		if (mode==2) { sendCommand(lx200.TrackRateLunarCmd); LunarModeS.setValue(SwitchStatus.ON); }
 		if (mode==3) { sendCommand(lx200.TrackRateManualCmd); ManualModeS.setValue(SwitchStatus.ON); }
 		getTrackRate();
-		return true;
 	}
 	
 	/**

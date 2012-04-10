@@ -53,46 +53,19 @@ public class lx200autostar extends lx200basic {
 
 
 	@Override
-	public void processNewTextValue(INDITextProperty property, Date timestamp,
-			INDITextElementAndValue[] elementsAndValues) {
-
-		super.processNewTextValue(property, timestamp, elementsAndValues);
-	}
-
-	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
-		
-		boolean ret=false;
+
 		INDISwitchElement elem = elementsAndValues[0].getElement();
 		
 		if (property==SlewModeSP) {
-			if (elem==SlewSpeed3S) ret = setSlewMode(3);
-			if (elem==SlewSpeed4S) ret = setSlewMode(4);
-			if (elem==SlewSpeed5S) ret = setSlewMode(5);
-			if (elem==SlewSpeed6S) ret = setSlewMode(6);
-			if (elem==SlewSpeed7S) ret = setSlewMode(7);
-			if (ret) { 
-				property.setState(PropertyStates.OK); 
-				updateProperty(property); 
-			} else 
-				super.processNewSwitchValue(property, timestamp, elementsAndValues);
-		} else
+			if (elem==SlewSpeed3S) setSlewMode(3);
+			if (elem==SlewSpeed4S) setSlewMode(4);
+			if (elem==SlewSpeed5S) setSlewMode(5);
+			if (elem==SlewSpeed6S) setSlewMode(6);
+			if (elem==SlewSpeed7S) setSlewMode(7);
 			super.processNewSwitchValue(property, timestamp, elementsAndValues);
-	}
-
-	@Override
-	public void processNewNumberValue(INDINumberProperty property,
-			Date timestamp, INDINumberElementAndValue[] elementsAndValues) {
-
-		super.processNewNumberValue(property, timestamp, elementsAndValues);
-	}
-
-	@Override
-	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
-			INDIBLOBElementAndValue[] elementsAndValues) {
-
-		super.processNewBLOBValue(property, timestamp, elementsAndValues);
+		}
 	}
 
 	@Override
@@ -116,17 +89,6 @@ public class lx200autostar extends lx200basic {
 		}
 	}
 
-
-	@Override
-	public void onDisconnect() {
-
-		super.onDisconnect();
-	}
-
-	@Override
-	public String getName() {
-		return driverName;
-	}
 
 	@Override
 	protected void getUTCOffset() {
@@ -211,15 +173,13 @@ public class lx200autostar extends lx200basic {
 				return false;
 			}
 
-			// Read the Date/Time from telescope to update the property 
-			getDateTime();
 			return true;
 		} else 
 			return false;
 	}
 	
 	@Override
-	protected boolean setSlewMode(int mode) {
+	protected void setSlewMode(int mode) {
 		super.setSlewMode(mode);
 		
 		if (mode==3) { sendCommand("#:EK 51#"); SlewSpeed3S.setValue(SwitchStatus.ON); }
@@ -228,6 +188,5 @@ public class lx200autostar extends lx200basic {
 		if (mode==6) { sendCommand("#:EK 54#"); SlewSpeed6S.setValue(SwitchStatus.ON); }
 		if (mode==7) { sendCommand("#:EK 55#"); SlewSpeed7S.setValue(SwitchStatus.ON); }
 		
-		return true;
 	}
 }
