@@ -46,8 +46,8 @@ public class bluetooth_serial extends serial {
     
     public bluetooth_serial() {
     	super();
+    	// Get the default Bluetooth Adapter
     	btAdapter = BluetoothAdapter.getDefaultAdapter();
-
     }
     
     /**
@@ -55,8 +55,7 @@ public class bluetooth_serial extends serial {
      * @param device: String containing the device-address 
      */
     @Override
-	public void onConnect(String device) throws IOException {
-
+	protected void onConnect(String device) throws IOException {
 		
 		if (btAdapter == null) throw new IOException("Bluetooth not available"); 
 
@@ -86,8 +85,6 @@ public class bluetooth_serial extends serial {
 			// Construct Readers
 			InReader = new InputStreamReader(InStream);
 			BufReader = new BufferedReader (InReader);
-			
-			
 
 		} catch (IllegalArgumentException e) {
 			e.printStackTrace();
@@ -107,8 +104,12 @@ public class bluetooth_serial extends serial {
 	 * Disconnect from bluetooth-device
 	 */
     @Override
-	public void onDisconnect() {
+	protected void onDisconnect() {
 		try {
+			BufReader.close();
+			InReader.close();
+			InStream.close();
+			OutStream.close();
 			btSocket.close();
 			super.onDisconnect();
 		} catch (IOException e) {

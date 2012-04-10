@@ -33,7 +33,7 @@ import java.io.OutputStream;
  *
  */
 
-public class serial extends communication_driver implements communication_driver_interface {
+public class serial extends communication_driver {
 
 	protected InputStream InStream;
 	protected OutputStream OutStream;
@@ -41,30 +41,30 @@ public class serial extends communication_driver implements communication_driver
 	protected BufferedReader BufReader;
 
 	@Override
-    public void onConnect(String device) throws IOException {
+    protected void onConnect(String device) throws IOException {
 		
 	}
 
 	@Override
-	public void onDisconnect() {
+	protected void onDisconnect() {
 
 	}
 	
 
 	@Override
-	public void onWrite(String data) throws IOException {
+	protected void onWrite(String data) throws IOException {
 		byte[] buffer=data.getBytes();
 		OutStream.write(buffer);
 	}
 
 	@Override
-	public void onWrite(byte data) throws IOException {
-		// TODO Auto-generated method stub
+	protected void onWrite(byte data) throws IOException {
+		
 		
 	}
 
 	@Override
-	public synchronized String onRead(char stopchar) throws IOException {
+	protected synchronized String onRead(char stopchar) throws IOException {
 		char c = (char) 255 ;
 		char[] chararray = new char[255];
 		String ret = null;
@@ -92,7 +92,7 @@ public class serial extends communication_driver implements communication_driver
 	}
 
 	@Override
-	public synchronized String onRead(int len) throws IOException {
+	protected synchronized String onRead(int len) throws IOException {
 		char[] chararray = new char[255];
 		String ret = null;
 		

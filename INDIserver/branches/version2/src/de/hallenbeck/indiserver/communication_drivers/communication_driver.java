@@ -2,6 +2,11 @@ package de.hallenbeck.indiserver.communication_drivers;
 
 import java.io.IOException;
 
+/**
+ * Abstract base class for communication drivers
+ * @author atuschen
+ */
+
 public abstract class communication_driver {
 	
 	protected int Timeout;
@@ -53,23 +58,15 @@ public abstract class communication_driver {
 		return onRead(len);
 	}
 	
-	protected void onConnect(String device) throws IOException {
-	}
+	protected abstract void onConnect(String device) throws IOException;
 	
-	protected void onDisconnect() {
-	}
+	protected abstract void onDisconnect();
 
-	protected void onWrite(String data) throws IOException {
-	}
+	protected abstract void onWrite(String data) throws IOException;
 	
-	protected void onWrite(byte data) throws IOException {
-	}
+	protected abstract void onWrite(byte data) throws IOException;
 	
-	protected String onRead(char stopchar) throws IOException {
-		return null;
-	}
+	protected abstract String onRead(char stopchar) throws IOException;
 	
-	protected String onRead(int len) throws IOException {
-		return null;
-	}
+	protected abstract String onRead(int len) throws IOException;
 }
