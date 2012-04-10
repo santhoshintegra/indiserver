@@ -26,10 +26,12 @@ import java.util.List;
 import de.hallenbeck.indiserver.R;
 import de.hallenbeck.indiserver.server.INDIservice;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceFragment;
+/* import android.preference.PreferenceActivity; */
+/* import android.preference.PreferenceFragment; */
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -40,39 +42,34 @@ import android.widget.Button;
  * There is also one button to start the background-service with the actual server
  * @author atuschen
  */
-public class main extends PreferenceActivity {
+/* public class main extends PreferenceActivity { */
 
-	Button start;
+public class main extends Activity {
+    private Button startServer;
 	
-	public OnClickListener startListener = new OnClickListener() {
-		public void onClick(View v) {
-			startService(new Intent(main.this, INDIservice.class));
-			start.setText("Stop Server");
-			start.setOnClickListener(stopListener);
-		}
-	};
 	
-	public OnClickListener stopListener = new OnClickListener() {
-		public void onClick(View v) {
-			stopService(new Intent(main.this, INDIservice.class));
-			start.setText("Start Server");
-			start.setOnClickListener(startListener);
-		}
-	};
+	
 	
 	protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        setContentView(R.layout.main);
 
+        startServer = (Button) findViewById(R.id.button1);
+        startServer.setOnClickListener(startListener);
+        
+        // Works only on Android 4.0
+        /*
         if (hasHeaders()) {
         	start = new Button(this);
             start.setText("Start Server");
             start.setOnClickListener(startListener);
             setListFooter(start);
             
-        }
+        } */
     }
 
-
+	/*
     @Override
     public void onBuildHeaders(List<Header> target) {
         loadHeadersFromResource(R.xml.preference_headers, target);
@@ -96,7 +93,23 @@ public class main extends PreferenceActivity {
             addPreferencesFromResource(R.xml.preference_devices);
         }
     }
-
+	*/
+	
+	public OnClickListener startListener = new OnClickListener() {
+		public void onClick(View v) {
+			startService(new Intent(main.this, INDIservice.class));
+			startServer.setText("Stop Server");
+			startServer.setOnClickListener(stopListener);
+		}
+	};
+	
+	public OnClickListener stopListener = new OnClickListener() {
+		public void onClick(View v) {
+			stopService(new Intent(main.this, INDIservice.class));
+			startServer.setText("Start Server");
+			startServer.setOnClickListener(startListener);
+		}
+	}; 
 }
 
 

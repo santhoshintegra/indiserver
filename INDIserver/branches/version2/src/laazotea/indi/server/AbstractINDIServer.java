@@ -155,11 +155,20 @@ public abstract class AbstractINDIServer implements Runnable {
 
   public void stopServer() {
 	  running = false;
+	  int i=0;
+	  while (i<clients.size()) {
+	  	  if (clients.get(i).getClass()==INDIClient.class) {
+			  INDIClient c = (INDIClient) clients.get(i);
+			  c.disconnect();
+		  }
+	  	  i++;
+	  }
+
 	  try {
-		socket.close();
-	} catch (IOException e) {
-		e.printStackTrace();
-	}
+		  socket.close();
+	  } catch (IOException e) {
+		  e.printStackTrace();
+	  }
   }
   
   /**

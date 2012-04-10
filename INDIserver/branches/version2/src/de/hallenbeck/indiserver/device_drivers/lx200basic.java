@@ -826,6 +826,7 @@ public class lx200basic extends telescope {
 			if (updateState) {
 				getAlignmentStatus();
 				EquatorialCoordsRNP.setState(PropertyStates.OK);
+				if (NotAlignedL.getValue()==LightStates.ALERT) EquatorialCoordsRNP.setState(PropertyStates.ALERT);
 				updateProperty(EquatorialCoordsRNP,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
 			} else 
 				updateProperty(EquatorialCoordsRNP);

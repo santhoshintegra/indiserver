@@ -44,6 +44,11 @@ public class bluetooth_serial extends serial {
 	private BluetoothSocket btSocket;
     private BluetoothDevice btDevice;
     
+    public bluetooth_serial() {
+    	super();
+    	btAdapter = BluetoothAdapter.getDefaultAdapter();
+
+    }
     
     /**
      * Connect to a bluetooth-device
@@ -52,8 +57,7 @@ public class bluetooth_serial extends serial {
     @Override
 	public void onConnect(String device) throws IOException {
 
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
-
+		
 		if (btAdapter == null) throw new IOException("Bluetooth not available"); 
 
 		btDevice = btAdapter.getRemoteDevice(device);
