@@ -24,10 +24,12 @@ import laazotea.indi.INDIException;
 import laazotea.indi.server.DefaultINDIServer;
 import laazotea.indi.server.INDIDevice;
 import de.hallenbeck.indiserver.R;
+import de.hallenbeck.indiserver.activities.main;
 import de.hallenbeck.indiserver.device_drivers.lx200autostar;
 import de.hallenbeck.indiserver.device_drivers.lx200basic;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -35,6 +37,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
 
 /**
  * Android Background-Service for INDI-Server
@@ -73,9 +76,10 @@ public class INDIservice extends Service {
 
 		
 		public void stopServer() {
+			super.stopServer();
 			destroyJavaDriver(lx200autostar.class);
 			destroyJavaDriver(lx200basic.class);
-			super.stopServer();
+		
 		}
 		/**
 		 * Just creates one instance of this server.
@@ -102,18 +106,24 @@ public class INDIservice extends Service {
 	 */
 	public synchronized void notifyUser(String title, String message, boolean ongoing) {
 		
+		PendingIntent intent = PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(),main.class) , 0);
+		
 		String ns = Context.NOTIFICATION_SERVICE;
 		NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
 
-		Notification.Builder notificationbuilder = new Notification.Builder(getApplicationContext());
+		NotificationCompat.Builder notificationbuilder = new NotificationCompat.Builder(getApplicationContext());
 		
 		notificationbuilder.setContentTitle(title);
 		notificationbuilder.setContentText(message);
 		notificationbuilder.setTicker(message);
 		notificationbuilder.setSmallIcon(R.drawable.ic_launcher);
+		notificationbuilder.setContentIntent(intent);
 		notificationbuilder.setOngoing(ongoing);
 		Notification notification = notificationbuilder.getNotification();
-		mNotificationManager.notify(1, notification);
+		mNotificationManager.notify(1, notification); 
+		
+		
+		
 	}
 	
 	/**
@@ -125,6 +135,7 @@ public class INDIservice extends Service {
 		// Get the settings from shared preferences
 		// This does NOT work at the moment! 
 		// TODO: Communication Driver and Device are hardcoded at the time
+		
 		
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 		String DeviceDriver = settings.getString("device_driver", null);
@@ -140,10 +151,12 @@ public class INDIservice extends Service {
 		return super.onStartCommand(intent, flags, startId);
 	}
 
-	@Override
+	// Only in Android 4.0
+	  
+	/*@Override
 	public void onTrimMemory(int level) {
 		super.onTrimMemory(level);
-	}
+	} */
 
 	@Override
 	public IBinder onBind(Intent intent) {

@@ -62,7 +62,7 @@ public class INDIClient extends INDIDeviceListener implements INDIProtocolParser
   }
 
   // Must be called if when writting to the client there is a communication error. This will make the reading thread to stop
-  private void disconnect() {
+  public void disconnect() {
     if (socket != null) {
       try {
         reader.setStop(true);

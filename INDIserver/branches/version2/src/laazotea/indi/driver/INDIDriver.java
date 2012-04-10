@@ -254,7 +254,9 @@ public abstract class INDIDriver implements INDIProtocolParser {
 
     Date timestamp = INDIDateFormat.parseTimestamp(xml.getAttribute("timestamp"));
 
-    INDITextElementAndValue[] newEvs = Arrays.copyOf(evs, evs.length, INDITextElementAndValue[].class);
+    //INDITextElementAndValue[] newEvs = Arrays.copyOf(evs, evs.length, INDITextElementAndValue[].class);
+    INDITextElementAndValue[] newEvs = new INDITextElementAndValue[evs.length];
+    System.arraycopy(evs, 0, newEvs, 0, evs.length);
 
     processNewTextValue((INDITextProperty) prop, timestamp, newEvs);
   }
@@ -297,7 +299,9 @@ public abstract class INDIDriver implements INDIProtocolParser {
 
     Date timestamp = INDIDateFormat.parseTimestamp(xml.getAttribute("timestamp"));
 
-    INDISwitchElementAndValue[] newEvs = Arrays.copyOf(evs, evs.length, INDISwitchElementAndValue[].class);
+    //INDISwitchElementAndValue[] newEvs = Arrays.copyOf(evs, evs.length, INDISwitchElementAndValue[].class);
+    INDISwitchElementAndValue[] newEvs = new INDISwitchElementAndValue[evs.length];
+    System.arraycopy(evs, 0, newEvs, 0, evs.length);
 
     if ((this instanceof INDIConnectionHandler) && (prop == connectionP)) { // If it is the CONNECTION property
       handleConnectionProperty(newEvs, timestamp);
@@ -376,7 +380,9 @@ public abstract class INDIDriver implements INDIProtocolParser {
 
     Date timestamp = INDIDateFormat.parseTimestamp(xml.getAttribute("timestamp"));
 
-    INDINumberElementAndValue[] newEvs = Arrays.copyOf(evs, evs.length, INDINumberElementAndValue[].class);
+    //INDINumberElementAndValue[] newEvs = Arrays.copyOf(evs, evs.length, INDINumberElementAndValue[].class);
+    INDINumberElementAndValue[] newEvs = new INDINumberElementAndValue[evs.length];
+    System.arraycopy(evs, 0, newEvs, 0, evs.length);
 
     processNewNumberValue((INDINumberProperty) prop, timestamp, newEvs);
   }
@@ -415,8 +421,11 @@ public abstract class INDIDriver implements INDIProtocolParser {
 
     Date timestamp = INDIDateFormat.parseTimestamp(xml.getAttribute("timestamp"));
 
-    INDIBLOBElementAndValue[] newEvs = Arrays.copyOf(evs, evs.length, INDIBLOBElementAndValue[].class);
-
+    //INDIBLOBElementAndValue[] newEvs = Arrays.copyOf(evs, evs.length, INDIBLOBElementAndValue[].class);
+    INDIBLOBElementAndValue[] newEvs = new INDIBLOBElementAndValue[evs.length];
+    System.arraycopy(evs, 0, newEvs, 0, evs.length);
+     
+    
     processNewBLOBValue((INDIBLOBProperty) prop, timestamp, newEvs);
   }
 
