@@ -251,14 +251,7 @@ public abstract class telescope extends INDIDriver {
 		/**
 		 * UTC Time Property
 		 */
-		if (property==TimeTP) {
-			if (setDateTime(INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue()))) {
-				getDateTime();
-			} else {
-				property.setState(PropertyStates.ALERT); 
-				updateProperty(property, "Error setting new Date/Time");
-			}
-		}
+		if (property==TimeTP) setDateTime(INDIDateFormat.parseTimestamp(elementsAndValues[0].getValue())); 
 	}
 
 	@Override
@@ -279,11 +272,7 @@ public abstract class telescope extends INDIDriver {
 		/**
 		 * Abort all current slewing
 		 */
-		if (property==AbortSlewSP) {
-			onAbortSlew();
-			property.setState(PropertyStates.OK);
-			updateProperty(property);
-		}
+		if (property==AbortSlewSP) onAbortSlew();
 	
 		/**
 		 * Move North/South
@@ -291,8 +280,6 @@ public abstract class telescope extends INDIDriver {
 		if (property==MovementNSSP) {
 			if (elem == MoveNorthS) onMovementNS('N');
 			if (elem == MoveSouthS) onMovementNS('S');
-			property.setState(PropertyStates.OK); 
-			updateProperty(property);
 		}
 	
 		/**
@@ -301,8 +288,6 @@ public abstract class telescope extends INDIDriver {
 		if (property==MovementWESP) {
 			if (elem == MoveWestS) onMovementNS('W');
 			if (elem == MoveEastS) onMovementNS('E');
-			property.setState(PropertyStates.OK);
-			updateProperty(property);
 		}
 		
 	}
@@ -317,13 +302,7 @@ public abstract class telescope extends INDIDriver {
 		 * UTC-Offset Property
 		 */
 		if (property==UTCOffsetNP) {
-			if ((elementsAndValues.length>0) && setUTCOffset(elementsAndValues[0].getValue())) {
-				getUTCOffset();
-			}
-			else {
-				property.setState(PropertyStates.ALERT);
-				updateProperty(property, "Error setting new UTC offset");
-			}
+			if (elementsAndValues.length>0) setUTCOffset(elementsAndValues[0].getValue());
 		}
 	
 		/**
@@ -366,13 +345,6 @@ public abstract class telescope extends INDIDriver {
 		}
 		
 	}
-
-
-	@Override
-	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
-			INDIBLOBElementAndValue[] elementsAndValues) {
-	}
-
 
 	/**
 	 * Called from connect(), after Connection has been established
@@ -417,14 +389,14 @@ public abstract class telescope extends INDIDriver {
 	 * @param date
 	 * @return true if OK, false on Error
 	 */
-	protected abstract boolean setDateTime(Date date);
+	protected abstract void setDateTime(Date date);
 	
 	/**
 	 * Called when a new UTC Offset value is set by the client
 	 * @param offset
 	 * @return true if OK, false on Error
 	 */
-	protected abstract boolean setUTCOffset(double offset);
+	protected abstract void setUTCOffset(double offset);
 	
 	/**
 	 * Called when client sets a new Geolocation Latitude value
@@ -463,10 +435,6 @@ public abstract class telescope extends INDIDriver {
 	 * Called to update the geolocation
 	 */
 	protected abstract void getGeolocation();
-	
-	protected abstract void getUTCOffset();
-	
-	protected abstract void getDateTime();
 	
 	/**
 	 * Get the Driver name

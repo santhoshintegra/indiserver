@@ -115,15 +115,19 @@ public class lx200autostar extends lx200basic {
 	}
 	
 	@Override
-	protected boolean setUTCOffset(double offset) {
+	protected void setUTCOffset(double offset) {
 		// We have to change +/-, because Autostar#497 needs a value to yield UTC from local Time.
 		offset = offset * -1;
-        if (getCommandInt(String.format(Locale.US, lx200.setUTCHoursCmd, offset))==1) return true;
-        else return false;
+        if (getCommandInt(String.format(Locale.US, lx200.setUTCHoursCmd, offset))==1) {
+        	getUTCOffset();
+        } else {
+        	UTCOffsetNP.setState(PropertyStates.ALERT);
+        	updateProperty(UTCOffsetNP);
+        }
 	}
 
 	@Override
-	protected boolean setDateTime(Date date) {
+	protected void setDateTime(Date date) {
 		// Autostar#497 expects local time, but INDI clients send UTC!
 		// We have to add the UTC-Offset to get the local time
 		date.setTime(date.getTime() + (int)(UTCOffsetN.getValue()*3600000));
@@ -142,12 +146,14 @@ public class lx200autostar extends lx200basic {
 				com_driver.read('#'); // Return String "                           #"
 			} catch (IOException e) {
 				e.printStackTrace();
-				return false;
+				TimeTP.setState(PropertyStates.ALERT);
+				updateProperty(TimeTP, "Error setting new date/time");
 			}
-
-			return true;
-		} else 
-			return false;
+			
+		} else {
+			TimeTP.setState(PropertyStates.ALERT);
+			updateProperty(TimeTP, "Error setting new date/time");
+		}
 	}
 	
 	@Override
