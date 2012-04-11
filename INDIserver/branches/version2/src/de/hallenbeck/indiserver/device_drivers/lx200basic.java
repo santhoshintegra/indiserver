@@ -845,17 +845,8 @@ public class lx200basic extends telescope {
 	 */
 	@Override
 	protected boolean setUTCOffset(double offset) {
-		String sign = "+";
-		if (offset<0) {
-			sign = "-";
-			offset = offset * -1;
-		}
-		String tmp = String.format("%s%02d.%01d", sign, (int) offset, (int) (offset % 1));
-		
-		if (getCommandInt(String.format(lx200.setUTCHoursCmd, tmp))==1) 
-			return true;
-		else 
-			return false;
+		if (getCommandInt(String.format(Locale.US, lx200.setUTCHoursCmd, offset))==1) return true;
+        else return false;
 	}
 
 	/**
