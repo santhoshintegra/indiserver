@@ -5,22 +5,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
 import laazotea.indi.INDIDateFormat;
 import laazotea.indi.Constants.PropertyStates;
 import laazotea.indi.Constants.SwitchStatus;
-import laazotea.indi.driver.INDIBLOBElementAndValue;
-import laazotea.indi.driver.INDIBLOBProperty;
-import laazotea.indi.driver.INDINumberElementAndValue;
-import laazotea.indi.driver.INDINumberProperty;
 import laazotea.indi.driver.INDISwitchElement;
 import laazotea.indi.driver.INDISwitchElementAndValue;
 import laazotea.indi.driver.INDISwitchProperty;
-import laazotea.indi.driver.INDITextElementAndValue;
-import laazotea.indi.driver.INDITextProperty;
 
 /**
  * Extended Driver for Autostar#497 compatible telescopes, only covering the basic commandset.
@@ -138,10 +131,8 @@ public class lx200autostar extends lx200basic {
 		date.setTime(date.getTime() + (int)(UTCOffsetN.getValue()*3600000));
 		
 		// assemble Autostar-format date/time 
-		String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
-		String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
-		String setDateCmd = String.format(lx200.setDateCmd, dateStr);
-		String setTimeCmd = String.format(lx200.setTimeCmd, timeStr);
+		String setDateCmd = String.format(lx200.setDateCmd, new SimpleDateFormat("MM/dd/yy").format(date));
+		String setTimeCmd = String.format(lx200.setTimeCmd, new SimpleDateFormat("kk:mm:ss").format(date));
 	
 		// send Time first and at last the Date
 		// Telescope is calculating planetary objects after a new date is set

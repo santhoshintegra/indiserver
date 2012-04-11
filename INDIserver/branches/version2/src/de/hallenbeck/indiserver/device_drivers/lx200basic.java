@@ -35,8 +35,6 @@ import laazotea.indi.Constants.PropertyPermissions;
 import laazotea.indi.Constants.PropertyStates;
 import laazotea.indi.Constants.SwitchRules;
 import laazotea.indi.Constants.SwitchStatus;
-import laazotea.indi.driver.INDIBLOBElementAndValue;
-import laazotea.indi.driver.INDIBLOBProperty;
 import laazotea.indi.driver.INDILightElement;
 import laazotea.indi.driver.INDILightProperty;
 import laazotea.indi.driver.INDINumberElement;
@@ -74,8 +72,8 @@ public class lx200basic extends telescope {
 	
 	protected static boolean AbortSlew = false; 
 	private final static String driverName = "LX200basic";
-	private final static int majorVersion = 0;
-	private final static int minorVersion = 1;	
+	//private final static int majorVersion = 0;
+	//private final static int minorVersion = 1;	
 	protected final static String FOCUS_GROUP = "Focus Control";
 	protected final static String INFO_GROUP = "Information";
 	
