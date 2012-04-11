@@ -187,14 +187,6 @@ public abstract class telescope extends INDIDriver {
 
 	}
 	
-	
-	/**
-	 * Set com device/interface
-	 */
-	public void setCommunicationDevice(String sdevice) {
-		device = sdevice;
-	}
-	
 	/**
 	 * Connect to the telescope
 	 */

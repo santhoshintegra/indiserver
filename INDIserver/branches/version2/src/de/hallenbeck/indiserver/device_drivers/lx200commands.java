@@ -74,7 +74,7 @@ public class lx200commands {
 	/* S - Telescope Set Commands */
 	protected final  String setDateCmd = "#:SC%s#"; //Set Local Date to %s (MM/DD/YY)
 	protected final  String setTimeCmd = "#:SL%s#"; //Set Local Time to %s (HH:MM:SS)
-	protected final  String setUTCHoursCmd = "#:SG%s#"; //Set Hours to yield UTC from Local Time
+	protected final  String setUTCHoursCmd = "#:SG%+05.1f#"; //Set Hours to yield UTC from Local Time
 	protected final  String setSite1NameCmd = "#:SM%s#"; //Set Name of Site 1 to %s
 	protected final  String setSite2NameCmd = "#:SN%s#"; //Set Name of Site 2 to %s
 	protected final  String setSite3NameCmd = "#:SO%s#"; //Set Name of Site 3 to %s 
@@ -84,7 +84,7 @@ public class lx200commands {
 	protected final  String setTargetDECCmd = "#:Sd%s#"; //Set target object DEC to %s (sDD*MM or sDD*MM:SS depending on precision setting); Returns:	1 - DEC Accepted 0 - DEC invalid
 	protected final  String setTargetRACmd = "#:Sr%s#"; //Set target object RA to %s (HH:MM.T or HH:MM:SS depending on precision setting); Returns:	1 - RA Accepted 0 - RA invalid
 	protected final  String setSiderealTimeCmd ="#:SS%s#"; //Sets the local sidereal time to %s (HH:MM:SS); Returns: 0 - Invalid 1 - Valid
-	protected final  String setTrackingRateCmd = "#:ST%02.4f#"; //Set tracking rate; Returns: 0 - Invalid 1 -Valid
+	protected final  String setTrackingRateCmd = "#:ST%04.1f#"; //Set tracking rate; Returns: 0 - Invalid 1 -Valid
 
 	/* T - Tracking Commands */
 	protected final  String TrackRateSiderealCmd = "#:TQ#"; //Sidereal Tracking speed

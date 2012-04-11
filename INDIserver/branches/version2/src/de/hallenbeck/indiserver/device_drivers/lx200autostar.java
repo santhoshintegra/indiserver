@@ -7,6 +7,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import laazotea.indi.INDIDateFormat;
 import laazotea.indi.Constants.PropertyStates;
@@ -64,8 +65,9 @@ public class lx200autostar extends lx200basic {
 			if (elem==SlewSpeed5S) setSlewMode(5);
 			if (elem==SlewSpeed6S) setSlewMode(6);
 			if (elem==SlewSpeed7S) setSlewMode(7);
-			super.processNewSwitchValue(property, timestamp, elementsAndValues);
 		}
+		
+		super.processNewSwitchValue(property, timestamp, elementsAndValues);
 	}
 
 	@Override
@@ -110,11 +112,8 @@ public class lx200autostar extends lx200basic {
 		try {
 			//This is in local Time!
 			Date date = new SimpleDateFormat("kk:mm:ss MM/dd/yy").parse(dateStr);
-			Calendar cal = Calendar.getInstance();
-			cal.setTime(date);
-			cal.add(Calendar.HOUR, UTCOffsetN.getValue().intValue()*-1);
-			cal.add(Calendar.MINUTE, (int) ((UTCOffsetN.getValue()%1)*60)*-1);
-			date = cal.getTime();
+			date.setTime(date.getTime() - (int)(UTCOffsetN.getValue()*3600000));
+			
 			TimeT.setValue(INDIDateFormat.formatTimestamp(date));
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
@@ -126,43 +125,27 @@ public class lx200autostar extends lx200basic {
 	
 	@Override
 	protected boolean setUTCOffset(double offset) {
-		// Standard "String.format" doesn't work, we need a string like "+02.0"
-        // Additionally we have to change +/-, because Autostar#497 needs a value to yield UTC from local Time.
-        // KStars sends the Offset (+02.0) but Autostar needs (-02.0) to get the right time.
-        // The Handbox only displays the correct timezone +02.0 if we send -02.0 to it.  
-        
-        String sign = "-";
-        if (offset<0) {
-                sign = "+";
-                offset = offset * -1;
-        }
-        String tmp = String.format("%s%02d.%01d", sign, (int) offset, (int) (offset % 1));
-        String UTCHoursCmd = String.format(lx200.setUTCHoursCmd, tmp);
-        getCommandInt(UTCHoursCmd);     
-        getUTCOffset();
-		return true;
+		// We have to change +/-, because Autostar#497 needs a value to yield UTC from local Time.
+		offset = offset * -1;
+        if (getCommandInt(String.format(Locale.US, lx200.setUTCHoursCmd, offset))==1) return true;
+        else return false;
 	}
 
 	@Override
 	protected boolean setDateTime(Date date) {
 		// Autostar#497 expects local time, but INDI clients send UTC!
 		// We have to add the UTC-Offset to get the local time
+		date.setTime(date.getTime() + (int)(UTCOffsetN.getValue()*3600000));
 		
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(date);
-		cal.add(Calendar.HOUR, UTCOffsetN.getValue().intValue());
-		cal.add(Calendar.MINUTE, (int) ((UTCOffsetN.getValue()%1)*60));
-		date = cal.getTime();
-	
 		// assemble Autostar-format date/time 
 		String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
 		String timeStr = new SimpleDateFormat("kk:mm:ss").format(date);
-		String DateCmd = String.format(lx200.setDateCmd, dateStr);
-		String TimeCmd = String.format(lx200.setTimeCmd, timeStr);
+		String setDateCmd = String.format(lx200.setDateCmd, dateStr);
+		String setTimeCmd = String.format(lx200.setTimeCmd, timeStr);
 	
 		// send Time first and at last the Date
 		// Telescope is calculating planetary objects after a new date is set
-		if ((getCommandInt(TimeCmd)==1) && (getCommandInt(DateCmd)==1)) {
+		if ((getCommandInt(setTimeCmd)==1) && (getCommandInt(setDateCmd)==1)) {
 
 			// Read 2 Strings from the Telescope and throw them away
 			try {
@@ -188,5 +171,13 @@ public class lx200autostar extends lx200basic {
 		if (mode==6) { sendCommand("#:EK 54#"); SlewSpeed6S.setValue(SwitchStatus.ON); }
 		if (mode==7) { sendCommand("#:EK 55#"); SlewSpeed7S.setValue(SwitchStatus.ON); }
 		
+	}
+	
+	/**
+	 * return the DriverName
+	 */
+	@Override
+	public String getName() {
+		return driverName;
 	}
 }
