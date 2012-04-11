@@ -158,7 +158,6 @@ public class lx200autostar extends lx200basic {
 	
 	@Override
 	protected void setSlewMode(int mode) {
-		super.setSlewMode(mode);
 		
 		if (mode==3) { sendCommand("#:EK 51#"); SlewSpeed3S.setValue(SwitchStatus.ON); }
 		if (mode==4) { sendCommand("#:EK 52#"); SlewSpeed4S.setValue(SwitchStatus.ON); }
@@ -166,6 +165,7 @@ public class lx200autostar extends lx200basic {
 		if (mode==6) { sendCommand("#:EK 54#"); SlewSpeed6S.setValue(SwitchStatus.ON); }
 		if (mode==7) { sendCommand("#:EK 55#"); SlewSpeed7S.setValue(SwitchStatus.ON); }
 		
+		super.setSlewMode(mode);
 	}
 	
 	/**
