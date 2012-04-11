@@ -323,6 +323,7 @@ public class lx200basic extends telescope {
 	 */
 
 	public lx200basic(InputStream in, OutputStream out) {
+		//TODO: Driver and device are hardcoded! 
 		super(in,out, "de.hallenbeck.indiserver.communication_drivers.bluetooth_serial", "00:80:37:14:9F:E7");
 	}
 
@@ -342,8 +343,6 @@ public class lx200basic extends telescope {
 	@Override
 	public void processNewSwitchValue(INDISwitchProperty property,
 			Date timestamp, INDISwitchElementAndValue[] elementsAndValues) {
-	
-		super.processNewSwitchValue(property, timestamp, elementsAndValues);
 		
 		// Get the Element
 		INDISwitchElement elem = elementsAndValues[0].getElement(); 
@@ -354,8 +353,7 @@ public class lx200basic extends telescope {
 		if (property==AlignmentSP) {
 			if (elem==AltAzS) setAlignmentMode('A');
 			if (elem==PolarS) setAlignmentMode('P');
-			if (elem==LandS) setAlignmentMode('L');
-			
+			if (elem==LandS) setAlignmentMode('L');	
 		}
 	
 		/**
@@ -403,8 +401,6 @@ public class lx200basic extends telescope {
 		if (property==UsePulseCommandSP) {
 			if (elem==UsePulseCommandOnS) setPulseCommand(true);
 			if (elem==UsePulseCommandOffS) setPulseCommand(false);
-			property.setState(PropertyStates.OK); 
-			updateProperty(property);
 		}
 		
 		/**
@@ -423,6 +419,8 @@ public class lx200basic extends telescope {
 			if (elem==FocusSlowS) setFocusMode(1);
 			if (elem==FocusFastS) setFocusMode(2);
 		}
+		
+		super.processNewSwitchValue(property, timestamp, elementsAndValues);
 	}
 
 	/**
@@ -820,9 +818,9 @@ public class lx200basic extends telescope {
 	 * @param Mode (A = AltAz, P = Polar, L = Land)
 	 * @return true on success, false on error
 	 */
-	protected boolean setAlignmentMode(char Mode) {
+	protected void setAlignmentMode(char Mode) {
 		// TODO: not yet implemented
-		return false;
+		getAlignmentMode();
 	}
 
 	/**
