@@ -35,6 +35,8 @@ import laazotea.indi.Constants.PropertyPermissions;
 import laazotea.indi.Constants.PropertyStates;
 import laazotea.indi.Constants.SwitchRules;
 import laazotea.indi.Constants.SwitchStatus;
+import laazotea.indi.driver.INDIBLOBElementAndValue;
+import laazotea.indi.driver.INDIBLOBProperty;
 import laazotea.indi.driver.INDILightElement;
 import laazotea.indi.driver.INDILightProperty;
 import laazotea.indi.driver.INDINumberElement;
@@ -344,20 +346,16 @@ public class lx200basic extends telescope {
 		super.processNewSwitchValue(property, timestamp, elementsAndValues);
 		
 		// Get the Element
-		INDISwitchElement elem = elementsAndValues[0].getElement();
-		
-		boolean ret = false; 
+		INDISwitchElement elem = elementsAndValues[0].getElement(); 
 	
 		/**
 		 * Alignment Property
 		 */
 		if (property==AlignmentSP) {
-			if (elem==AltAzS) ret = setAlignmentMode('A');
-			if (elem==PolarS) ret = setAlignmentMode('P');
-			if (elem==LandS) ret = setAlignmentMode('L');
-			if (ret) property.setState(PropertyStates.OK);
-			else property.setState(PropertyStates.ALERT); 
-			updateProperty(property);
+			if (elem==AltAzS) setAlignmentMode('A');
+			if (elem==PolarS) setAlignmentMode('P');
+			if (elem==LandS) setAlignmentMode('L');
+			
 		}
 	
 		/**
@@ -388,8 +386,6 @@ public class lx200basic extends telescope {
 			if (elem==CenteringS) setSlewMode(2);
 			if (elem==FindS) setSlewMode(8);
 			if (elem==MaxS) setSlewMode(9);
-			property.setState(PropertyStates.OK); 
-			updateProperty(property);
 		}
 	
 		/**
@@ -399,8 +395,6 @@ public class lx200basic extends telescope {
 			if (elem==DefaultModeS) setTrackMode(1);
 			if (elem==LunarModeS) setTrackMode(2);
 			if (elem==ManualModeS) setTrackMode(3);
-			property.setState(PropertyStates.OK);
-			updateProperty(property);
 		}
 		
 		/**
@@ -417,11 +411,8 @@ public class lx200basic extends telescope {
 		 * Move focuser in or out
 		 */
 		if (property==FocusMotionSP) {
-			if (elem==FocusInS) ret = setFocusMotion(1);
-			if (elem==FocusOutS) ret = setFocusMotion(2);
-			if (ret) property.setState(PropertyStates.OK);
-			property.setState(PropertyStates.OK); 
-			updateProperty(property);
+			if (elem==FocusInS) setFocusMotion(1);
+			if (elem==FocusOutS) setFocusMotion(2);
 		}
 		
 		/**
@@ -431,8 +422,6 @@ public class lx200basic extends telescope {
 			if (elem==FocusHaltS) setFocusMode(0);
 			if (elem==FocusSlowS) setFocusMode(1);
 			if (elem==FocusFastS) setFocusMode(2);
-			property.setState(PropertyStates.OK); 
-			updateProperty(property);
 		}
 	}
 
@@ -446,13 +435,7 @@ public class lx200basic extends telescope {
 		super.processNewNumberValue(property, timestamp, elementsAndValues);
 		
 		if (property==TrackFreqNP) {
-			if ((elementsAndValues.length>0) && (setTrackRate(elementsAndValues[0].getValue()))) {
-				property.setState(PropertyStates.OK);
-				updateProperty(property);
-			} else {
-				property.setState(PropertyStates.ALERT);
-				updateProperty(property, "Error setting new Tracking Frequency");
-			}
+			if (elementsAndValues.length>0) setTrackRate(elementsAndValues[0].getValue());
 		}
 	}
 
@@ -554,15 +537,19 @@ public class lx200basic extends telescope {
 	 */
 	@Override
 	protected void onMovementNS(char direction) {
-		
+		//TODO: Implement
+		MovementNSSP.setState(PropertyStates.OK);
+		updateProperty(MovementNSSP);
 	}
 
 	/**
-	 * Called on Movement North/South command
+	 * Called on Movement West/East command
 	 */
 	@Override
 	protected void onMovementWE(char direction) {
-		
+		//TODO: Implement
+		MovementWESP.setState(PropertyStates.OK);
+		updateProperty(MovementWESP);
 	}
 
 	/**
@@ -602,6 +589,8 @@ public class lx200basic extends telescope {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
 		}
+		AbortSlewSP.setState(PropertyStates.OK);
+		updateProperty(AbortSlewSP);
 	}
 
 	/**
@@ -842,9 +831,13 @@ public class lx200basic extends telescope {
 	 * @return true on success, false on error
 	 */
 	@Override
-	protected boolean setUTCOffset(double offset) {
-		if (getCommandInt(String.format(Locale.US, lx200.setUTCHoursCmd, offset))==1) return true;
-        else return false;
+	protected void setUTCOffset(double offset) {
+		if (getCommandInt(String.format(Locale.US, lx200.setUTCHoursCmd, offset))==1) {
+			getUTCOffset();
+		} else {
+			UTCOffsetNP.setState(PropertyStates.ALERT);
+			updateProperty(UTCOffsetNP, "Error setting UTC Offset");
+		}
 	}
 
 	/**
@@ -853,7 +846,7 @@ public class lx200basic extends telescope {
 	 * @return true on success, false on error
 	 */
 	@Override
-	protected boolean setDateTime(Date date) {
+	protected void setDateTime(Date date) {
 		
 		// assemble date/time lx200-format  
 		String dateStr = new SimpleDateFormat("MM/dd/yy").format(date);
@@ -868,14 +861,17 @@ public class lx200basic extends telescope {
 			try {
 				com_driver.read('#'); // Return String "Updating planetary data... #"
 				com_driver.read('#'); // Return String "                           #"
+				getDateTime();
 			} catch (IOException e) {
 				e.printStackTrace();
-				return false;
+				TimeTP.setState(PropertyStates.ALERT);
+				updateProperty(TimeTP, "Error setting new date/time");
 			}
 			
-			return true;
-		} else 
-			return false;
+		} else {
+			TimeTP.setState(PropertyStates.ALERT);
+			updateProperty(TimeTP, "Error setting new date/time");
+		}
 	}
 
 	/**
@@ -950,6 +946,8 @@ public class lx200basic extends telescope {
 		if (mode==2) { sendCommand(lx200.SlewRateCenteringCmd); CenteringS.setValue(SwitchStatus.ON); }
 		if (mode==8) { sendCommand(lx200.SlewRateFindCmd); FindS.setValue(SwitchStatus.ON); }
 		if (mode==9) { sendCommand(lx200.SlewRateMaxCmd); MaxS.setValue(SwitchStatus.ON); }
+		SlewModeSP.setState(PropertyStates.OK);
+		updateProperty(SlewModeSP);
 	}
 	
 	/**
@@ -961,6 +959,8 @@ public class lx200basic extends telescope {
 		if (mode==1) { sendCommand(lx200.TrackRateSiderealCmd); DefaultModeS.setValue(SwitchStatus.ON); }
 		if (mode==2) { sendCommand(lx200.TrackRateLunarCmd); LunarModeS.setValue(SwitchStatus.ON); }
 		if (mode==3) { sendCommand(lx200.TrackRateManualCmd); ManualModeS.setValue(SwitchStatus.ON); }
+		TrackModeSP.setState(PropertyStates.OK);
+		updateProperty(TrackModeSP);
 		getTrackRate();
 	}
 	
@@ -969,15 +969,16 @@ public class lx200basic extends telescope {
 	 * @param rate
 	 * @return true on success, false on error
 	 */
-	protected boolean setTrackRate(double rate) {
+	protected void setTrackRate(double rate) {
 		if (getCommandInt(String.format(Locale.US,lx200.setTrackingRateCmd,rate))==1) {
 			getTrackRate();
 			ManualModeS.setValue(SwitchStatus.ON);
 			TrackModeSP.setState(PropertyStates.OK);
 			updateProperty(TrackModeSP);
-			return true; 
+		} else {
+			TrackFreqNP.setState(PropertyStates.ALERT);
+			updateProperty(TrackFreqNP);
 		}
-		else return false;
 	}
 	
 	/**
@@ -985,9 +986,10 @@ public class lx200basic extends telescope {
 	 * @param state
 	 * @return
 	 */
-	protected boolean setPulseCommand(boolean state) {
+	protected void setPulseCommand(boolean state) {
 		// TODO: not yet implemented
-		return true;
+		UsePulseCommandSP.setState(PropertyStates.OK);
+		updateProperty(UsePulseCommandSP);
 	}
 	
 	/**
@@ -995,9 +997,10 @@ public class lx200basic extends telescope {
 	 * @param direction
 	 * @return
 	 */
-	protected boolean setFocusMotion(int direction) {
+	protected void setFocusMotion(int direction) {
 		// TODO: not yet implemented
-		return true;
+		FocusMotionSP.setState(PropertyStates.OK);
+		updateProperty(FocusMotionSP);
 	}
 	
 	/**
@@ -1005,9 +1008,10 @@ public class lx200basic extends telescope {
 	 * @param mode
 	 * @return
 	 */
-	protected boolean setFocusMode(int mode) {
+	protected void setFocusMode(int mode) {
 		// TODO: not yet implemented
-		return true;
+		FocusModesSP.setState(PropertyStates.OK);
+		updateProperty(FocusModesSP);
 	}
 	
 	
@@ -1102,6 +1106,13 @@ public class lx200basic extends telescope {
 			updateProperty(ConnectSP,e.getMessage());
 			disconnect();
 		}
+	}
+
+	@Override
+	public void processNewBLOBValue(INDIBLOBProperty property, Date timestamp,
+			INDIBLOBElementAndValue[] elementsAndValues) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }
