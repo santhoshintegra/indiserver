@@ -883,7 +883,6 @@ public class lx200basic extends telescope {
 	/**
 	 * set the selected Site number
 	 * @param site number
-	 * @return always true  
 	 */
 	protected void setSite(int site) {
 		sendCommand(String.format(lx200.SiteSelectCmd,site));
@@ -905,17 +904,7 @@ public class lx200basic extends telescope {
 	@Override
 	protected boolean setLatitude(double latitude) {
 		// Assemble an Autostar Latitude format
-		// Positive = North, Negative = South  Example: "+50*01"
-		String sign = "+";
-		if (latitude<0) {
-			sign ="-";
-			latitude = latitude * -1;
-		}
-		// TODO: Instead of truncating doubles with (int) we should round them 
-		String GeolatCmd = String.format(lx200.setSiteLatCmd, String.format("%s%02d*%02d", sign, (int) latitude, (int) ((latitude % 1)*60) ));
-
-		// Set latitude
-		if (getCommandInt(GeolatCmd)==1) return true; 
+		if (getCommandInt(String.format(lx200.setSiteLatCmd, sexaGeo.format(latitude)))==1) return true; 
 		else return false;
 	}
 
@@ -927,11 +916,7 @@ public class lx200basic extends telescope {
 	@Override
 	protected boolean setLongitude(double longitude) {
 		// Assemble an Autostar longitude format
-		// TODO: Instead of truncating doubles with (int) we should round them  
-		String GeolongCmd = String.format(lx200.setSiteLongCmd, String.format("%03d*%02d", (int) (360-longitude), (int) (((360-longitude) % 1)*60) ));
-		
-		// Set longitude
-		if (getCommandInt(GeolongCmd)==1) return true; 
+		if (getCommandInt(String.format(lx200.setSiteLongCmd, sexaGeo.format(360-longitude)))==1) return true; 
 		else return false;
 	}
 
