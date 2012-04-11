@@ -313,7 +313,6 @@ public abstract class telescope extends INDIDriver {
 				if (elementsAndValues[i].getElement() ==  GeoLatN) ret = ret && setLatitude(elementsAndValues[i].getValue());
 				if (elementsAndValues[i].getElement() == GeoLongN) ret = ret && setLongitude(elementsAndValues[i].getValue());
 			}
-			
 			if (ret) {
 				getGeolocation();
 			}
