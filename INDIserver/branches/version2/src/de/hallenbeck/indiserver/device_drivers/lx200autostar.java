@@ -27,8 +27,6 @@ import laazotea.indi.driver.INDISwitchProperty;
  * any other firmware version than 43Eg!
  *   
  * @author atuschen75 at gmail.com
- *
- *
  */
 public class lx200autostar extends lx200basic {
 
@@ -99,12 +97,12 @@ public class lx200autostar extends lx200basic {
 	 */
 	@Override
 	protected void getDateTime() {
-		//Subtract UTC-Offset to get UTC-Time from Local Time
-		
 		String dateStr = getCommandString(lx200.getTimeCmd)+" "+getCommandString(lx200.getDateCmd);
 		try {
 			//This is in local Time!
 			Date date = new SimpleDateFormat("kk:mm:ss MM/dd/yy").parse(dateStr);
+			
+			//Subtract UTC-Offset to get UTC-Time from Local Time
 			date.setTime(date.getTime() - (int)(UTCOffsetN.getValue()*3600000));
 			
 			TimeT.setValue(INDIDateFormat.formatTimestamp(date));
