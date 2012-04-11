@@ -64,6 +64,7 @@ public abstract class telescope extends INDIDriver {
 	protected final static String SITE_GROUP = "Site Management";
 	
 	protected static INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
+	protected static INDISexagesimalFormatter sexaGeo = new INDISexagesimalFormatter("%6.3m");
 	protected static communication_driver com_driver=null;
 	private static String device=null;
 	private static boolean connected=false;
