@@ -49,50 +49,15 @@ public class INDIservice extends Service {
 	
 	private boolean autoconnect = false;
 	private AndroidINDIServer server;
-			
 
-
-	/**
-	 * Notify user about running server and connected clients
-	 */
-	public synchronized void notifyUser(String title, String message, boolean ongoing) {
-		
-		PendingIntent intent = PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(),main.class) , 0);
-		
-		String ns = Context.NOTIFICATION_SERVICE;
-		NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
-
-		NotificationCompat.Builder notificationbuilder = new NotificationCompat.Builder(getApplicationContext());
-		
-		notificationbuilder.setContentTitle(title);
-		notificationbuilder.setContentText(message);
-		notificationbuilder.setTicker(message);
-		notificationbuilder.setSmallIcon(R.drawable.ic_launcher);
-		notificationbuilder.setContentIntent(intent);
-		notificationbuilder.setOngoing(ongoing);
-		Notification notification = notificationbuilder.getNotification();
-		mNotificationManager.notify(1, notification); 
-		
-		
-		
-	}
-	
 	/**
 	 * Main Code 
 	 */
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
-		// Get the settings from shared preferences
-		// This does NOT work at the moment! 
-		// TODO: Communication Driver and Device are hardcoded at the time
-		
-		
-		
 		// just start the server, no parameters are given at the moment
 		server = new AndroidINDIServer(getApplicationContext());
-		
-		notifyUser("INDIserver started","Waiting for Clients...",true);
 		
 		return super.onStartCommand(intent, flags, startId);
 	}
@@ -122,7 +87,7 @@ public class INDIservice extends Service {
 	@Override
 	public void onDestroy() {
 		server.stopServer();
-		notifyUser("INDIServer stopped", "All Clients disconnected", false);
+		
 		super.onDestroy();
 	}
 
