@@ -23,6 +23,7 @@ package de.hallenbeck.indiserver.server;
 import laazotea.indi.INDIException;
 import laazotea.indi.server.DefaultINDIServer;
 import laazotea.indi.server.INDIDevice;
+import laazotea.indi.server.INDIJavaDevice;
 import de.hallenbeck.indiserver.R;
 import de.hallenbeck.indiserver.activities.main;
 import de.hallenbeck.indiserver.device_drivers.lx200autostar;
@@ -47,59 +48,9 @@ import android.support.v4.app.NotificationCompat;
 public class INDIservice extends Service {
 	
 	private boolean autoconnect = false;
-	private INDIServer server;
+	private AndroidINDIServer server;
 			
 
-	/**
-	 * Seperate Server-Class
-	 * @author atuschen
-	 *
-	 */
-	public class INDIServer extends DefaultINDIServer {
-
-		/**
-		 * Just loads the available driver.
-		 */
-		public INDIServer() {
-			super();
-
-			// Loads the Java Driver. Please note that this must be in the classpath.
-			try {
-				loadJavaDriver(lx200autostar.class);
-				loadJavaDriver(lx200basic.class);
-			} catch (INDIException e) {
-				e.printStackTrace();
-				notifyUser("INDIserver", "ERROR loading drivers", false);
-				//System.exit(-1);
-			}
-		}
-
-		
-		public void stopServer() {
-			super.stopServer();
-			destroyJavaDriver(lx200autostar.class);
-			destroyJavaDriver(lx200basic.class);
-		
-		}
-		/**
-		 * Just creates one instance of this server.
-		 * @param args 
-		 */
-		public void main(String[] args) {
-			INDIServer s = new INDIServer();  
-		}
-
-		@Override
-		protected void onClientConnected(String address) {
-			notifyUser("INDIserver running", getNumDevices()+" Devices, "+getNumClients()+" Clients", true);
-		}
-		
-		@Override
-		protected void onClientDisconnected(String address) {
-			notifyUser("INDIserver running", getNumDevices()+" Devices, "+getNumClients()+" Clients", true);
-		}
-		
-	}
 
 	/**
 	 * Notify user about running server and connected clients
@@ -137,14 +88,9 @@ public class INDIservice extends Service {
 		// TODO: Communication Driver and Device are hardcoded at the time
 		
 		
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-		String DeviceDriver = settings.getString("device_driver", null);
-		String ComDriver = settings.getString("com_driver", null);
-		String Device = settings.getString("device", null);
-		autoconnect = settings.getBoolean("autoconnect", false);
 		
 		// just start the server, no parameters are given at the moment
-		server = new INDIServer();
+		server = new AndroidINDIServer(getApplicationContext());
 		
 		notifyUser("INDIserver started","Waiting for Clients...",true);
 		

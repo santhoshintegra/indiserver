@@ -177,6 +177,7 @@ public abstract class AbstractINDIServer implements Runnable {
    * @param jarFileName The jar file from which to load Drivers.
    * @throws INDIException if there is a problem with the JAR file
    */
+ 
   protected synchronized void loadJavaDriversFromJAR(String jarFileName) throws INDIException {
     if (isAlreadyLoaded(jarFileName)) {
       throw new INDIException("JAR file already loaded.");
@@ -343,7 +344,7 @@ public abstract class AbstractINDIServer implements Runnable {
    *
    * @param device The device to add.
    */
-  private void addDevice(INDIDevice device) {
+  protected void addDevice(INDIDevice device) {
     devices.add(device);
     clients.add(device);
 
