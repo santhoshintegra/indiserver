@@ -77,9 +77,11 @@ public class AndroidINDIServer extends DefaultINDIServer {
 	}
 	  @Override
 	  protected void onClientConnected(String address) {
+		  notifyUser("INDIServer running", "Client connected "+address, false);
 	  }
 	  
 	  @Override
 	  protected void onClientDisconnected(String address) {
+		  notifyUser("INDIServer running", "Client disconnected "+address, false);
 	  }
 }
