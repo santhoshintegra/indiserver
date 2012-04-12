@@ -322,9 +322,8 @@ public class lx200basic extends telescope {
 	 * Constructor with input and outputstream for indi-xml-messages.
 	 */
 
-	public lx200basic(InputStream in, OutputStream out) {
-		//TODO: Driver and device are hardcoded! 
-		super(in,out, "de.hallenbeck.indiserver.communication_drivers.bluetooth_serial", "00:80:37:14:9F:E7");
+	public lx200basic(InputStream in, OutputStream out, String Driver, String Device)  {
+		super(in, out, Driver, Device);
 	}
 
 	/**

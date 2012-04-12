@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+
 import laazotea.indi.INDIDateFormat;
 import laazotea.indi.Constants.PropertyStates;
 import laazotea.indi.Constants.SwitchStatus;
@@ -32,8 +33,8 @@ public class lx200autostar extends lx200basic {
 
 	private final static String driverName = "LX200autostar";
 
-	public lx200autostar(InputStream in, OutputStream out) {
-		super(in, out);
+	public lx200autostar(InputStream in, OutputStream out, String Driver, String Device)  {
+		super(in, out, Driver, Device);
 	}
 	
 	// Additional Slew speed elements (Speed 3-7)
@@ -82,7 +83,10 @@ public class lx200autostar extends lx200basic {
 		}
 	}
 
-
+	/** 
+	 * Get the difference between Local time and UTC
+	 * (This is not UTC-Offset on Autostar #497) 
+	 */
 	@Override
 	protected void getUTCOffset() {
 		String tmp = getCommandString(lx200.getUTCHoursCmd);
@@ -93,7 +97,8 @@ public class lx200autostar extends lx200basic {
 	}
 	
 	/**
-	 * Get the current Date/Time from telescope
+	 * Get the current local Date/Time from telescope
+	 * (This is not UTC on Autostar #497)
 	 */
 	@Override
 	protected void getDateTime() {
@@ -107,13 +112,16 @@ public class lx200autostar extends lx200basic {
 			
 			TimeT.setValue(INDIDateFormat.formatTimestamp(date));
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		TimeTP.setState(PropertyStates.OK);
 		updateProperty(TimeTP, "Local time:"+dateStr);
 	}
 	
+	/** 
+	 * Set the difference between Local time and UTC
+	 * (This is not UTC-Offset on Autostar #497) 
+	 */
 	@Override
 	protected void setUTCOffset(double offset) {
 		// We have to change +/-, because Autostar#497 needs a value to yield UTC from local Time.
@@ -125,7 +133,11 @@ public class lx200autostar extends lx200basic {
         	updateProperty(UTCOffsetNP);
         }
 	}
-
+	
+	/**
+	 * Set the current local Date/Time on telescope
+	 * (This is not UTC on Autostar #497)
+	 */
 	@Override
 	protected void setDateTime(Date date) {
 		// Autostar#497 expects local time, but INDI clients send UTC!

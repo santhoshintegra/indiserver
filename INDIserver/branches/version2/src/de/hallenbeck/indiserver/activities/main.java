@@ -27,6 +27,7 @@ import de.hallenbeck.indiserver.R;
 import de.hallenbeck.indiserver.server.INDIservice;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
@@ -46,7 +47,7 @@ import android.widget.Button;
 
 public class main extends Activity {
     private Button startServer;
-	
+	public Context context;
 	
 	
 	
@@ -54,7 +55,7 @@ public class main extends Activity {
         super.onCreate(savedInstanceState);
         
         setContentView(R.layout.main);
-
+        context = getApplicationContext();
         startServer = (Button) findViewById(R.id.button1);
         startServer.setOnClickListener(startListener);
         
