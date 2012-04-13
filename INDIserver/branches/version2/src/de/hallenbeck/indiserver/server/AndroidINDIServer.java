@@ -40,31 +40,31 @@ public class AndroidINDIServer extends DefaultINDIServer {
 			notifyUser("INDIserver", "ERROR loading drivers", false);
 		}
 	}
-	
+
 	public void stopServer() {
 		super.stopServer();
 		destroyJavaDriver(lx200autostar.class);
 		destroyJavaDriver(lx200basic.class);
 		notifyUser("INDIServer stopped", "All Clients disconnected", false);
 	}
-	
+
 	protected synchronized void loadAndroidDriver(Class cls, String ComDriver, String Device) throws INDIException {
-	    INDIAndroidDevice newDevice = new INDIAndroidDevice(this, cls, "class+-+" + cls.getName(), ComDriver, Device);
-	    addDevice(newDevice);
-	  }
-	
+		INDIAndroidDevice newDevice = new INDIAndroidDevice(this, cls, "class+-+" + cls.getName(), ComDriver, Device);
+		addDevice(newDevice);
+	}
+
 	/**
 	 * Notify user about running server and connected clients
 	 */
 	public synchronized void notifyUser(String title, String message, boolean ongoing) {
-		
+
 		PendingIntent intent = PendingIntent.getActivity(AppContext, 0, new Intent(AppContext,main.class) , 0);
-		
+
 		String ns = Context.NOTIFICATION_SERVICE;
 		NotificationManager mNotificationManager = (NotificationManager) AppContext.getSystemService(ns);
 
 		NotificationCompat.Builder notificationbuilder = new NotificationCompat.Builder(AppContext);
-		
+
 		notificationbuilder.setContentTitle(title);
 		notificationbuilder.setContentText(message);
 		notificationbuilder.setTicker(message);
@@ -73,15 +73,15 @@ public class AndroidINDIServer extends DefaultINDIServer {
 		notificationbuilder.setOngoing(ongoing);
 		Notification notification = notificationbuilder.getNotification();
 		mNotificationManager.notify(1, notification); 
-
 	}
-	  @Override
-	  protected void onClientConnected(String address) {
-		  notifyUser("INDIServer running", "Client connected "+address, false);
-	  }
-	  
-	  @Override
-	  protected void onClientDisconnected(String address) {
-		  notifyUser("INDIServer running", "Client disconnected "+address, false);
-	  }
+
+	@Override
+	protected void onClientConnected(String address) {
+		notifyUser("INDIServer running", "Client connected "+address, false);
+	}
+
+	@Override
+	protected void onClientDisconnected(String address) {
+		notifyUser("INDIServer running", "Client disconnected "+address, false);
+	}
 }
