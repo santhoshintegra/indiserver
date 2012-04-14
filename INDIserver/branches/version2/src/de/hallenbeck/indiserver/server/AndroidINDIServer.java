@@ -30,6 +30,8 @@ public class AndroidINDIServer extends DefaultINDIServer {
 		String ComDriver = settings.getString("com_driver", null);
 		String Device = settings.getString("device", null);
 		boolean autoconnect = settings.getBoolean("autoconnect", false);
+		
+		
 		// Loads the Java Driver. Please note that this must be in the classpath.
 		try {
 			loadAndroidDriver(lx200autostar.class, ComDriver, Device);
@@ -37,7 +39,7 @@ public class AndroidINDIServer extends DefaultINDIServer {
 			notifyUser("INDIserver started","Waiting for Clients...",true);
 		} catch (INDIException e) {
 			e.printStackTrace();
-			notifyUser("INDIserver", "ERROR loading drivers", false);
+			notifyUser("INDIserver stopped", "ERROR loading drivers", false);
 		}
 	}
 
@@ -64,7 +66,6 @@ public class AndroidINDIServer extends DefaultINDIServer {
 		NotificationManager mNotificationManager = (NotificationManager) AppContext.getSystemService(ns);
 
 		NotificationCompat.Builder notificationbuilder = new NotificationCompat.Builder(AppContext);
-
 		notificationbuilder.setContentTitle(title);
 		notificationbuilder.setContentText(message);
 		notificationbuilder.setTicker(message);
