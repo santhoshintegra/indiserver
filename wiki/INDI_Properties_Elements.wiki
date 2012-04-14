@@ -1,0 +1,33 @@
+= Introduction =
+
+This page describes the relevant INDI-Properities and it's Elements used for telescope control.
+
+
+= Details =
+
+The following INDI-Properties and Elements should be implemented by any telescope-driver and client with the *exact names and types* (to be compatible with original INDIlib drivers):
+
+|| *Property Name* || *Type* || *Element Name* || *Description* ||
+|| EQUATORIAL_EOD_COORD_REQUEST || Number Property ||  || _Write-Only_ Property for new Target-Coordinates. If new coords are set, telescope will slew immediately ||
+|| || Double || RA || Right ascension of target ||
+|| || Double || DEC || Declination of target ||
+|| EQUATORIAL_EOD_COORD || Number Property || || _Read-Only_ Property for Coords the telescope is currently pointing at ||
+|| || Double || RA || Right ascension the telescope is pointing at ||
+|| || Double || DEC || Declination the telescope is pointing at ||
+|| ON_COORD_SET || Switch Property || || Slew or sync on new coords ||
+|| || ONE_OF_MANY || SLEW || Slew the telescope, if new target coords are set ||
+|| || ONE_OF_MANY || SYNC || Sync current coords to set coords ||
+|| TELESCOPE_ABORT_MOTION || Switch Property || || Abort all current motion of telescope ||
+|| || ONE_OF_MANY || ABORT || ON = Abort motion ||
+
+The following Properties are optional, but highly recommended. Only with these data properly set, the telescope will slew to the right coords. 
+*Set these values _before_ setting new target coords! *
+
+|| *Property Name* || *Type* || *Element Name* || *Description* ||
+|| TIME_UTC || Text Property || || Current Time and Date as INDI-Timestamp ||
+|| || Timestamp || UTC || Current Time and Date in UTC ||
+|| TIME_UTC_OFFSET || Number Property || || UTC offset to yield local time ||
+|| || Double || OFFSET || Offset as double ||
+|| GEOGRAPHIC_COORD || Number Property || || Geographical coords of the current observation site ||
+|| || Double || LAT || Latitude of current observation site ||
+|| || Double || LONG || Longitude of current observation site ||
