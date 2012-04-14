@@ -262,7 +262,7 @@ public abstract class telescope extends INDIDriver {
 		INDISwitchElement elem = elementsAndValues[0].getElement();
 	
 		/**
-		 * Connect Property always available
+		 * Connect Property
 		 */
 		if (property==ConnectSP) {
 			if (elem == DisconnectS) disconnect();
@@ -386,14 +386,12 @@ public abstract class telescope extends INDIDriver {
 	/**
 	 * Called when a new Date/Time is set by the client
 	 * @param date
-	 * @return true if OK, false on Error
 	 */
 	protected abstract void setDateTime(Date date);
 	
 	/**
 	 * Called when a new UTC Offset value is set by the client
 	 * @param offset
-	 * @return true if OK, false on Error
 	 */
 	protected abstract void setUTCOffset(double offset);
 	
