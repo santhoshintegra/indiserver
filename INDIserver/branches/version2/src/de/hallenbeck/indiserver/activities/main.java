@@ -55,33 +55,57 @@ public class main extends PreferenceActivity {
 	
 	protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    /*    
-        setContentView(R.layout.main);
-        context = getApplicationContext();
-        startServer = (Button) findViewById(R.id.button1);
-        if (isServiceRunning()) {
-        	startServer.setOnClickListener(stopListener);
-        	startServer.setText("Stop Server");
+   
+        if (Build.VERSION.SDK_INT<13) {
+        	// This is for Android < 4.0
+        	addPreferencesFromResource(R.xml.preferences_old);
+        	findPreference("start").setDefaultValue((Boolean) isServiceRunning());
+        	findPreference("start").setOnPreferenceChangeListener(PrefListener);
         } else {
-        	startServer.setOnClickListener(startListener);
-        	startServer.setText("Start Server");
-        }
-      */  	
-        
-        // Works only on Android 4.0
-        if (Build.VERSION.SDK_INT>13) {
+            // This is for Android >=4.0
         	if (hasHeaders()) {
         		startServer = new Button(this);
-        		startServer.setText("Start Server");
-        		startServer.setOnClickListener(startListener);
+        		if (isServiceRunning()) {        			
+        			startServer.setText("Stop Server");
+        			startServer.setOnClickListener(stopListener);
+        		} else {
+        			startServer.setText("Start Server");
+        			startServer.setOnClickListener(startListener);
+        		}
         		setListFooter(startServer);
-
         	}
-        } else {
-        	addPreferencesFromResource(R.xml.preferences_old);
-        	findPreference("start").setOnPreferenceChangeListener(StListener);
         }
 	}
+	
+	
+
+	/**
+	 * Check if the Server is running
+	 * @return
+	 */
+	private boolean isServiceRunning() {
+	    ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+	    for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+	        if ("de.hallenbeck.indiserver.server.INDIservice".equals(service.service.getClassName())) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+	
+	// This is for Android < 4.0
+	public OnPreferenceChangeListener PrefListener = new OnPreferenceChangeListener () {
+		public boolean onPreferenceChange (Preference preference, Object newValue) {
+			boolean val = (Boolean) newValue;
+			if (val) {
+				startService(new Intent(main.this, INDIservice.class));
+			} else {
+				stopService(new Intent(main.this, INDIservice.class));
+			}
+			return true;
+		}
+	};
+	
 
 	// This is for Android >= 4.0
     @Override
@@ -108,33 +132,6 @@ public class main extends PreferenceActivity {
             addPreferencesFromResource(R.xml.preference_devices);
         }
     }
-	
-	/**
-	 * Check if the Server is running
-	 * @return
-	 */
-	private boolean isServiceRunning() {
-	    ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-	    for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-	        if ("de.hallenbeck.indiserver.server.INDIservice".equals(service.service.getClassName())) {
-	            return true;
-	        }
-	    }
-	    return false;
-	}
-	
-	// This is for Android < 4.0
-	public OnPreferenceChangeListener StListener = new OnPreferenceChangeListener () {
-		public boolean onPreferenceChange (Preference preference, Object newValue) {
-			boolean val = (Boolean) newValue;
-			if (val) {
-				startService(new Intent(main.this, INDIservice.class));
-			} else {
-				stopService(new Intent(main.this, INDIservice.class));
-			}
-			return true;
-		}
-	};
 	
 	// This is for Android >= 4.0
 	public OnClickListener startListener = new OnClickListener() {

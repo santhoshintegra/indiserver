@@ -20,6 +20,7 @@ public abstract class communication_driver {
 		onDisconnect();
 	}
 	
+	
 	/**
 	 * Try to write a string to the device
 	 * @param command string to send
@@ -57,6 +58,10 @@ public abstract class communication_driver {
 	public String read(int len) throws IOException {
 		return onRead(len);
 	}
+	
+	public abstract String getVersion();
+	
+	public abstract String getName();
 	
 	protected abstract void onConnect(String device) throws IOException;
 	

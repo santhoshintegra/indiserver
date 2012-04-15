@@ -66,6 +66,8 @@ public abstract class AbstractINDIServer implements Runnable {
 
   private boolean running = true;
   
+
+  
   /**
    * Constructs a new Server. The Server begins to listen to the default port.
    */

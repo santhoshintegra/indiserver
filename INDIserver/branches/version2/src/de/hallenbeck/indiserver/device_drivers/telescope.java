@@ -28,6 +28,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 
+import android.os.Looper;
+
 import laazotea.indi.INDIDateFormat;
 import laazotea.indi.INDISexagesimalFormatter;
 import laazotea.indi.Constants.PropertyPermissions;
@@ -62,6 +64,7 @@ public abstract class telescope extends INDIDriver {
 	protected final static String MOTION_GROUP	= "Motion Control";
 	protected final static String DATETIME_GROUP = "Date/Time";
 	protected final static String SITE_GROUP = "Site Management";
+	protected final static String INFO_GROUP = "Information";
 	
 	protected static INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
 	protected static INDISexagesimalFormatter sexaGeo = new INDISexagesimalFormatter("%6.3m");
@@ -81,6 +84,24 @@ public abstract class telescope extends INDIDriver {
 	protected INDISwitchProperty ConnectSP = new INDISwitchProperty(this, "CONNECTION", "Connection", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);			// suffix SP = SwitchProperty
 	protected INDISwitchElement ConnectS = new INDISwitchElement(ConnectSP, "CONNECT" , "Connect" , SwitchStatus.OFF);			
 	protected INDISwitchElement DisconnectS = new INDISwitchElement(ConnectSP, "DISCONNECT" , "Disconnect" , SwitchStatus.ON);		
+	
+	protected INDITextProperty InterfaceTP = new INDITextProperty(this, "INTERFACE", "Interface", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0 );
+	protected INDITextElement InterfaceDriverT = new INDITextElement(InterfaceTP, "INTERFACE_DRIVER", "Driver", "");
+	protected INDITextElement InterfacePortT = new INDITextElement(InterfaceTP, "INTERFACE_PORT", "Port/Device", "");
+	
+	/********************************************
+	 Property: Driver information
+	*********************************************/
+	
+	protected INDITextProperty DriverTP = new INDITextProperty(this,  "DRIVER", "Driver info", COMM_GROUP, PropertyStates.OK, PropertyPermissions.RO, 0);
+	protected INDITextElement DriverNameT = new INDITextElement(DriverTP, "DRIVER_NAME", "Name", "");
+	protected INDITextElement DriverVersionT = new INDITextElement(DriverTP, "DRIVER_VERSION", "Version", "");
+	
+	protected INDITextProperty CommDriverTP = new INDITextProperty(this,  "COMM_DRIVER", "Comm driver info", COMM_GROUP, PropertyStates.OK, PropertyPermissions.RO, 0);
+	protected INDITextElement CommDriverNameT = new INDITextElement(CommDriverTP, "COMM_DRIVER_NAME", "Name", "");
+	protected INDITextElement CommDriverVersionT = new INDITextElement(CommDriverTP, "COMM_DRIVER_VERSION", "Version", "");
+	protected INDITextElement CommDriverDeviceT = new INDITextElement(CommDriverTP, "COMM_DRIVER_DEVICE", "Device", "");
+	
 	
 	/**********************************************************************************************/
 	/************************************ GROUP: Main Control *************************************/
@@ -153,7 +174,7 @@ public abstract class telescope extends INDIDriver {
 	protected INDINumberProperty GeoNP = new INDINumberProperty(this,"GEOGRAPHIC_COORD", "Geographic Location", SITE_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0);
 	protected INDINumberElement GeoLatN = new INDINumberElement(GeoNP, "LAT",  "Lat.  D:M:S +N", 0, -90, 90, 0, "%10.6m");
 	protected INDINumberElement GeoLongN = new INDINumberElement(GeoNP, "LONG",  "Long. D:M:S", 0, 0, 360, 0, "%10.6m");
-	
+
 	/*****************************************************************************************************/
 	/**************************************** END PROPERTIES *********************************************/
 	/*****************************************************************************************************/
@@ -168,9 +189,10 @@ public abstract class telescope extends INDIDriver {
 	 */
 	protected telescope(InputStream in, OutputStream out, String Driver, String Device) {
 		super(in, out);
+		this.addProperty(ConnectSP);
 		if (Driver != null)
 			try {
-				com_driver = (communication_driver) Class.forName(Driver).newInstance();
+				com_driver = (communication_driver) Class.forName("de.hallenbeck.indiserver.communication_drivers."+Driver).newInstance();
 			} catch (InstantiationException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -178,21 +200,33 @@ public abstract class telescope extends INDIDriver {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				ConnectSP.setState(PropertyStates.ALERT);
+				updateProperty(ConnectSP, "Driver not found "+Driver);
 			}
+		
 		device = Device;
 		
-		this.addProperty(ConnectSP);
-		updateProperty(ConnectSP,"INDI4Java Driver "+getName()+ "started");
-
+		if ((com_driver == null) || (device == null)) {
+			InterfaceTP.setState(PropertyStates.ALERT);
+			this.addProperty(InterfaceTP,"Driver/Port not set");
+		}
+		
+		DriverNameT.setValue(getName());
+		DriverVersionT.setValue(getVersion());
+		CommDriverNameT.setValue(com_driver.getName());
+		CommDriverVersionT.setValue(com_driver.getVersion());
+		CommDriverDeviceT.setValue(Device);
+		this.addProperty(DriverTP);
+	    this.addProperty(CommDriverTP);
+		
 	}
 	
 	/**
 	 * Connect to the telescope
 	 */
 	public void connect() {
-		if ((!connected) && (com_driver != null) && (device != null)) {
+		
+		if ((!connected) && (com_driver != null) && (device != null) && (device.length()!=0)) {
 			try {
 				com_driver.connect(device,3000);
 				connected=true;
@@ -215,7 +249,10 @@ public abstract class telescope extends INDIDriver {
 				updateProperty(ConnectSP,"Error connecting "+device+" "+e.getMessage());
 			}
 			
-		}	
+		} else {
+			InterfaceTP.setState(PropertyStates.ALERT);
+			updateProperty(InterfaceTP,"Driver/Port not set");
+		}
 
 	}
 	
@@ -247,6 +284,38 @@ public abstract class telescope extends INDIDriver {
 	@Override
 	public void processNewTextValue(INDITextProperty property, Date timestamp,
 			INDITextElementAndValue[] elementsAndValues) {
+		
+		/**
+		 * Interface Property
+		 */
+		if (property==InterfaceTP) {
+			for (int i=0; i < elementsAndValues.length; i++) {
+				if (elementsAndValues[i].getElement()==InterfaceDriverT) {
+					try {
+						com_driver = (communication_driver) Class.forName("de.hallenbeck.indiserver.communication_drivers."+elementsAndValues[i].getValue()).newInstance();
+					} catch (InstantiationException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (ClassNotFoundException e) {
+						ConnectSP.setState(PropertyStates.ALERT);
+						updateProperty(ConnectSP, "Driver not found "+elementsAndValues[i].getValue());
+					}
+				}
+				
+				if (elementsAndValues[i].getElement()==InterfacePortT) device = elementsAndValues[i].getValue();
+			}
+			
+			if ((com_driver!=null) && (device!=null) && (device.length()!=0)) {
+				property.setState(PropertyStates.OK);
+				updateProperty(InterfaceTP);
+			} else {
+				property.setState(PropertyStates.ALERT);
+				updateProperty(InterfaceTP, "Driver and/or Port not set!");
+			}
+		}
 		
 		/**
 		 * UTC Time Property
@@ -286,8 +355,8 @@ public abstract class telescope extends INDIDriver {
 		 * Move West/East
 		 */
 		if (property==MovementWESP) {
-			if (elem == MoveWestS) onMovementNS('W');
-			if (elem == MoveEastS) onMovementNS('E');
+			if (elem == MoveWestS) onMovementWE('W');
+			if (elem == MoveEastS) onMovementWE('E');
 		}
 		
 	}
@@ -333,8 +402,8 @@ public abstract class telescope extends INDIDriver {
 			}
 			
 			if (ret) {
-				onNewTargetCoords();
 				getTargetCoords();
+				onNewTargetCoords();
 			}
 			else { 
 				property.setState(PropertyStates.ALERT);
@@ -432,6 +501,8 @@ public abstract class telescope extends INDIDriver {
 	 * Called to update the geolocation
 	 */
 	protected abstract void getGeolocation();
+
+	public abstract String getVersion();
 	
 	/**
 	 * Get the Driver name
@@ -440,4 +511,8 @@ public abstract class telescope extends INDIDriver {
 	public String getName() {
 		return null;
 	}
+	
+
+	
+	
 }

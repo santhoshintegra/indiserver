@@ -32,6 +32,8 @@ import laazotea.indi.driver.INDISwitchProperty;
 public class lx200autostar extends lx200basic {
 
 	private final static String driverName = "LX200autostar";
+	private final static int majorVersion = 0;
+	private final static int minorVersion = 1;	
 
 	public lx200autostar(InputStream in, OutputStream out, String Driver, String Device)  {
 		super(in, out, Driver, Device);
@@ -156,6 +158,7 @@ public class lx200autostar extends lx200basic {
 			try {
 				com_driver.read('#'); // Return String "Updating planetary data... #"
 				com_driver.read('#'); // Return String "                           #"
+				getDateTime();
 			} catch (IOException e) {
 				e.printStackTrace();
 				TimeTP.setState(PropertyStates.ALERT);
@@ -186,5 +189,10 @@ public class lx200autostar extends lx200basic {
 	@Override
 	public String getName() {
 		return driverName;
+	}
+	
+	@Override
+	public String getVersion() {
+		return majorVersion+"."+minorVersion;
 	}
 }
