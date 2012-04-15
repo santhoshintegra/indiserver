@@ -1,7 +1,7 @@
 <preference-headers
         xmlns:android="http://schemas.android.com/apk/res/android">
 
-<!--    <header android:fragment="de.hallenbeck.indiserver.activities.main$PrefsServerControl"
+    <header android:fragment="de.hallenbeck.indiserver.activities.main$PrefsServerControl"
             android:icon="@drawable/ic_launcher"
             android:title="Server Control"
             android:summary="Start or stop the Server" />
@@ -11,6 +11,6 @@
         	android:icon="@drawable/ic_launcher"
             android:title="Devices"
             android:summary="Configure your devices">
-    </header> -->
+    </header>
 
 </preference-headers>
