@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" android:key="Prefs" android:title="Preferences">
+    <PreferenceScreen android:key="PrefsServerControl" android:title="Server Control">
+        <CheckBoxPreference android:key="autoconnect" android:title="Autoconnect"/>
+    </PreferenceScreen>
+    <PreferenceScreen android:key="PrefsDeviceDrivers" android:title="Drivers">
+        <EditTextPreference android:dialogMessage="Select Device Driver" android:title="Device Driver" android:dialogTitle="Device Driver" android:key="device_driver"/>
+        <EditTextPreference android:dialogMessage="Set Comm Driver" android:title="Comm Driver" android:dialogTitle="Communication Driver" android:key="com_driver"/>
+        <EditTextPreference android:dialogMessage="Set Device" android:title="Device" android:dialogTitle="Device" android:key="device"/>
+    </PreferenceScreen>
+    <CheckBoxPreference android:key="start" android:title="Start"/>
+    
+
+</PreferenceScreen>
