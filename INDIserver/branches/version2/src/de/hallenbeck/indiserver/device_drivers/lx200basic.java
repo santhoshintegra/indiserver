@@ -74,10 +74,10 @@ public class lx200basic extends telescope {
 	
 	protected static boolean AbortSlew = false; 
 	private final static String driverName = "LX200basic";
-	//private final static int majorVersion = 0;
-	//private final static int minorVersion = 1;	
+	private final static int majorVersion = 0;
+	private final static int minorVersion = 1;	
 	protected final static String FOCUS_GROUP = "Focus Control";
-	protected final static String INFO_GROUP = "Information";
+	
 	
 	/**
 	 * Seperate Thread for slewing and continually updating equatorial coordinates
@@ -129,21 +129,17 @@ public class lx200basic extends telescope {
 	/* INDI Properties for LX200 compatible telescopes */
 	
 	/**********************************************************************************************/
-	/************************************ GROUP: Communication ************************************/
+	/************************************ GROUP: Main Control *************************************/
 	/**********************************************************************************************/
-
+	
 	/********************************************
 	 Property: Telescope Alignment Mode
 	*********************************************/
-	protected INDISwitchProperty AlignmentSP  = new INDISwitchProperty(this, "ALIGNMENT", "Alignment", COMM_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
+	protected INDISwitchProperty AlignmentSP  = new INDISwitchProperty(this, "ALIGNMENT", "Alignment", BASIC_GROUP, PropertyStates.IDLE, PropertyPermissions.RW, 0, SwitchRules.ONE_OF_MANY);
 	protected INDISwitchElement PolarS = new INDISwitchElement(AlignmentSP, "POLAR" , "Polar" , SwitchStatus.ON);
 	protected INDISwitchElement AltAzS = new INDISwitchElement(AlignmentSP, "ALTAZ" , "AltAz" , SwitchStatus.OFF);
 	protected INDISwitchElement LandS = new INDISwitchElement(AlignmentSP, "LAND" , "Land" , SwitchStatus.OFF);
 	
-	/**********************************************************************************************/
-	/************************************ GROUP: Main Control *************************************/
-	/**********************************************************************************************/
-
 	/********************************************
 	 Property: On Coord Set
 	 Description: This property decides what happens
@@ -679,7 +675,7 @@ public class lx200basic extends telescope {
 		case '0':
 			NotAlignedL.setValue(LightStates.ALERT);
 			AlignmentLP.setState(PropertyStates.ALERT);
-			warning = "WARNING: Telescope not aligned - Coordinates may be inaccurate!";
+			warning = "WARNING: Telescope not aligned - Slewing may be inaccurate!";
 			break;
 		case '1':
 			OneStarL.setValue(LightStates.OK);
@@ -781,7 +777,7 @@ public class lx200basic extends telescope {
 			if (updateState) {
 				getAlignmentStatus();
 				EquatorialCoordsRNP.setState(PropertyStates.OK);
-				if (NotAlignedL.getValue()==LightStates.ALERT) EquatorialCoordsRNP.setState(PropertyStates.ALERT);
+				//if (NotAlignedL.getValue()==LightStates.ALERT) EquatorialCoordsRNP.setState(PropertyStates.ALERT);
 				updateProperty(EquatorialCoordsRNP,"Current coords RA: "+RARN.getValueAsString()+" DEC: "+DECRN.getValueAsString());
 			} else 
 				updateProperty(EquatorialCoordsRNP);
@@ -1055,7 +1051,7 @@ public class lx200basic extends telescope {
 	 * @return string 
 	 */
 	protected synchronized String getCommandString(String command) {
-		String tmp=null;
+		String tmp="";
 		try {
 			com_driver.write(command);
 			tmp = com_driver.read('#');
@@ -1078,7 +1074,7 @@ public class lx200basic extends telescope {
 	 * @return
 	 */
 	protected synchronized String getCommandString(String command, int len) {
-		String tmp=null;
+		String tmp="";
 		try {
 			com_driver.write(command);
 			tmp = com_driver.read(len);
@@ -1110,6 +1106,11 @@ public class lx200basic extends telescope {
 			INDIBLOBElementAndValue[] elementsAndValues) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public String getVersion() {
+		return majorVersion+"."+minorVersion;
 	}
 	
 }

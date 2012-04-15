@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.os.Looper;
 
 /**
  * Bluetooth-Serial-Port-Profile driver for short-range wireless connection to telescope
@@ -43,9 +44,13 @@ public class bluetooth_serial extends serial {
 	private BluetoothAdapter btAdapter;
 	private BluetoothSocket btSocket;
     private BluetoothDevice btDevice;
+    private static final String DriverName="bluetooth_serial";
+	private static final int majorVersion=0;
+	private static final int minorVersion=1;
     
     public bluetooth_serial() {
     	super();
+    	
     	// Get the default Bluetooth Adapter
     	btAdapter = BluetoothAdapter.getDefaultAdapter();
     }
@@ -59,9 +64,12 @@ public class bluetooth_serial extends serial {
 		
 		if (btAdapter == null) throw new IOException("Bluetooth not available"); 
 
-		btDevice = btAdapter.getRemoteDevice(device);
+		
 
 		try {
+		
+			btDevice = btAdapter.getRemoteDevice(device);
+			
 			// Get a BluetoothSocket for a connection with the
 			// given BluetoothDevice
 
@@ -117,4 +125,13 @@ public class bluetooth_serial extends serial {
 		}
 	}
 	
+    @Override
+	public String getVersion() {
+		return majorVersion+"."+minorVersion;
+	}
+
+	@Override
+	public String getName() {
+		return DriverName;
+	}
 }

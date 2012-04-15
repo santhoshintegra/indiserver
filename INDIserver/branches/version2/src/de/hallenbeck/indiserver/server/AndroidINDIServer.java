@@ -39,7 +39,7 @@ public class AndroidINDIServer extends DefaultINDIServer {
 			notifyUser("INDIserver started","Waiting for Clients...",true);
 		} catch (INDIException e) {
 			e.printStackTrace();
-			notifyUser("INDIserver stopped", "ERROR loading drivers", false);
+			notifyUser("INDIserver stopped", "ERROR loading drivers" + e.getMessage(), false);
 		}
 	}
 

@@ -39,7 +39,10 @@ public class serial extends communication_driver {
 	protected OutputStream OutStream;
 	protected InputStreamReader InReader;
 	protected BufferedReader BufReader;
-
+	private static final String DriverName="serial";
+	private static final int majorVersion=0;
+	private static final int minorVersion=1;
+		
 	@Override
     protected void onConnect(String device) throws IOException {
 		
@@ -112,6 +115,16 @@ public class serial extends communication_driver {
 		ret = ret.trim();
 		
 		return ret;
+	}
+
+	@Override
+	public String getVersion() {
+		return majorVersion+"."+minorVersion;
+	}
+
+	@Override
+	public String getName() {
+		return DriverName;
 	}
 	
 }
