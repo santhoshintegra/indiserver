@@ -71,9 +71,9 @@ public abstract class telescope extends INDIDriver {
 	
 	protected static INDISexagesimalFormatter sexa = new INDISexagesimalFormatter("%10.6m");
 	protected static INDISexagesimalFormatter sexaGeo = new INDISexagesimalFormatter("%6.3m");
-	protected static communication_driver com_driver=null;
-	private static String device=null;
-	private static boolean connected=false;
+	protected communication_driver com_driver=null;
+	private String device=null;
+	private boolean connected=false;
 
 	/**
 	   * The class of the Driver.
@@ -246,7 +246,7 @@ public abstract class telescope extends INDIDriver {
 		
 		if ((!connected) && (com_driver != null) && (device != null) && (device.length()!=0)) {
 			try {
-				com_driver.connect(device,3000);
+				com_driver.connect(device,10000);
 				connected=true;
 				ConnectS.setValue(SwitchStatus.ON);
 				ConnectSP.setState(PropertyStates.OK);

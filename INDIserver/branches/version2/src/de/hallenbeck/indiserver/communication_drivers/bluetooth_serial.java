@@ -50,7 +50,7 @@ public class bluetooth_serial extends serial {
 	private static final int minorVersion=1;
     
     public bluetooth_serial(Context context) {
-    	super();
+    	super(context);
     	
     	// Get the default Bluetooth Adapter
     	btAdapter = BluetoothAdapter.getDefaultAdapter();

@@ -26,6 +26,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 
+import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.BaudRate;
+import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.DataBits;
+import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.Parity;
+import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.StopBits;
+
+import android.content.Context;
+
 /**
  * Serial communication driver for devices with /dev/ttyS or /dev/ttyUSB support
  * Base class for all other communication drivers as they all use serial communication
@@ -42,10 +49,24 @@ public class serial extends communication_driver {
 	private static final String DriverName="serial";
 	private static final int majorVersion=0;
 	private static final int minorVersion=1;
-		
+	private usbhost_serial_pl2303 pl2303;
+	private Context AppContext;
+	
+	public serial(Context context) {
+		AppContext = context;
+		pl2303 = new usbhost_serial_pl2303(AppContext);
+		//pl2303.connect();
+		//pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE);
+	}
+	
 	@Override
     protected void onConnect(String device) throws IOException {
 		
+		InStream = pl2303.getInputStream();
+		OutStream = pl2303.getOutputStream();
+		// Construct Readers
+		InReader = new InputStreamReader(InStream);
+		BufReader = new BufferedReader (InReader);
 	}
 
 	@Override

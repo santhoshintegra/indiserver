@@ -11,6 +11,7 @@ import android.support.v4.app.NotificationCompat;
 import de.hallenbeck.indiserver.R;
 import de.hallenbeck.indiserver.activities.main;
 import de.hallenbeck.indiserver.communication_drivers.bluetooth_serial;
+import de.hallenbeck.indiserver.communication_drivers.serial;
 import de.hallenbeck.indiserver.device_drivers.lx200autostar;
 import de.hallenbeck.indiserver.device_drivers.lx200basic;
 
@@ -35,8 +36,8 @@ public class AndroidINDIServer extends DefaultINDIServer {
 		
 		// Loads the Java Driver. Please note that this must be in the classpath.
 		try {
-			loadAndroidDriver(lx200autostar.class, bluetooth_serial.class, Device);
-			loadAndroidDriver(lx200basic.class, bluetooth_serial.class, Device);
+			loadAndroidDriver(lx200autostar.class, serial.class, Device);
+			//loadAndroidDriver(lx200basic.class, bluetooth_serial.class, Device);
 			notifyUser("INDIserver started","Waiting for Clients...",true);
 		} catch (INDIException e) {
 			e.printStackTrace();
