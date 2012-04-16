@@ -27,7 +27,9 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -52,6 +54,7 @@ import android.hardware.usb.UsbRequest;
 public class usbhost_serial_pl2303 implements Runnable {
 
 	private Context AppContext; 
+	//private PendingIntent mPermissionIntent;
 	private UsbManager mUsbManager;
     //private UsbDevice mDevice;
     private UsbDeviceConnection mConnection;
@@ -109,7 +112,7 @@ public class usbhost_serial_pl2303 implements Runnable {
     
     private static final String ACTION_USB_PERMISSION 	=   "com.android.hardware.USB_PERMISSION";
 
-    private BlockingQueue<Byte> readQueue;
+    private ArrayBlockingQueue<Byte> readQueue = new ArrayBlockingQueue<Byte>(80,true);
     
     
     // BraodcastReceiver for permission to use USB-Device
@@ -134,15 +137,14 @@ public class usbhost_serial_pl2303 implements Runnable {
     };
     
     // Constructor
-    public void usbhost_serial_pl2302(Context context) {
+    public usbhost_serial_pl2303(Context context) {
     	AppContext = context;
-    	UsbManager mUsbManager = (UsbManager) AppContext.getSystemService(Context.USB_SERVICE);
-
+    	mUsbManager = (UsbManager) AppContext.getSystemService(Context.USB_SERVICE);
+    	
     	// Register BroadcastReceiver for Permission Intent
-    	PendingIntent mPermissionIntent = PendingIntent.getBroadcast(AppContext, 0, new Intent(ACTION_USB_PERMISSION), 0);
+    	
     	IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
     	AppContext.registerReceiver(mUsbReceiver, filter);
-    	
     	// Get the USB device list
     	HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
     	
@@ -151,11 +153,19 @@ public class usbhost_serial_pl2303 implements Runnable {
     	while(deviceIterator.hasNext()){
     	    UsbDevice device = deviceIterator.next();
     	    if ((device.getProductId()==0x2303) && (device.getVendorId()==0x067b)) {
+    	    	PendingIntent mPermissionIntent;
+    	    	mPermissionIntent = PendingIntent.getBroadcast(AppContext, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_CANCEL_CURRENT);
+    	    	
     	    	// Request the permission to use the device
     	    	mUsbManager.requestPermission(device, mPermissionIntent);
     	    	break;	
     	    }
     	}
+    	
+    }
+    
+    public void connect() {
+    	
     }
     
     // Open the device and start the runnable
@@ -168,6 +178,8 @@ public class usbhost_serial_pl2303 implements Runnable {
     		UsbDeviceConnection connection = mUsbManager.openDevice(device);
     		if (connection != null && connection.claimInterface(intf, true)) {
     			mConnection = connection;
+    			// Setup 
+    			setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE);
     			Thread thread = new Thread(this);
     			thread.start();
     		} else {
@@ -270,13 +282,12 @@ public class usbhost_serial_pl2303 implements Runnable {
     			byte ret=0;
     			int i = offset;
     			while  (i<(offset+length)) { 
-    				try {
-    					ret = (Byte) readQueue.remove();
-    					buffer[i]=ret;
-        				i++;
-    				} catch (NoSuchElementException e) {
-    					break;
-    				}
+    				if (readQueue.peek() != null) {
+						ret = (Byte) readQueue.poll();
+						buffer[i]=ret;
+						i++;
+						
+					}
     			}
     			return (i-offset);
     		}
@@ -314,13 +325,15 @@ public class usbhost_serial_pl2303 implements Runnable {
         request.initialize(mConnection, ep2);
     	//setup(BaudRate.B9600, DataBits.D8, StopBits.S1, Parity.NONE);
         while (true) {
-            request.queue(readBuffer, 1);
-            if (mConnection.requestWait() == request) {
-                readQueue.add(readBuffer.get(0));
-            } else {
-            	// Connection lost
-                break;
-            }
+        	request.queue(readBuffer, 1);
+        		if (mConnection.requestWait() == request) {
+        			int t = readBuffer.get(0);
+        			readQueue.add((byte)t);
+        		} else {
+        			// Connection lost
+        			break;
+        		}
+        	
         }
 	}
 }
