@@ -84,7 +84,6 @@ public class usbhost_serial_pl2303 implements Runnable {
     
     public enum StopBits {
     	S1,
-    	S15,
     	S2
     };
     
@@ -106,14 +105,13 @@ public class usbhost_serial_pl2303 implements Runnable {
     private static final int VENDOR_WRITE_REQUEST_TYPE	=	0x40;
     private static final int VENDOR_WRITE_REQUEST		=	0x01;
     
-    private static final String ACTION_USB_PERMISSION 	=   "com.android.example.USB_PERMISSION";
+    private static final String ACTION_USB_PERMISSION 	=   "com.android.hardware.USB_PERMISSION";
 
     private ByteBuffer readBuffer = ByteBuffer.allocate(1);
-    private boolean BufferReady=false;
+    private boolean BufferReady = false;
     
-    // BraodcastReceiver for permission
+    // BraodcastReceiver for permission to use USB-Device
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (ACTION_USB_PERMISSION.equals(action)) {
@@ -138,7 +136,7 @@ public class usbhost_serial_pl2303 implements Runnable {
     	AppContext = context;
     	UsbManager mUsbManager = (UsbManager) AppContext.getSystemService(Context.USB_SERVICE);
 
-    	// Register Receiver for Permission Intent
+    	// Register BroadcastReceiver for Permission Intent
     	PendingIntent mPermissionIntent = PendingIntent.getBroadcast(AppContext, 0, new Intent(ACTION_USB_PERMISSION), 0);
     	IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
     	AppContext.registerReceiver(mUsbReceiver, filter);
@@ -151,36 +149,32 @@ public class usbhost_serial_pl2303 implements Runnable {
     	while(deviceIterator.hasNext()){
     	    UsbDevice device = deviceIterator.next();
     	    if ((device.getProductId()==0x2303) && (device.getVendorId()==0x067b)) {
-    	    	// Request permission
+    	    	// Request the permission to use the device
     	    	mUsbManager.requestPermission(device, mPermissionIntent);
     	    	break;	
     	    }
     	}
     }
     
+    // Open the device and start the runnable
     private void setDevice(UsbDevice device) {
-
     	UsbInterface intf = device.getInterface(0);
     	ep1 = intf.getEndpoint(1); //endpoint addr 0x2 = output bulk
     	ep2 = intf.getEndpoint(2); //endpoint addr 0x83 = input bulk
-
     	//mDevice = device;
     	if (device != null) {
-
     		UsbDeviceConnection connection = mUsbManager.openDevice(device);
     		if (connection != null && connection.claimInterface(intf, true)) {
-
     			mConnection = connection;
     			Thread thread = new Thread(this);
     			thread.start();
-
     		} else {
-
     			mConnection = null;
     		}
     	}
     }
     
+    // Setup the communication parameters
     public void setup(BaudRate R, DataBits D, StopBits S, Parity P) {
     	byte[] buffer = new byte[7];
     	
@@ -219,7 +213,6 @@ public class usbhost_serial_pl2303 implements Runnable {
     	// Setup Stopbits
     	switch (S) {
     	case S1: buffer[4] = 0; break;
-    	case S15: buffer[4] = 1; break;
     	case S2: buffer[4] = 2; break;
     	}
     	
@@ -244,9 +237,10 @@ public class usbhost_serial_pl2303 implements Runnable {
     	// Disable BreakControl
     	mConnection.controlTransfer(BREAK_REQUEST_TYPE, BREAK_REQUEST, BREAK_OFF, 0, null, 0, 100);
     	
+    	//TODO: Setup FlowControl
     }
     
-   
+    // Send one byte to the device
     private void sendByte(int data) {
     	synchronized (this) {
             if (mConnection != null) {
@@ -257,7 +251,7 @@ public class usbhost_serial_pl2303 implements Runnable {
          }
     }
     
-    
+    // create InputStream
     public InputStream getInputStream() {
     	InputStream in = new InputStream() {
     		@Override
@@ -278,6 +272,7 @@ public class usbhost_serial_pl2303 implements Runnable {
     	return in;
     }
     
+    // create OutputStream
     public OutputStream getOutputStream() {
     	OutputStream out = new OutputStream() {
     		@Override 
@@ -294,6 +289,7 @@ public class usbhost_serial_pl2303 implements Runnable {
     	return out;
     }
 	
+    // The runnable which continually reads from the device 
 	@Override
 	public void run() {
 		
