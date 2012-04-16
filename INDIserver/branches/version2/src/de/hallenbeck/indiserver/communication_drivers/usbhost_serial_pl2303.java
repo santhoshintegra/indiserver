@@ -144,7 +144,7 @@ public class usbhost_serial_pl2303 implements Runnable {
     	// Get the USB device list
     	HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
     	
-    	// Scan the devices and find the first PL2303-Adaptor
+    	// Scan the devices and find the first PL2303-Adaptor (All others will be ignored)
     	Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
     	while(deviceIterator.hasNext()){
     	    UsbDevice device = deviceIterator.next();
