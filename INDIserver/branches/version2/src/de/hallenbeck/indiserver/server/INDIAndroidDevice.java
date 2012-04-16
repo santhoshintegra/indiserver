@@ -20,7 +20,9 @@ package de.hallenbeck.indiserver.server;
 	 */
 
 
-	import com.Ostermiller.util.CircularByteBuffer;
+	import android.content.Context;
+
+import com.Ostermiller.util.CircularByteBuffer;
 	import java.io.IOException;
 	import java.io.InputStream;
 	import java.io.OutputStream;
@@ -30,6 +32,7 @@ package de.hallenbeck.indiserver.server;
 	import laazotea.indi.driver.INDIDriver;
 import laazotea.indi.server.AbstractINDIServer;
 import laazotea.indi.server.INDIDevice;
+import de.hallenbeck.indiserver.communication_drivers.communication_driver;
 import de.hallenbeck.indiserver.device_drivers.telescope;
 
 	/**
@@ -76,7 +79,7 @@ import de.hallenbeck.indiserver.device_drivers.telescope;
 	   * @param identifier The JAR file from where to load the Driver.
 	   * @throws INDIException if there is any problem instantiating the Driver.
 	   */
-	  protected INDIAndroidDevice(AbstractINDIServer server, Class driverClass, String identifier, String ComDriver, String Device) throws INDIException {
+	  protected INDIAndroidDevice(Context context, AbstractINDIServer server, Class<telescope> driverClass, String identifier, Class<communication_driver> ComdriverClass, String Device) throws INDIException {
 	    super(server);
 	    
 	    name = null;
@@ -87,8 +90,8 @@ import de.hallenbeck.indiserver.device_drivers.telescope;
 	    fromDriver = new CircularByteBuffer(CircularByteBuffer.INFINITE_SIZE);
 	    
 	    try {
-	      Constructor c = driverClass.getConstructor(InputStream.class, OutputStream.class, String.class, String.class);
-	      this.driver = (telescope) c.newInstance(toDriver.getInputStream(), fromDriver.getOutputStream(), ComDriver, Device);
+	      Constructor c = driverClass.getConstructor(Context.class, InputStream.class, OutputStream.class, Class.class, String.class);
+	      this.driver = (telescope) c.newInstance(context, toDriver.getInputStream(), fromDriver.getOutputStream(), ComdriverClass, Device);
 	    } catch (InstantiationException ex) {
 	      throw new INDIException("Problem instantiating driver (not an INDIfor Java Driver?)");
 	    } catch (IllegalAccessException ex) {

@@ -8,6 +8,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import de.hallenbeck.indiserver.communication_drivers.communication_driver;
+
+import android.content.Context;
+
 
 import laazotea.indi.INDIDateFormat;
 import laazotea.indi.Constants.PropertyStates;
@@ -35,8 +39,8 @@ public class lx200autostar extends lx200basic {
 	private final static int majorVersion = 0;
 	private final static int minorVersion = 1;	
 
-	public lx200autostar(InputStream in, OutputStream out, String Driver, String Device)  {
-		super(in, out, Driver, Device);
+	public lx200autostar(Context context, InputStream in, OutputStream out, Class<communication_driver> driverClass, String Device)  {
+		super(context, in, out, driverClass, Device);
 	}
 	
 	// Additional Slew speed elements (Speed 3-7)

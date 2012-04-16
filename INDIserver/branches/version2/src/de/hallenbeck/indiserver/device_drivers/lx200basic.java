@@ -29,6 +29,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import android.content.Context;
+
 import laazotea.indi.Constants.LightStates;
 import laazotea.indi.INDIDateFormat;
 import laazotea.indi.Constants.PropertyPermissions;
@@ -49,6 +51,7 @@ import laazotea.indi.driver.INDITextElement;
 import laazotea.indi.driver.INDITextElementAndValue;
 import laazotea.indi.driver.INDITextProperty;
 
+import de.hallenbeck.indiserver.communication_drivers.communication_driver;
 import de.hallenbeck.indiserver.device_drivers.lx200commands;
 
 /**
@@ -318,8 +321,8 @@ public class lx200basic extends telescope {
 	 * Constructor with input and outputstream for indi-xml-messages.
 	 */
 
-	public lx200basic(InputStream in, OutputStream out, String Driver, String Device)  {
-		super(in, out, Driver, Device);
+	public lx200basic(Context context, InputStream in, OutputStream out, Class<communication_driver> driverClass, String Device)  {
+		super(context, in, out, driverClass, Device);
 	}
 
 	/**
