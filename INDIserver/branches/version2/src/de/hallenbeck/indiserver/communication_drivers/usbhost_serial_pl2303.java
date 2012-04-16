@@ -26,6 +26,8 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.concurrent.BlockingQueue;
 
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -107,8 +109,8 @@ public class usbhost_serial_pl2303 implements Runnable {
     
     private static final String ACTION_USB_PERMISSION 	=   "com.android.hardware.USB_PERMISSION";
 
-    private ByteBuffer readBuffer = ByteBuffer.allocate(1);
-    private boolean BufferReady = false;
+    private BlockingQueue<Byte> readQueue;
+    
     
     // BraodcastReceiver for permission to use USB-Device
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
@@ -255,17 +257,32 @@ public class usbhost_serial_pl2303 implements Runnable {
     public InputStream getInputStream() {
     	InputStream in = new InputStream() {
     		@Override
-    		public int read() {
-    			return readBuffer.get(0);
+    		public int read(){
+    			int ret=-1;
+				try {
+					ret = (Byte) readQueue.take();
+				} catch (InterruptedException e) {
+				}
+    			return ret;
     		}
     		@Override
     		public int read(byte[] buffer, int offset, int length) {
-    			buffer[offset]=readBuffer.get(0);
-    			return 1;
+    			byte ret=0;
+    			int i = offset;
+    			while  (i<(offset+length)) { 
+    				try {
+    					ret = (Byte) readQueue.remove();
+    					buffer[i]=ret;
+        				i++;
+    				} catch (NoSuchElementException e) {
+    					break;
+    				}
+    			}
+    			return (i-offset);
     		}
     		@Override
     		public int available() {
-    			if (BufferReady) return 1;
+    			if (readQueue.peek() != null) return 1;
     			else return 0;
     		}
     	};
@@ -292,15 +309,14 @@ public class usbhost_serial_pl2303 implements Runnable {
     // The runnable which continually reads from the device 
 	@Override
 	public void run() {
-		
+		ByteBuffer readBuffer = ByteBuffer.allocate(1);
         UsbRequest request = new UsbRequest();
         request.initialize(mConnection, ep2);
     	//setup(BaudRate.B9600, DataBits.D8, StopBits.S1, Parity.NONE);
         while (true) {
-        	BufferReady=false;
             request.queue(readBuffer, 1);
             if (mConnection.requestWait() == request) {
-                BufferReady=true;
+                readQueue.add(readBuffer.get(0));
             } else {
             	// Connection lost
                 break;
