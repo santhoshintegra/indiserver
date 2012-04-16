@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.os.Looper;
 
 /**
@@ -48,7 +49,7 @@ public class bluetooth_serial extends serial {
 	private static final int majorVersion=0;
 	private static final int minorVersion=1;
     
-    public bluetooth_serial() {
+    public bluetooth_serial(Context context) {
     	super();
     	
     	// Get the default Bluetooth Adapter

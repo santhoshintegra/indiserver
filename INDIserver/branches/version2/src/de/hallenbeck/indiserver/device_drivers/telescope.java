@@ -26,8 +26,11 @@ package de.hallenbeck.indiserver.device_drivers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 
+import android.content.Context;
 import android.os.Looper;
 
 import laazotea.indi.INDIDateFormat;
@@ -72,6 +75,11 @@ public abstract class telescope extends INDIDriver {
 	private static String device=null;
 	private static boolean connected=false;
 
+	/**
+	   * The class of the Driver.
+	   */
+	  private Class driverClass;
+	  
 	/* Only the very basic INDI-Properties, that every telescope should have */
 	
 	/**********************************************************************************************/
@@ -187,21 +195,31 @@ public abstract class telescope extends INDIDriver {
 	 * @param Driver class
 	 * @param Device to connect to
 	 */
-	protected telescope(InputStream in, OutputStream out, String Driver, String Device) {
+	protected telescope(Context context, InputStream in, OutputStream out, Class<communication_driver> driverClass, String Device) {
 		super(in, out);
 		this.addProperty(ConnectSP);
-		if (Driver != null)
+		this.driverClass = driverClass;
+		if (driverClass != null)
 			try {
-				com_driver = (communication_driver) Class.forName("de.hallenbeck.indiserver.communication_drivers."+Driver).newInstance();
+				Constructor c = driverClass.getConstructor(Context.class);
+			    com_driver = (communication_driver) c.newInstance(context);
+				
+				//com_driver = (communication_driver) Class.forName("de.hallenbeck.indiserver.communication_drivers."+Driver).newInstance();
 			} catch (InstantiationException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
-				ConnectSP.setState(PropertyStates.ALERT);
-				updateProperty(ConnectSP, "Driver not found "+Driver);
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchMethodException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		
 		device = Device;
