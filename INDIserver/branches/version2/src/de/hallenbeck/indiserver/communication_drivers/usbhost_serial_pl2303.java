@@ -44,8 +44,13 @@ import android.util.Log;
 /**
  * PL2303 USB Serial Adapter Driver for
  * devices with android usbhost-support (3.2 upwards)
- * Based on pl2303.c from linux sources
- *  
+ * Based on pl2303.c from linux sources:
+ * http://lxr.free-electrons.com/source/drivers/usb/serial/pl2303.c
+ * 
+ * Supports PL2303 and newer PL2303HX-types 
+ * 
+ * TODO: support multiple adaptors, implement RTS/CTS FlowControl, add support for DCD/DTR  
+ * 
  * @author atuschen75 at gmail dot com
  *
  */
@@ -54,12 +59,16 @@ public class usbhost_serial_pl2303 {
 	private Context AppContext; 
 	private UsbManager mUsbManager;
 	private UsbDevice mDevice;
-    private static UsbDeviceConnection mConnection;
-    private static UsbInterface intf;
-    private static UsbEndpoint ep1;
-    private static UsbEndpoint ep2;
-    private pl2303connect ConnectCallback; 	// Callback method after permission to device was granted
-    private int pl2303type = 0; 			// Type 0 = PL2303, type 1 = PL2303HX
+    private UsbDeviceConnection mConnection;
+    private UsbInterface intf;
+    private UsbEndpoint ep1;
+    private UsbEndpoint ep2;
+    
+    // Callback method after permission to device was granted
+    private pl2303connect ConnectCallback; 	
+    
+    // Type 0 = PL2303, type 1 = PL2303HX
+    private int pl2303type = 0; 			
     
     public enum BaudRate {
     	B0, 
@@ -136,6 +145,8 @@ public class usbhost_serial_pl2303 {
                 		Log.d("open", "Device Name: "+mDevice.getDeviceName());
                 		Log.d("open", "VendorID: "+mDevice.getVendorId());
                 		Log.d("open", "ProductID: "+mDevice.getProductId());
+                		
+                		// Callback
                         ConnectCallback.onConnect();
                     } 
                     else {
@@ -177,7 +188,7 @@ public class usbhost_serial_pl2303 {
     	}
     }
     
-    // Open the device
+    // Open the connection
     public boolean open() {
     	UsbDeviceConnection connection = mUsbManager.openDevice(mDevice);
     	if (connection != null && connection.claimInterface(intf, true)) {
@@ -208,13 +219,19 @@ public class usbhost_serial_pl2303 {
     	}
     }
     
+    // Close the connection
+    public void close() {
+    	if (mConnection != null) {
+    		mConnection.releaseInterface(intf);
+    		mConnection.close();
+    		mConnection = null;
+    	}
+    }
+    
+    // Are we connected?
     public boolean isConnected() {
     	if (mConnection != null) return true;
     	else return false;
-    }
-    
-    public void close() {
-    	if (mConnection != null) mConnection.close();
     }
     
     // Setup basic communication parameters according to linux pl2303.c driver 
@@ -296,14 +313,19 @@ public class usbhost_serial_pl2303 {
     	if (buffer != oldSettings) mConnection.controlTransfer(SET_LINE_REQUEST_TYPE, SET_LINE_REQUEST, 0, 0, buffer, 7, 100); 
 
     	// Disable BreakControl
-    	// mConnection.controlTransfer(BREAK_REQUEST_TYPE, BREAK_REQUEST, BREAK_OFF, 0, null, 0, 100);
+    	mConnection.controlTransfer(BREAK_REQUEST_TYPE, BREAK_REQUEST, BREAK_OFF, 0, null, 0, 100);
     	
-    	//TODO: Setup FlowControl
+    	// Disable FlowControl
+    	mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 0, null, 0, 100);
+    	
+    	//TODO: implement RTS/CTS FlowControl
     }
     
     // create InputStream
-    public static InputStream getInputStream() {
+    public InputStream getInputStream() {
     	InputStream in = new InputStream() {
+    		
+    		// Blocking read
     		@Override
     		public int read() throws IOException {
     			synchronized (this) {
@@ -323,6 +345,8 @@ public class usbhost_serial_pl2303 {
     				return retVal;
     			}
     		}
+    		
+    		// Non-blocking read
     		@Override
     		public int read(byte[] buffer, int offset, int length) throws IOException, IndexOutOfBoundsException {
     			synchronized (this) {
@@ -335,7 +359,6 @@ public class usbhost_serial_pl2303 {
     				len = mConnection.bulkTransfer(ep2, readBuffer, length, 100);
     				if (len>=0) System.arraycopy(readBuffer, 0, buffer, offset, len);
     				else len=0;
-    				Log.d("read():","len="+len);
     				return len;	
     			}
     		}
@@ -344,8 +367,10 @@ public class usbhost_serial_pl2303 {
     }
     
     // create OutputStream
-    public static OutputStream getOutputStream() {
+    public OutputStream getOutputStream() {
     	OutputStream out = new OutputStream() {
+    		
+    		// Blocking write
     		@Override 
     		public void write(int oneByte) throws IOException{
     			synchronized (this) {
@@ -360,6 +385,8 @@ public class usbhost_serial_pl2303 {
     				if (retRequest == null) throw new IOException("WriteRequest failed");
     			}
     		}
+    		
+    		// Non-blocking write
     		@Override
     		public void write (byte[] buffer, int offset, int count) throws IOException, IndexOutOfBoundsException {
     			synchronized (this) {
@@ -369,7 +396,7 @@ public class usbhost_serial_pl2303 {
     				if (ep1.getDirection() != UsbConstants.USB_DIR_OUT) throw new IOException("Not an Output-Endpoint");
     				byte [] writeBuffer = new byte[count];
     				System.arraycopy(buffer, offset, writeBuffer, 0, count);
-    				int len = mConnection.bulkTransfer(ep1, writeBuffer, count, 0);
+    				int len = mConnection.bulkTransfer(ep1, writeBuffer, count, 100);
     				if (len != count) throw new IOException ("BulkWrite failed - len: "+len+" count: "+count);
     			}
     		}
