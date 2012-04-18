@@ -40,7 +40,7 @@ import android.content.Context;
  *
  */
 
-public class serial extends communication_driver {
+public class serial extends communication_driver implements pl2303connect {
 
 	protected InputStream InStream;
 	protected OutputStream OutStream;
@@ -54,9 +54,8 @@ public class serial extends communication_driver {
 	
 	public serial(Context context) {
 		AppContext = context;
-		pl2303 = new usbhost_serial_pl2303(AppContext);
-		//pl2303.connect();
-		//pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE);
+		pl2303 = new usbhost_serial_pl2303(AppContext, this);
+		
 	}
 	
 	@Override
@@ -101,7 +100,8 @@ public class serial extends communication_driver {
 		
 		while ((c != stopchar) && (System.currentTimeMillis()<endTimeMillis)) {
 			int b=0;
-			if (BufReader.ready()) b = BufReader.read(chararray, pos, 1);
+			//if (BufReader.ready()) 
+			b = BufReader.read(chararray, pos, 1);
 			if (b == 1) {
 				if (chararray[pos]== (char) 65533) chararray[pos]=42; // Workaround for Autostar Degree-sign
 				c = chararray[pos];
@@ -127,7 +127,8 @@ public class serial extends communication_driver {
 		
 		while ((pos != len) && (System.currentTimeMillis()<endTimeMillis)) {
 			int b=0;
-			if (BufReader.ready()) b = BufReader.read(chararray, pos, 1);
+			//if (BufReader.ready()) 
+			b = BufReader.read(chararray, pos, 1);
 			if (b == 1) pos++;
 		}
 		if (pos != len) throw new IOException("Timeout");
@@ -146,6 +147,18 @@ public class serial extends communication_driver {
 	@Override
 	public String getName() {
 		return DriverName;
+	}
+
+	@Override
+	public void onConnect() {
+		if (pl2303.open())
+			try {
+				pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
 	}
 	
 }
