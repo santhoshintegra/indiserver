@@ -47,7 +47,7 @@ import android.util.Log;
  * Based on pl2303.c from linux sources:
  * http://lxr.free-electrons.com/source/drivers/usb/serial/pl2303.c
  * 
- * Supports PL2303 and newer PL2303HX-types 
+ * Supports PL2303 and newer PL2303HX-types (both tested)
  * 
  * TODO: support multiple adaptors, implement RTS/CTS FlowControl, add support for DCD/DTR  
  * 
@@ -328,7 +328,8 @@ public class usbhost_serial_pl2303 {
     			synchronized (this) {
     				int retVal= -1;
     				if (mConnection == null) throw new IOException("Connection closed");
-    				if ((ep2.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK) && (ep2.getType() != UsbConstants.USB_ENDPOINT_XFER_INT)) throw new IOException("Not an Interrupt or Bulk-Endpoint");
+    				if ((ep2.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK) && (ep2.getType() != UsbConstants.USB_ENDPOINT_XFER_INT)) 
+    					throw new IOException("Not an Interrupt or Bulk-Endpoint");
     				if (ep2.getDirection() != UsbConstants.USB_DIR_IN) throw new IOException("Not an Input-Endpoint");
     				ByteBuffer readBuffer = ByteBuffer.allocate(1);
     				UsbRequest request = new UsbRequest();
@@ -372,7 +373,8 @@ public class usbhost_serial_pl2303 {
     		public void write(int oneByte) throws IOException{
     			synchronized (this) {
     				if (mConnection == null) throw new IOException("Connection closed");
-    				if ((ep1.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK) && (ep2.getType() != UsbConstants.USB_ENDPOINT_XFER_INT)) throw new IOException("Not an Interrupt or Bulk-Endpoint");
+    				if ((ep1.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK) && (ep2.getType() != UsbConstants.USB_ENDPOINT_XFER_INT)) 
+    					throw new IOException("Not an Interrupt or Bulk-Endpoint");
     				if (ep1.getDirection() != UsbConstants.USB_DIR_OUT) throw new IOException("Not an Output-Endpoint");
     				ByteBuffer writeBuffer = ByteBuffer.allocate(1);
     				UsbRequest request = new UsbRequest();
