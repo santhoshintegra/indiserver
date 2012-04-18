@@ -142,9 +142,9 @@ public class usbhost_serial_pl2303 {
                 		intf = mDevice.getInterface(0);
                 		ep1 = intf.getEndpoint(1); //endpoint addr 0x2 = output bulk
                 		ep2 = intf.getEndpoint(2); //endpoint addr 0x83 = input bulk
-                		Log.d("open", "Device Name: "+mDevice.getDeviceName());
-                		Log.d("open", "VendorID: "+mDevice.getVendorId());
-                		Log.d("open", "ProductID: "+mDevice.getProductId());
+                		Log.d("BroadcastReceiver", "Device Name: "+mDevice.getDeviceName());
+                		Log.d("BroadcastReceiver", "VendorID: "+mDevice.getVendorId());
+                		Log.d("BroadcastReceiver", "ProductID: "+mDevice.getProductId());
                 		
                 		// Callback
                         ConnectCallback.onConnect();
