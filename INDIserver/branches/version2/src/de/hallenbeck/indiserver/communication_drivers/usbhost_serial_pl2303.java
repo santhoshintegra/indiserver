@@ -237,17 +237,13 @@ public class usbhost_serial_pl2303 {
     
     // Setup basic communication parameters according to linux pl2303.c driver 
     public void setup(BaudRate R, DataBits D, StopBits S, Parity P) throws IOException {
-    	byte[] oldSettings = new byte [7];
+    	byte[] oldSettings = new byte[7];
     	byte[] buffer = new byte[7];
-    	
-    	for (int i=0;i==7;i++) {
-    		buffer[i]=0;
-    	}
     	
     	if (mConnection == null) throw new IOException("Connection closed");
     	
+    	// Get current settings
     	mConnection.controlTransfer(GET_LINE_REQUEST_TYPE, GET_LINE_REQUEST, 0, 0, oldSettings, 7, 100);
-    	//mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 1, null, 0, 100);
     	
     	buffer = oldSettings;
     	
