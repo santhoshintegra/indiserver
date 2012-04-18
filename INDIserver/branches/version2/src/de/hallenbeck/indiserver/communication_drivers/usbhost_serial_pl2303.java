@@ -172,6 +172,7 @@ public class usbhost_serial_pl2303 {
     	HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
 
     	// Scan the devices and find the first PL2303-Adaptor (All others will be ignored)
+    	// TODO: select one adaptor if multiple adaptors are present
     	Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
     	while(deviceIterator.hasNext()){
     	    UsbDevice device = deviceIterator.next();
@@ -246,7 +247,7 @@ public class usbhost_serial_pl2303 {
     	if (mConnection == null) throw new IOException("Connection closed");
     	
     	mConnection.controlTransfer(GET_LINE_REQUEST_TYPE, GET_LINE_REQUEST, 0, 0, oldSettings, 7, 100);
-    	mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 1, null, 0, 100);
+    	//mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 1, null, 0, 100);
     	
     	buffer = oldSettings;
     	
