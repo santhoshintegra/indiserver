@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.BaudRate;
 import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.DataBits;
@@ -32,6 +33,7 @@ import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.Pari
 import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.StopBits;
 
 import android.content.Context;
+import android.hardware.usb.UsbDevice;
 
 /**
  * Serial communication driver for devices with /dev/ttyS or /dev/ttyUSB support
@@ -40,7 +42,7 @@ import android.content.Context;
  *
  */
 
-public class serial extends communication_driver implements pl2303connect {
+public class serial extends communication_driver implements PL2303callback {
 
 	protected InputStream InStream;
 	protected OutputStream OutStream;
@@ -51,28 +53,23 @@ public class serial extends communication_driver implements pl2303connect {
 	private static final int minorVersion=1;
 	private usbhost_serial_pl2303 pl2303;
 	private Context AppContext;
-	
+
 	public serial(Context context) {
 		AppContext = context;
 		pl2303 = new usbhost_serial_pl2303(AppContext, this);
-		
 	}
-	
+
 	@Override
-    protected void onConnect(String device) throws IOException {
-		
-		InStream = pl2303.getInputStream();
-		OutStream = pl2303.getOutputStream();
-		// Construct Readers
-		InReader = new InputStreamReader(InStream);
-		BufReader = new BufferedReader (InReader);
+	protected void onConnect(String device) throws IOException {
+		ArrayList<UsbDevice> dev = pl2303.getDeviceList();
+		pl2303.open(dev.get(0));
 	}
 
 	@Override
 	protected void onDisconnect() {
 
 	}
-	
+
 
 	@Override
 	protected void onWrite(String data) throws IOException {
@@ -82,8 +79,8 @@ public class serial extends communication_driver implements pl2303connect {
 
 	@Override
 	protected void onWrite(byte data) throws IOException {
-		
-		
+
+
 	}
 
 	@Override
@@ -91,13 +88,13 @@ public class serial extends communication_driver implements pl2303connect {
 		char c = (char) 255 ;
 		char[] chararray = new char[255];
 		String ret = null;
-		
+
 		//Try to read until stopchar is detected or a timeout occurs
-		
+
 		int pos = 0;
-		
+
 		long endTimeMillis = System.currentTimeMillis() + Timeout;
-		
+
 		while ((c != stopchar) && (System.currentTimeMillis()<endTimeMillis)) {
 			int b=0;
 			//if (BufReader.ready()) 
@@ -109,7 +106,7 @@ public class serial extends communication_driver implements pl2303connect {
 			} 
 		}
 		if (c != stopchar) throw new IOException("Timeout");
-		
+
 		ret = String.copyValueOf(chararray);
 
 		return ret;
@@ -119,12 +116,12 @@ public class serial extends communication_driver implements pl2303connect {
 	protected synchronized String onRead(int len) throws IOException {
 		char[] chararray = new char[255];
 		String ret = null;
-		
+
 		//Try to read num bytes or until a timeout occurs
 
 		int pos = 0;
 		long endTimeMillis = System.currentTimeMillis() + Timeout;
-		
+
 		while ((pos != len) && (System.currentTimeMillis()<endTimeMillis)) {
 			int b=0;
 			//if (BufReader.ready()) 
@@ -132,10 +129,10 @@ public class serial extends communication_driver implements pl2303connect {
 			if (b == 1) pos++;
 		}
 		if (pos != len) throw new IOException("Timeout");
-		
+
 		ret = String.copyValueOf(chararray);
 		ret = ret.trim();
-		
+
 		return ret;
 	}
 
@@ -150,15 +147,25 @@ public class serial extends communication_driver implements pl2303connect {
 	}
 
 	@Override
-	public void onConnect() {
-		if (pl2303.open())
-			try {
-				pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+	public void pl2303_ConnectSuccess() {
+		try {
+			pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE);
+
+			InStream = pl2303.getInputStream();
+			OutStream = pl2303.getOutputStream();
+			// Construct Readers
+			InReader = new InputStreamReader(InStream);
+			BufReader = new BufferedReader (InReader);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void pl2303_ConnectFailed(String reason) {
+		// TODO Auto-generated method stub
 		
 	}
-	
+
 }
