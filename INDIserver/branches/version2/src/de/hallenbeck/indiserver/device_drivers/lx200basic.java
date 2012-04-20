@@ -463,7 +463,14 @@ public class lx200basic extends telescope {
 		this.addProperty(MountLP);
 		this.addProperty(AlignmentLP);
 		this.addProperty(TrackingLP);
-		
+		while (!com_driver.connected) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		// Always call this as first telescope command after connecting
 		// It will determine, if the Handbox is in Download-Mode an disconnect immediately
 		getAlignmentMode();

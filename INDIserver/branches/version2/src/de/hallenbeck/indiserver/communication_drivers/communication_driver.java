@@ -10,6 +10,7 @@ import java.io.IOException;
 public abstract class communication_driver {
 	
 	protected int Timeout;
+	public boolean connected=false;
 	
 	public void connect(String device, int timeout) throws IOException{
 		Timeout=timeout;

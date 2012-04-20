@@ -147,6 +147,7 @@ public class usbhost_serial_pl2303 {
 						} else {
 							Log.d("initialize", "Device initialization failed");
 							pl2303Callback.pl2303_ConnectFailed("Device initialization failed");
+							close();
 						}
 					} 
 					else {
@@ -165,7 +166,7 @@ public class usbhost_serial_pl2303 {
 	 * @param PL2303callback Object which implements the callback methods
 	 */
 	public usbhost_serial_pl2303(Context context, PL2303callback callback) {
-		Log.d("constructor", "PL2303 driver start");
+		Log.d("constructor", "PL2303 driver starting");
 		AppContext = context;
 		pl2303Callback = callback;
 		mUsbManager = (UsbManager) AppContext.getSystemService(Context.USB_SERVICE);
@@ -193,6 +194,7 @@ public class usbhost_serial_pl2303 {
 			pl2303ArrayList.add(device); }
 		}
 		Log.d("getDeviceList", pl2303ArrayList.size()+" device(s) found");
+ 
 		return pl2303ArrayList;
 	}
 	
@@ -206,7 +208,7 @@ public class usbhost_serial_pl2303 {
 		if (!pl2303ArrayList.contains(device)) throw new IOException("Device not in original list"); 
 		
 		PendingIntent mPermissionIntent;
-		mPermissionIntent = PendingIntent.getBroadcast(AppContext, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_CANCEL_CURRENT);
+		mPermissionIntent = PendingIntent.getBroadcast(AppContext, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_ONE_SHOT);
 
 		// Request the permission to use the device
 		mUsbManager.requestPermission(device, mPermissionIntent);
@@ -305,7 +307,8 @@ public class usbhost_serial_pl2303 {
 
 		// Get current settings
 		mConnection.controlTransfer(GET_LINE_REQUEST_TYPE, GET_LINE_REQUEST, 0, 0, oldSettings, 7, 100);
-		Log.d("setup", "Current serial configuration:" + oldSettings);
+		mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 1, null, 0, 100);
+		Log.d("setup", "Current serial configuration:" + oldSettings[0] + oldSettings[1] + oldSettings[2] + oldSettings[3] + oldSettings[4] + oldSettings[5] + oldSettings[6]);
 		
 		buffer = oldSettings;
 
@@ -369,15 +372,15 @@ public class usbhost_serial_pl2303 {
 		default: throw new IOException("Databit setting not supported");
 		}
 
-		// Set new configuration on PL2303 only if settings have changed
-		if (buffer != oldSettings) mConnection.controlTransfer(SET_LINE_REQUEST_TYPE, SET_LINE_REQUEST, 0, 0, buffer, 7, 100); 
-		Log.d("setup", "New serial configuration:" + buffer);
+		// Set new configuration on PL2303
+		mConnection.controlTransfer(SET_LINE_REQUEST_TYPE, SET_LINE_REQUEST, 0, 0, buffer, 7, 100); 
+		Log.d("setup", "New serial configuration:" + buffer[0] + buffer[1] + buffer[2] + buffer[3] + buffer[4] + buffer[5] + buffer[6]);
 		
 		// Disable BreakControl
 		mConnection.controlTransfer(BREAK_REQUEST_TYPE, BREAK_REQUEST, BREAK_OFF, 0, null, 0, 100);
 
 		// Disable FlowControl
-		mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 0, null, 0, 100);
+		//mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 0, null, 0, 100);
 
 		//TODO: implement RTS/CTS FlowControl
 	}
