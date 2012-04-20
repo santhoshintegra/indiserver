@@ -53,6 +53,7 @@ public class serial extends communication_driver implements PL2303callback {
 	private static final int minorVersion=1;
 	private usbhost_serial_pl2303 pl2303;
 	private Context AppContext;
+	//public boolean connected = false;
 
 	public serial(Context context) {
 		AppContext = context;
@@ -62,12 +63,12 @@ public class serial extends communication_driver implements PL2303callback {
 	@Override
 	protected void onConnect(String device) throws IOException {
 		ArrayList<UsbDevice> dev = pl2303.getDeviceList();
-		pl2303.open(dev.get(0));
+		pl2303.open(dev.get(1));
 	}
 
 	@Override
 	protected void onDisconnect() {
-
+		pl2303.close();
 	}
 
 
@@ -96,9 +97,7 @@ public class serial extends communication_driver implements PL2303callback {
 		long endTimeMillis = System.currentTimeMillis() + Timeout;
 
 		while ((c != stopchar) && (System.currentTimeMillis()<endTimeMillis)) {
-			int b=0;
-			//if (BufReader.ready()) 
-			b = BufReader.read(chararray, pos, 1);
+			int b = BufReader.read(chararray, pos, 1);
 			if (b == 1) {
 				if (chararray[pos]== (char) 65533) chararray[pos]=42; // Workaround for Autostar Degree-sign
 				c = chararray[pos];
@@ -123,9 +122,7 @@ public class serial extends communication_driver implements PL2303callback {
 		long endTimeMillis = System.currentTimeMillis() + Timeout;
 
 		while ((pos != len) && (System.currentTimeMillis()<endTimeMillis)) {
-			int b=0;
-			//if (BufReader.ready()) 
-			b = BufReader.read(chararray, pos, 1);
+			int b = BufReader.read(chararray, pos, 1);
 			if (b == 1) pos++;
 		}
 		if (pos != len) throw new IOException("Timeout");
@@ -156,6 +153,7 @@ public class serial extends communication_driver implements PL2303callback {
 			// Construct Readers
 			InReader = new InputStreamReader(InStream);
 			BufReader = new BufferedReader (InReader);
+			connected = true;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
