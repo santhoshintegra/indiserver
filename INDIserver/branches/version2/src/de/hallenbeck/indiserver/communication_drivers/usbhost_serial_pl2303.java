@@ -49,7 +49,9 @@ import android.util.Log;
  * http://lxr.free-electrons.com/source/drivers/usb/serial/pl2303.c
  * 
  * Supports PL2303 and newer PL2303HX-types (both tested)
+ * Supports classic RTS/CTS FlowControl 
  * 
+ * TODO: add RFR/CTS, DTR/DSR and XON/XOFF FlowControl
  * 
  * @author atuschen75 at gmail dot com
  *
@@ -67,7 +69,7 @@ public class usbhost_serial_pl2303 implements Runnable {
 	private ArrayList<UsbDevice> pl2303ArrayList = new ArrayList<UsbDevice>();
 	
 	// Status of RTC/CTS FlowControl
-	private boolean FlowControl = false;
+	private FlowControl Flow= FlowControl.OFF;
 	
 	// Status of DTR/RTS Lines
 	private int ControlLines = 0;
@@ -124,9 +126,12 @@ public class usbhost_serial_pl2303 implements Runnable {
 		EVEN
 	};
 	
-	public enum RTSCTS {
-		ON,
-		OFF
+	public enum FlowControl {
+		OFF,
+		RTSCTS,
+		RFRCTS,	// not yet implemented
+		DTRDSR,	// not yet implemented
+		XONXOFF	// not yet implemented
 	};
 
 	// USB control commands
@@ -335,7 +340,7 @@ public class usbhost_serial_pl2303 implements Runnable {
 	 * @param Enum Parity
 	 * @throws IOException if settings not supported or connection closed
 	 */
-	public void setup(BaudRate R, DataBits D, StopBits S, Parity P, RTSCTS F) throws IOException {
+	public void setup(BaudRate R, DataBits D, StopBits S, Parity P, FlowControl F) throws IOException {
 		byte[] buffer = new byte[7];
 
 		if (mConnection == null) throw new IOException("Connection closed");
@@ -413,20 +418,20 @@ public class usbhost_serial_pl2303 implements Runnable {
 		mConnection.controlTransfer(BREAK_REQUEST_TYPE, BREAK_REQUEST, BREAK_OFF, 0, null, 0, 100);
 
 		// En-Disable FlowControl
-		if (F==RTSCTS.ON) {
+		if (F==FlowControl.RTSCTS) {
 			if (PL2303type == 1) mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x61, null, 0, 100);
 			else mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x41, null, 0, 100);
 			setDTR(true);
 			setRTS(true);
-			FlowControl = true;
+			Flow = F;
 			Log.d("pl2303", "RTS/CTS FlowControl enabled");
 			
 		} else {
 			mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x0, null, 0, 100);
 			setRTS(false);
 			setDTR(false);
-			FlowControl = false;
-			Log.d("pl2303", "RTS/CTS FlowControl disabled");
+			Flow = F;
+			Log.d("pl2303", "FlowControl disabled");
 		}
 	}
 
@@ -466,15 +471,15 @@ public class usbhost_serial_pl2303 implements Runnable {
 		if (mConnection != null) {
 			InputStream in = new InputStream() {
 
-				// Blocking read
+				// Blocking read (Timeout set to 0)
 				@Override
 				public int read() throws IOException {
 					synchronized (this) {
 						int retVal= -1;
 						if (mConnection == null) throw new IOException("Connection closed");
 						
-						// Check DSR before read
-						if ((FlowControl) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+						// If FlowControl: Check DSR before read
+						if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
 						
 						byte [] readBuffer = new byte[1];
 						int bytesRead = mConnection.bulkTransfer(ep2, readBuffer, 1, 0);
@@ -483,15 +488,15 @@ public class usbhost_serial_pl2303 implements Runnable {
 					}
 				}
 
-				// Non-blocking read
+				// Non-blocking read (Timeout set to 100ms)
 				@Override
 				public int read(byte[] buffer, int offset, int length) throws IOException, IndexOutOfBoundsException {
 					synchronized (this) {
 						if ((offset < 0) || (length < 0) || ((offset + length) > buffer.length)) throw new IndexOutOfBoundsException();
 						if (mConnection == null) throw new IOException("Connection closed");
 						
-						// Check DSR before read
-						if ((FlowControl) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+						// If FlowControl: Check DSR before read
+						if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
 						
 						byte [] readBuffer = new byte[length];
 						int bytesRead = mConnection.bulkTransfer(ep2, readBuffer, length, 100);
@@ -517,15 +522,15 @@ public class usbhost_serial_pl2303 implements Runnable {
 		if (mConnection != null) {
 			OutputStream out = new OutputStream() {
 
-				// Blocking write
+				// Blocking write (Timeout set to 0)
 				@Override 
 				public void write(int oneByte) throws IOException{
 					synchronized (this) {
 						if (mConnection == null) throw new IOException("Connection closed");
 						
-						// Check DSR & CTS before write
-						if ((FlowControl) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
-						if ((FlowControl) && ((LineStatus & UART_CTS) != UART_CTS)) throw new IOException ("CTS down"); 
+						// If FlowControl: Check DSR & CTS before write
+						if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+						if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_CTS) != UART_CTS)) throw new IOException ("CTS down"); 
 						
 						byte [] writeBuffer = new byte[1];
 						int bytesWritten = mConnection.bulkTransfer(ep1, writeBuffer, 1, 0);
@@ -533,16 +538,16 @@ public class usbhost_serial_pl2303 implements Runnable {
 					}
 				}
 
-				// Non-blocking write
+				// Non-blocking write (Timeout set to 100ms)
 				@Override
 				public void write (byte[] buffer, int offset, int count) throws IOException, IndexOutOfBoundsException {
 					synchronized (this) {
 						if ((offset < 0) || (count < 0) || ((offset + count) > buffer.length)) throw new IndexOutOfBoundsException();
 						if (mConnection == null) throw new IOException("Connection closed");
 						
-						// Check DSR & CTS before write
-						if ((FlowControl) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
-						if ((FlowControl) && ((LineStatus & UART_CTS) != UART_CTS)) throw new IOException ("CTS down");
+						// If FlowControl: Check DSR & CTS before write
+						if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+						if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_CTS) != UART_CTS)) throw new IOException ("CTS down");
 						
 						byte [] writeBuffer = new byte[count];
 						System.arraycopy(buffer, offset, writeBuffer, 0, count);
@@ -597,4 +602,5 @@ public class usbhost_serial_pl2303 implements Runnable {
 			LineStatus = readBuffer.get(8);
 		}
 	} 
+	
 }
