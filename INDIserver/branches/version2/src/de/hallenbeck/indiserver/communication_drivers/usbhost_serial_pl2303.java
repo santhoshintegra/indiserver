@@ -69,6 +69,9 @@ public class usbhost_serial_pl2303 implements Runnable {
 	// Status of DTR/RTS Lines
 	private int ControlLines = 0;
 	
+	// Status of DSR/CTS/DCD/RI Lines
+	private byte LineStatus = 0;
+	
 	// Callback method after permission to device was granted
 	private PL2303callback pl2303Callback; 	
 
@@ -412,6 +415,7 @@ public class usbhost_serial_pl2303 implements Runnable {
 			if (PL2303type == 1) mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x61, null, 0, 100);
 			else mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x41, null, 0, 100);
 			setDTR(true);
+			setRTS(true);
 			
 		} else {
 			mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x0, null, 0, 100);
@@ -428,6 +432,7 @@ public class usbhost_serial_pl2303 implements Runnable {
 		if ((state) && !((ControlLines & CONTROL_DTR)==CONTROL_DTR)) ControlLines = ControlLines + CONTROL_DTR;
 		if (!(state) && ((ControlLines & CONTROL_DTR)==CONTROL_DTR)) ControlLines = ControlLines - CONTROL_DTR;
 		mConnection.controlTransfer(SET_CONTROL_REQUEST_TYPE, SET_CONTROL_REQUEST, ControlLines , 0, null, 0, 100);
+		Log.d("pl2303", "DTR set to " + state);
 	}
 	
 	/**
@@ -438,6 +443,7 @@ public class usbhost_serial_pl2303 implements Runnable {
 		if ((state) && !((ControlLines & CONTROL_RTS)==CONTROL_RTS)) ControlLines = ControlLines + CONTROL_RTS;
 		if (!(state) && ((ControlLines & CONTROL_RTS)==CONTROL_RTS)) ControlLines = ControlLines - CONTROL_RTS;
 		mConnection.controlTransfer(SET_CONTROL_REQUEST_TYPE, SET_CONTROL_REQUEST, ControlLines , 0, null, 0, 100);
+		Log.d("pl2303", "RTS set to " + state);
 	}
 	
 	
@@ -507,8 +513,8 @@ public class usbhost_serial_pl2303 implements Runnable {
 				@Override 
 				public void write(int oneByte) throws IOException{
 					synchronized (this) {
-						// raise RTS
-						setRTS(true);
+						// Check CTS before write
+						
 						if (mConnection == null) throw new IOException("Connection closed");
 						ByteBuffer writeBuffer = ByteBuffer.allocate(1);
 						UsbRequest request = new UsbRequest();
@@ -516,8 +522,6 @@ public class usbhost_serial_pl2303 implements Runnable {
 						if (!request.queue(writeBuffer, 1)) throw new IOException("WriteRequest.queue() failed");
 						UsbRequest retRequest = mConnection.requestWait();
 						if (retRequest == null) throw new IOException("WriteRequest failed");
-						// drop RTS
-						setRTS(false);
 					}
 				}
 
@@ -525,16 +529,14 @@ public class usbhost_serial_pl2303 implements Runnable {
 				@Override
 				public void write (byte[] buffer, int offset, int count) throws IOException, IndexOutOfBoundsException {
 					synchronized (this) {
-						// raise RTS
-						setRTS(true);
+						// Check CTS before write
+						
 						if ((offset < 0) || (count < 0) || ((offset + count) > buffer.length)) throw new IndexOutOfBoundsException();
 						if (mConnection == null) throw new IOException("Connection closed");
 						byte [] writeBuffer = new byte[count];
 						System.arraycopy(buffer, offset, writeBuffer, 0, count);
 						int bytesWritten = mConnection.bulkTransfer(ep1, writeBuffer, count, 100);
 						if (bytesWritten != count) throw new IOException ("BulkWrite failed - count: "+count+" written: "+bytesWritten);
-						// drop RTS	
-						setRTS(false);
 					}
 				}
 			};
@@ -544,10 +546,10 @@ public class usbhost_serial_pl2303 implements Runnable {
 
 	/**
 	 * Runnable for detection of DSR, CTS , DCD and RI
-	 * Currently calls the callback methods only on rising edge of signals 
 	 */
 	@Override
 	public void run() {
+		
 		ByteBuffer readBuffer = ByteBuffer.allocate(10);
 		UsbRequest request = new UsbRequest();
 		// Although documentation says that UsbRequest doesn't work on Endpoint 0 it actually works  
@@ -559,12 +561,29 @@ public class usbhost_serial_pl2303 implements Runnable {
 			
 			// The request returns when line status change
 			if (retRequest.getEndpoint()==ep0) {
-				Log.d("pl2303","Change on control lines detected "+readBuffer.get(8));
-				if ((readBuffer.get(8) & UART_CTS)==UART_CTS) pl2303Callback.onCTS();
-				if ((readBuffer.get(8) & UART_DSR)==UART_DSR) pl2303Callback.onDSR();
-				if ((readBuffer.get(8) & UART_DCD)==UART_DCD) pl2303Callback.onDCD();
-				if ((readBuffer.get(8) & UART_RING)==UART_RING) pl2303Callback.onRI();
+				if ((readBuffer.get(8) & UART_DSR) != (LineStatus & UART_DSR)) {
+					Log.d("pl2303","Change on DSR detected: "+(readBuffer.get(8) & UART_DSR));
+					if ((readBuffer.get(8) & UART_DSR) == UART_DSR) pl2303Callback.onDSR(true);
+					else pl2303Callback.onDSR(false);
+				}
+				if ((readBuffer.get(8) & UART_CTS) != (LineStatus & UART_CTS)) {
+					Log.d("pl2303","Change on CTS detected: "+(readBuffer.get(8) & UART_CTS));
+					if ((readBuffer.get(8) & UART_CTS) == UART_CTS) pl2303Callback.onCTS(true);
+					else pl2303Callback.onCTS(false);
+				}
+				if ((readBuffer.get(8) & UART_DCD) != (LineStatus & UART_DCD)) {
+					Log.d("pl2303","Change on DCD detected: "+(readBuffer.get(8) & UART_DCD));
+					if ((readBuffer.get(8) & UART_DCD) == UART_DCD) pl2303Callback.onDCD(true);
+					else pl2303Callback.onDCD(false);
+				}
+				if ((readBuffer.get(8) & UART_RING) != (LineStatus & UART_RING)) {
+					Log.d("pl2303","Change on RI detected: "+(readBuffer.get(8) & UART_RING));
+					if ((readBuffer.get(8) & UART_RING) == UART_RING) pl2303Callback.onRI(true);
+					else pl2303Callback.onRI(false);
+				}
 			}
+			
+			LineStatus = readBuffer.get(8);
 		}
 	} 
 }
