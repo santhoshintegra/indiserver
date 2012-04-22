@@ -7,9 +7,9 @@ package de.hallenbeck.indiserver.communication_drivers;
 public interface PL2303callback {
 	public void onInitSuccess();
 	public void onInitFailed(String reason);
-	public void onRI();
-	public void onDCD();
-	public void onDSR();
-	public void onCTS();
+	public void onRI(boolean state);
+	public void onDCD(boolean state);
+	public void onDSR(boolean state);
+	public void onCTS(boolean state);
 	
 }

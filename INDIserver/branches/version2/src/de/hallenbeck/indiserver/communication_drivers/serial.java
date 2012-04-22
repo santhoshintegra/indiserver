@@ -166,25 +166,25 @@ public class serial extends communication_driver implements PL2303callback {
 	}
 	
 	@Override
-	public void onRI() {
+	public void onRI(boolean state) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void onDCD() {
+	public void onDCD(boolean state) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void onDSR() {
+	public void onDSR(boolean state) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void onCTS() {
+	public void onCTS(boolean state) {
 		// TODO Auto-generated method stub
 		
 	}
