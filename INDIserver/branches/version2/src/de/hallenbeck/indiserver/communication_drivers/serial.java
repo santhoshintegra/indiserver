@@ -29,8 +29,8 @@ import java.util.ArrayList;
 
 import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.BaudRate;
 import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.DataBits;
+import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.FlowControl;
 import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.Parity;
-import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.RTSCTS;
 import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.StopBits;
 
 import android.content.Context;
@@ -147,7 +147,7 @@ public class serial extends communication_driver implements PL2303callback {
 	@Override
 	public void onInitSuccess() {
 		try {
-			pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE, RTSCTS.OFF);
+			pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE, FlowControl.OFF);
 			InStream = pl2303.getInputStream();
 			OutStream = pl2303.getOutputStream();
 			// Construct Readers
