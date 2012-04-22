@@ -50,21 +50,24 @@ import android.util.Log;
  * 
  * Supports PL2303 and newer PL2303HX-types (both tested)
  * 
- * TODO: support multiple adaptors, implement RTS/CTS FlowControl, add support for DCD/DTR  
  * 
  * @author atuschen75 at gmail dot com
  *
  */
-public class usbhost_serial_pl2303 {
+public class usbhost_serial_pl2303 implements Runnable {
 
 	private Context AppContext; 
 	private UsbManager mUsbManager;
 	private UsbDevice mDevice;
 	private UsbDeviceConnection mConnection;
 	private UsbInterface intf;
+	private UsbEndpoint ep0;
 	private UsbEndpoint ep1;
 	private UsbEndpoint ep2;
 	private ArrayList<UsbDevice> pl2303ArrayList = new ArrayList<UsbDevice>();
+	
+	// Status of DTR/RTS Lines
+	private int ControlLines = 0;
 	
 	// Callback method after permission to device was granted
 	private PL2303callback pl2303Callback; 	
@@ -114,6 +117,11 @@ public class usbhost_serial_pl2303 {
 		ODD,
 		EVEN
 	};
+	
+	public enum RTSCTS {
+		ON,
+		OFF
+	};
 
 	// USB control commands
 	private static final int SET_LINE_REQUEST_TYPE = 0x21;
@@ -127,7 +135,16 @@ public class usbhost_serial_pl2303 {
 	private static final int VENDOR_WRITE_REQUEST = 0x01;
 	private static final int VENDOR_READ_REQUEST_TYPE = 0xc0;
 	private static final int VENDOR_READ_REQUEST = 0x01;
+	private static final int SET_CONTROL_REQUEST_TYPE = 0x21;
+	private static final int SET_CONTROL_REQUEST = 0x22;
+	private static final int CONTROL_DTR = 0x01;
+	private static final int CONTROL_RTS = 0x02;
+	private static final int UART_DCD = 0x01;
+	private static final int UART_DSR = 0x02;
+	private static final int UART_RING = 0x08;
+	private static final int UART_CTS = 0x80;
 
+	
 	// Action for PendingIntent
 	private static final String ACTION_USB_PERMISSION 	=   "com.android.hardware.USB_PERMISSION";
 
@@ -139,21 +156,21 @@ public class usbhost_serial_pl2303 {
 				synchronized (this) {
 					UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 					if ((intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) && (device != null)) {
-						Log.d("BroadcastReceiver", "Permission granted for device " + device.getDeviceName());
+						Log.d("pl2303", "Permission granted for device " + device.getDeviceName());
 						if (initalize(device)){
 							// Callback
-							Log.d("initialize", "Device successfully initialized");
-							pl2303Callback.pl2303_ConnectSuccess();
+							Log.d("pl2303", "Device successfully initialized");
+							pl2303Callback.onInitSuccess();
 						} else {
-							Log.d("initialize", "Device initialization failed");
-							pl2303Callback.pl2303_ConnectFailed("Device initialization failed");
+							Log.d("pl2303", "Device initialization failed");
+							pl2303Callback.onInitFailed("Device initialization failed");
 							close();
 						}
 					} 
 					else {
 						mDevice = null;
-						Log.d("BroadcastReceiver", "Permission denied for device " + device.getDeviceName());
-						pl2303Callback.pl2303_ConnectFailed("Permission denied");
+						Log.d("pl2303", "Permission denied for device " + device.getDeviceName());
+						pl2303Callback.onInitFailed("Permission denied");
 					}
 				}
 			}
@@ -166,7 +183,7 @@ public class usbhost_serial_pl2303 {
 	 * @param PL2303callback Object which implements the callback methods
 	 */
 	public usbhost_serial_pl2303(Context context, PL2303callback callback) {
-		Log.d("constructor", "PL2303 driver starting");
+		Log.d("pl2303", "PL2303 driver starting");
 		AppContext = context;
 		pl2303Callback = callback;
 		mUsbManager = (UsbManager) AppContext.getSystemService(Context.USB_SERVICE);
@@ -193,7 +210,7 @@ public class usbhost_serial_pl2303 {
 			if ((device.getProductId()==0x2303) && (device.getVendorId()==0x067b)) {
 			pl2303ArrayList.add(device); }
 		}
-		Log.d("getDeviceList", pl2303ArrayList.size()+" device(s) found");
+		Log.d("pl2303", pl2303ArrayList.size()+" device(s) found");
  
 		return pl2303ArrayList;
 	}
@@ -212,7 +229,7 @@ public class usbhost_serial_pl2303 {
 
 		// Request the permission to use the device
 		mUsbManager.requestPermission(device, mPermissionIntent);
-		Log.d("open", "Requesting permission to use " + device.getDeviceName());
+		Log.d("pl2303", "Requesting permission to use " + device.getDeviceName());
 	}
 		
 	/**
@@ -221,33 +238,35 @@ public class usbhost_serial_pl2303 {
 	 */
 	private boolean initalize(UsbDevice device) {
 		mDevice = device;
-		Log.d("initialize", "Device Name: "+mDevice.getDeviceName());
-		Log.d("initialize", "VendorID: "+mDevice.getVendorId());
-		Log.d("initialize", "ProductID: "+mDevice.getProductId());
+		Log.d("pl2303", "Device Name: "+mDevice.getDeviceName());
+		Log.d("pl2303", "VendorID: "+mDevice.getVendorId());
+		Log.d("pl2303", "ProductID: "+mDevice.getProductId());
 		
 		intf = mDevice.getInterface(0);
 		if (intf == null) return false;
-		Log.d("initialize", "Got interface");
+		Log.d("pl2303", "Got interface");
+		
+		ep0 = intf.getEndpoint(0);
 		
 		ep1 = intf.getEndpoint(1); //endpoint addr 0x2 = output bulk
 		if ((ep1.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK) || (ep1.getDirection() != UsbConstants.USB_DIR_OUT)) return false;
-		Log.d("initialize", "Got output endpoint");
+		Log.d("pl2303", "Got output endpoint");
 		
 		ep2 = intf.getEndpoint(2); //endpoint addr 0x83 = input bulk
 		if ((ep2.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK) || (ep2.getDirection() != UsbConstants.USB_DIR_IN)) return false;
-		Log.d("initialize", "Got input endpoint");
+		Log.d("pl2303", "Got input endpoint");
 		
 		UsbDeviceConnection connection = mUsbManager.openDevice(mDevice);
 		if (connection == null) return false;
-		Log.d("initialize", "Got connection");
+		Log.d("pl2303", "Got connection");
 		
 		if (!connection.claimInterface(intf, true)) return false;
-		Log.d("initialize", "Claimed exclusive interface access");
+		Log.d("pl2303", "Claimed exclusive interface access");
 		
 		mConnection = connection;
 
 		if (mConnection.getRawDescriptors()[7] == 64) PL2303type = 1; //Type 1 = PL2303HX
-		Log.d("initialize", "PL2303 Type: " +PL2303type+ " detected");		
+		Log.d("pl2303", "PL2303 type " +PL2303type+ " detected");		
 		
 		// Initialization of PL2303 according to linux pl2303.c driver
 		byte[] buffer = new byte[1];
@@ -263,7 +282,14 @@ public class usbhost_serial_pl2303 {
 		mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 1, 0, null, 0, 100);
 		if (PL2303type == 1) mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 2, 0x44, null, 0, 100);
 		else mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 2, 0x24, null, 0, 100);
-
+		
+		// Start control thread for status lines DSR,CTS,DCD and RI
+		Thread t = new Thread(this);
+		t.start();
+		
+		// raise DTR
+		setDTR(true);
+		
 		return true;
 	}
 
@@ -272,18 +298,23 @@ public class usbhost_serial_pl2303 {
 	 */
 	public void close() {
 		if (mConnection != null) {
+			// drop DTR/RTS
+			setRTS(false);
+			setDTR(false);
+			
 			mConnection.releaseInterface(intf);
 			mConnection.close();
 			mConnection = null;
 			mDevice = null;
+			ep0 = null;
 			ep1 = null;
 			ep2 = null;
-			Log.d("close", "Device closed");
+			Log.d("pl2303", "Device closed");
 		}
 	}
 
 	/**
-	 * Are we connected?
+	 * Are we connected to pl2303?
 	 * @return true on connection
 	 */
 	public boolean isConnected() {
@@ -299,18 +330,15 @@ public class usbhost_serial_pl2303 {
 	 * @param Enum Parity
 	 * @throws IOException if settings not supported or connection closed
 	 */
-	public void setup(BaudRate R, DataBits D, StopBits S, Parity P) throws IOException {
-		byte[] oldSettings = new byte[7];
+	public void setup(BaudRate R, DataBits D, StopBits S, Parity P, RTSCTS F) throws IOException {
 		byte[] buffer = new byte[7];
 
 		if (mConnection == null) throw new IOException("Connection closed");
 
 		// Get current settings
-		mConnection.controlTransfer(GET_LINE_REQUEST_TYPE, GET_LINE_REQUEST, 0, 0, oldSettings, 7, 100);
+		mConnection.controlTransfer(GET_LINE_REQUEST_TYPE, GET_LINE_REQUEST, 0, 0, buffer, 7, 100);
 		mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 1, null, 0, 100);
-		Log.d("setup", "Current serial configuration:" + oldSettings[0] + oldSettings[1] + oldSettings[2] + oldSettings[3] + oldSettings[4] + oldSettings[5] + oldSettings[6]);
-		
-		buffer = oldSettings;
+		Log.d("pl2303", "Current serial configuration:" + buffer[0] + "," + buffer[1] + "," + buffer[2] + "," + buffer[3] + "," + buffer[4] + "," + buffer[5] + "," + buffer[6]);
 
 		// Setup Baudrate
 		int baud;
@@ -374,17 +402,45 @@ public class usbhost_serial_pl2303 {
 
 		// Set new configuration on PL2303
 		mConnection.controlTransfer(SET_LINE_REQUEST_TYPE, SET_LINE_REQUEST, 0, 0, buffer, 7, 100); 
-		Log.d("setup", "New serial configuration:" + buffer[0] + buffer[1] + buffer[2] + buffer[3] + buffer[4] + buffer[5] + buffer[6]);
+		Log.d("pl2303", "New serial configuration:" + buffer[0] + "," + buffer[1] + "," + buffer[2] + "," + buffer[3] + "," + buffer[4] + "," + buffer[5] + "," + buffer[6]);
 		
 		// Disable BreakControl
 		mConnection.controlTransfer(BREAK_REQUEST_TYPE, BREAK_REQUEST, BREAK_OFF, 0, null, 0, 100);
 
-		// Disable FlowControl
-		//mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 0, null, 0, 100);
-
-		//TODO: implement RTS/CTS FlowControl
+		// En-Disable FlowControl
+		if (F==RTSCTS.ON) {
+			if (PL2303type == 1) mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x61, null, 0, 100);
+			else mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x41, null, 0, 100);
+			setDTR(true);
+			
+		} else {
+			mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x0, null, 0, 100);
+			setRTS(false);
+			setDTR(false);
+		}
 	}
 
+	/**
+	 * Switch DTR on or off
+	 * @param state
+	 */
+	public void setDTR(boolean state) {
+		if ((state) && !((ControlLines & CONTROL_DTR)==CONTROL_DTR)) ControlLines = ControlLines + CONTROL_DTR;
+		if (!(state) && ((ControlLines & CONTROL_DTR)==CONTROL_DTR)) ControlLines = ControlLines - CONTROL_DTR;
+		mConnection.controlTransfer(SET_CONTROL_REQUEST_TYPE, SET_CONTROL_REQUEST, ControlLines , 0, null, 0, 100);
+	}
+	
+	/**
+	 * Switch RTS on or off
+	 * @param state
+	 */
+	public void setRTS(boolean state) {
+		if ((state) && !((ControlLines & CONTROL_RTS)==CONTROL_RTS)) ControlLines = ControlLines + CONTROL_RTS;
+		if (!(state) && ((ControlLines & CONTROL_RTS)==CONTROL_RTS)) ControlLines = ControlLines - CONTROL_RTS;
+		mConnection.controlTransfer(SET_CONTROL_REQUEST_TYPE, SET_CONTROL_REQUEST, ControlLines , 0, null, 0, 100);
+	}
+	
+	
 	/** 
 	 * Get the InputStream of the connection. 
 	 * Supported functions:
@@ -451,6 +507,8 @@ public class usbhost_serial_pl2303 {
 				@Override 
 				public void write(int oneByte) throws IOException{
 					synchronized (this) {
+						// raise RTS
+						setRTS(true);
 						if (mConnection == null) throw new IOException("Connection closed");
 						ByteBuffer writeBuffer = ByteBuffer.allocate(1);
 						UsbRequest request = new UsbRequest();
@@ -458,6 +516,8 @@ public class usbhost_serial_pl2303 {
 						if (!request.queue(writeBuffer, 1)) throw new IOException("WriteRequest.queue() failed");
 						UsbRequest retRequest = mConnection.requestWait();
 						if (retRequest == null) throw new IOException("WriteRequest failed");
+						// drop RTS
+						setRTS(false);
 					}
 				}
 
@@ -465,16 +525,46 @@ public class usbhost_serial_pl2303 {
 				@Override
 				public void write (byte[] buffer, int offset, int count) throws IOException, IndexOutOfBoundsException {
 					synchronized (this) {
+						// raise RTS
+						setRTS(true);
 						if ((offset < 0) || (count < 0) || ((offset + count) > buffer.length)) throw new IndexOutOfBoundsException();
 						if (mConnection == null) throw new IOException("Connection closed");
 						byte [] writeBuffer = new byte[count];
 						System.arraycopy(buffer, offset, writeBuffer, 0, count);
 						int bytesWritten = mConnection.bulkTransfer(ep1, writeBuffer, count, 100);
 						if (bytesWritten != count) throw new IOException ("BulkWrite failed - count: "+count+" written: "+bytesWritten);
+						// drop RTS	
+						setRTS(false);
 					}
 				}
 			};
 			return out;
 		} else return null;
+	}
+
+	/**
+	 * Runnable for detection of DSR, CTS , DCD and RI
+	 * Currently calls the callback methods only on rising edge of signals 
+	 */
+	@Override
+	public void run() {
+		ByteBuffer readBuffer = ByteBuffer.allocate(10);
+		UsbRequest request = new UsbRequest();
+		// Although documentation says that UsbRequest doesn't work on Endpoint 0 it actually works  
+		request.initialize(mConnection, ep0);
+
+		while (mConnection != null) {
+			request.queue(readBuffer, 10);
+			UsbRequest retRequest = mConnection.requestWait();
+			
+			// The request returns when line status change
+			if (retRequest.getEndpoint()==ep0) {
+				Log.d("pl2303","Change on control lines detected "+readBuffer.get(8));
+				if ((readBuffer.get(8) & UART_CTS)==UART_CTS) pl2303Callback.onCTS();
+				if ((readBuffer.get(8) & UART_DSR)==UART_DSR) pl2303Callback.onDSR();
+				if ((readBuffer.get(8) & UART_DCD)==UART_DCD) pl2303Callback.onDCD();
+				if ((readBuffer.get(8) & UART_RING)==UART_RING) pl2303Callback.onRI();
+			}
+		}
 	} 
 }
