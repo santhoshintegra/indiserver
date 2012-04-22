@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.BaudRate;
 import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.DataBits;
 import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.Parity;
+import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.RTSCTS;
 import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.StopBits;
 
 import android.content.Context;
@@ -63,7 +64,7 @@ public class serial extends communication_driver implements PL2303callback {
 	@Override
 	protected void onConnect(String device) throws IOException {
 		ArrayList<UsbDevice> dev = pl2303.getDeviceList();
-		pl2303.open(dev.get(1));
+		pl2303.open(dev.get(0));
 	}
 
 	@Override
@@ -144,10 +145,9 @@ public class serial extends communication_driver implements PL2303callback {
 	}
 
 	@Override
-	public void pl2303_ConnectSuccess() {
+	public void onInitSuccess() {
 		try {
-			pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE);
-
+			pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE, RTSCTS.OFF);
 			InStream = pl2303.getInputStream();
 			OutStream = pl2303.getOutputStream();
 			// Construct Readers
@@ -161,9 +161,31 @@ public class serial extends communication_driver implements PL2303callback {
 	}
 
 	@Override
-	public void pl2303_ConnectFailed(String reason) {
+	public void onInitFailed(String reason) {
+		// TODO Auto-generated method stub
+	}
+	
+	@Override
+	public void onRI() {
 		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
+	public void onDCD() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onDSR() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onCTS() {
+		// TODO Auto-generated method stub
+		
+	}
 }
