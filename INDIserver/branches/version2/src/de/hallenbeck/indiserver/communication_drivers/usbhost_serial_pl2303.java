@@ -66,6 +66,9 @@ public class usbhost_serial_pl2303 implements Runnable {
 	private UsbEndpoint ep2;
 	private ArrayList<UsbDevice> pl2303ArrayList = new ArrayList<UsbDevice>();
 	
+	// Status of RTC/CTS FlowControl
+	private boolean FlowControl = false;
+	
 	// Status of DTR/RTS Lines
 	private int ControlLines = 0;
 	
@@ -249,7 +252,9 @@ public class usbhost_serial_pl2303 implements Runnable {
 		if (intf == null) return false;
 		Log.d("pl2303", "Got interface");
 		
-		ep0 = intf.getEndpoint(0);
+		ep0 = intf.getEndpoint(0); //endpoint addr 0x81 = input interrupt
+		if ((ep0.getType() != UsbConstants.USB_ENDPOINT_XFER_INT) || (ep0.getDirection() != UsbConstants.USB_DIR_IN)) return false;
+		Log.d("pl2303", "Got control endpoint");
 		
 		ep1 = intf.getEndpoint(1); //endpoint addr 0x2 = output bulk
 		if ((ep1.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK) || (ep1.getDirection() != UsbConstants.USB_DIR_OUT)) return false;
@@ -289,9 +294,6 @@ public class usbhost_serial_pl2303 implements Runnable {
 		// Start control thread for status lines DSR,CTS,DCD and RI
 		Thread t = new Thread(this);
 		t.start();
-		
-		// raise DTR
-		setDTR(true);
 		
 		return true;
 	}
@@ -416,11 +418,15 @@ public class usbhost_serial_pl2303 implements Runnable {
 			else mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x41, null, 0, 100);
 			setDTR(true);
 			setRTS(true);
+			FlowControl = true;
+			Log.d("pl2303", "RTS/CTS FlowControl enabled");
 			
 		} else {
 			mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x0, null, 0, 100);
 			setRTS(false);
 			setDTR(false);
+			FlowControl = false;
+			Log.d("pl2303", "RTS/CTS FlowControl disabled");
 		}
 	}
 
@@ -466,15 +472,13 @@ public class usbhost_serial_pl2303 implements Runnable {
 					synchronized (this) {
 						int retVal= -1;
 						if (mConnection == null) throw new IOException("Connection closed");
-						ByteBuffer readBuffer = ByteBuffer.allocate(1);
-						UsbRequest request = new UsbRequest();
-						if (!request.initialize(mConnection, ep2)) throw new IOException("ReadRequest.initailize() failed");
-						if (!request.queue(readBuffer, 1)) throw new IOException("ReadRequest.queue() failed");
-						UsbRequest retRequest = mConnection.requestWait();
-						if (retRequest == null) throw new IOException("ReadRequest failed");
-						if (retRequest == request) {
-							retVal = readBuffer.get();
-						} 
+						
+						// Check DSR before read
+						if ((FlowControl) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+						
+						byte [] readBuffer = new byte[1];
+						int bytesRead = mConnection.bulkTransfer(ep2, readBuffer, 1, 0);
+						if (bytesRead > 0) retVal = readBuffer[0];
 						return retVal;
 					}
 				}
@@ -485,6 +489,10 @@ public class usbhost_serial_pl2303 implements Runnable {
 					synchronized (this) {
 						if ((offset < 0) || (length < 0) || ((offset + length) > buffer.length)) throw new IndexOutOfBoundsException();
 						if (mConnection == null) throw new IOException("Connection closed");
+						
+						// Check DSR before read
+						if ((FlowControl) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+						
 						byte [] readBuffer = new byte[length];
 						int bytesRead = mConnection.bulkTransfer(ep2, readBuffer, length, 100);
 						if (bytesRead > 0) System.arraycopy(readBuffer, 0, buffer, offset, bytesRead);
@@ -513,15 +521,15 @@ public class usbhost_serial_pl2303 implements Runnable {
 				@Override 
 				public void write(int oneByte) throws IOException{
 					synchronized (this) {
-						// Check CTS before write
-						
 						if (mConnection == null) throw new IOException("Connection closed");
-						ByteBuffer writeBuffer = ByteBuffer.allocate(1);
-						UsbRequest request = new UsbRequest();
-						if (!request.initialize(mConnection, ep1)) throw new IOException("WriteRequest.initailize() failed");
-						if (!request.queue(writeBuffer, 1)) throw new IOException("WriteRequest.queue() failed");
-						UsbRequest retRequest = mConnection.requestWait();
-						if (retRequest == null) throw new IOException("WriteRequest failed");
+						
+						// Check DSR & CTS before write
+						if ((FlowControl) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+						if ((FlowControl) && ((LineStatus & UART_CTS) != UART_CTS)) throw new IOException ("CTS down"); 
+						
+						byte [] writeBuffer = new byte[1];
+						int bytesWritten = mConnection.bulkTransfer(ep1, writeBuffer, 1, 0);
+						if (bytesWritten < 1 ) throw new IOException ("BulkWrite failed - written: "+bytesWritten); 
 					}
 				}
 
@@ -529,10 +537,13 @@ public class usbhost_serial_pl2303 implements Runnable {
 				@Override
 				public void write (byte[] buffer, int offset, int count) throws IOException, IndexOutOfBoundsException {
 					synchronized (this) {
-						// Check CTS before write
-						
 						if ((offset < 0) || (count < 0) || ((offset + count) > buffer.length)) throw new IndexOutOfBoundsException();
 						if (mConnection == null) throw new IOException("Connection closed");
+						
+						// Check DSR & CTS before write
+						if ((FlowControl) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+						if ((FlowControl) && ((LineStatus & UART_CTS) != UART_CTS)) throw new IOException ("CTS down");
+						
 						byte [] writeBuffer = new byte[count];
 						System.arraycopy(buffer, offset, writeBuffer, 0, count);
 						int bytesWritten = mConnection.bulkTransfer(ep1, writeBuffer, count, 100);
@@ -549,14 +560,14 @@ public class usbhost_serial_pl2303 implements Runnable {
 	 */
 	@Override
 	public void run() {
-		
-		ByteBuffer readBuffer = ByteBuffer.allocate(10);
+		ByteBuffer readBuffer = ByteBuffer.allocate(ep0.getMaxPacketSize());
 		UsbRequest request = new UsbRequest();
+		
 		// Although documentation says that UsbRequest doesn't work on Endpoint 0 it actually works  
 		request.initialize(mConnection, ep0);
 
 		while (mConnection != null) {
-			request.queue(readBuffer, 10);
+			request.queue(readBuffer, ep0.getMaxPacketSize());
 			UsbRequest retRequest = mConnection.requestWait();
 			
 			// The request returns when line status change
