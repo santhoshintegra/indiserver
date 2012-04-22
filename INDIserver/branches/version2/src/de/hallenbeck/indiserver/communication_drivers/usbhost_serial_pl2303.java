@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.lang.Math;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -492,16 +493,29 @@ public class usbhost_serial_pl2303 implements Runnable {
 				@Override
 				public int read(byte[] buffer, int offset, int length) throws IOException, IndexOutOfBoundsException {
 					synchronized (this) {
+						byte [] readBuffer = new byte[ep2.getMaxPacketSize()];
+						int totalBytesRead = 0;
 						if ((offset < 0) || (length < 0) || ((offset + length) > buffer.length)) throw new IndexOutOfBoundsException();
 						if (mConnection == null) throw new IOException("Connection closed");
 						
-						// If FlowControl: Check DSR before read
-						if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+						// Max Packet Size 64 bytes! Split larger read-requests in multiple bulk-transfers
+						// This is only necessary if called without the use of a BufferedReader  
+						int numTransfers = length / ep2.getMaxPacketSize();
+						if (length % ep2.getMaxPacketSize()>0) numTransfers++;
 						
-						byte [] readBuffer = new byte[length];
-						int bytesRead = mConnection.bulkTransfer(ep2, readBuffer, length, 100);
-						if (bytesRead > 0) System.arraycopy(readBuffer, 0, buffer, offset, bytesRead);
-						return bytesRead;	
+						for (int i=0;i<numTransfers;i++) {
+							// If FlowControl: Check DSR before read
+							if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+							int bytesRead = mConnection.bulkTransfer(ep2, readBuffer, ep2.getMaxPacketSize(), 100);
+							
+							if (bytesRead >= 0) {
+								System.arraycopy(readBuffer, 0, buffer, offset, bytesRead);
+								offset = offset+bytesRead;
+								totalBytesRead = totalBytesRead + bytesRead;
+							} else break;
+							
+						}
+						return totalBytesRead;	
 					}
 				}
 			};
@@ -542,17 +556,37 @@ public class usbhost_serial_pl2303 implements Runnable {
 				@Override
 				public void write (byte[] buffer, int offset, int count) throws IOException, IndexOutOfBoundsException {
 					synchronized (this) {
+						byte [] writeBuffer = new byte[ep1.getMaxPacketSize()];
+						
+						
 						if ((offset < 0) || (count < 0) || ((offset + count) > buffer.length)) throw new IndexOutOfBoundsException();
 						if (mConnection == null) throw new IOException("Connection closed");
 						
-						// If FlowControl: Check DSR & CTS before write
-						if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
-						if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_CTS) != UART_CTS)) throw new IOException ("CTS down");
+						// Max Packet Size 64 bytes! Split larger write-requests in multiple bulk-transfers
+						int numTransfers = count / ep1.getMaxPacketSize();
+						if (count % ep1.getMaxPacketSize() > 0) numTransfers++;
 						
-						byte [] writeBuffer = new byte[count];
-						System.arraycopy(buffer, offset, writeBuffer, 0, count);
-						int bytesWritten = mConnection.bulkTransfer(ep1, writeBuffer, count, 100);
-						if (bytesWritten != count) throw new IOException ("BulkWrite failed - count: "+count+" written: "+bytesWritten);
+						for (int i=0;i<numTransfers;i++) {
+
+							// If FlowControl: Check DSR & CTS before write
+							if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+							if ((Flow==FlowControl.RTSCTS) && ((LineStatus & UART_CTS) != UART_CTS)) throw new IOException ("CTS down");
+							
+							offset = offset + (i * ep1.getMaxPacketSize());
+							
+							if (i==numTransfers - 1) {
+								int lastPart = count - ((numTransfers-1) * ep1.getMaxPacketSize()); 
+								System.arraycopy(buffer, offset, writeBuffer, 0, lastPart);
+								int bytesWritten = mConnection.bulkTransfer(ep1, writeBuffer, lastPart, 100);
+								if (bytesWritten != lastPart) throw new IOException ("BulkWrite failed - count: "+lastPart+" written: "+bytesWritten);
+								
+							} else {
+								System.arraycopy(buffer, offset, writeBuffer, 0, ep1.getMaxPacketSize());
+								int bytesWritten = mConnection.bulkTransfer(ep1, writeBuffer, ep1.getMaxPacketSize(), 100);
+								if (bytesWritten != ep1.getMaxPacketSize()) throw new IOException ("BulkWrite failed - count: "+ep1.getMaxPacketSize()+" written: "+bytesWritten);
+								
+							}
+						}
 					}
 				}
 			};
