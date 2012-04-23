@@ -27,11 +27,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
-import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.BaudRate;
-import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.DataBits;
-import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.FlowControl;
-import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.Parity;
-import de.hallenbeck.indiserver.communication_drivers.usbhost_serial_pl2303.StopBits;
+import de.hallenbeck.indiserver.communication_drivers.PL2303driver.BaudRate;
+import de.hallenbeck.indiserver.communication_drivers.PL2303driver.DataBits;
+import de.hallenbeck.indiserver.communication_drivers.PL2303driver.FlowControl;
+import de.hallenbeck.indiserver.communication_drivers.PL2303driver.Parity;
+import de.hallenbeck.indiserver.communication_drivers.PL2303driver.StopBits;
 
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
@@ -52,13 +52,13 @@ public class serial extends communication_driver implements PL2303callback {
 	private static final String DriverName="serial";
 	private static final int majorVersion=0;
 	private static final int minorVersion=1;
-	private usbhost_serial_pl2303 pl2303;
+	private PL2303driver pl2303;
 	private Context AppContext;
 	//public boolean connected = false;
 
 	public serial(Context context) {
 		AppContext = context;
-		pl2303 = new usbhost_serial_pl2303(AppContext, this);
+		pl2303 = new PL2303driver(AppContext, this);
 	}
 
 	@Override
