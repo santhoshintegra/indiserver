@@ -147,7 +147,7 @@ public class serial extends communication_driver implements PL2303callback {
 	@Override
 	public void onInitSuccess() {
 		try {
-			pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE, FlowControl.OFF);
+			pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE, FlowControl.RTSCTS);
 			InStream = pl2303.getInputStream();
 			OutStream = pl2303.getOutputStream();
 			// Construct Readers
