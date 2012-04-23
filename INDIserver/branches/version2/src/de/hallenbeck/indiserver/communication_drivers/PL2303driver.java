@@ -28,7 +28,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.lang.Math;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -49,7 +48,11 @@ import android.util.Log;
  * Based on pl2303.c from linux sources:
  * http://lxr.free-electrons.com/source/drivers/usb/serial/pl2303.c
  * 
- * Supports PL2303 and newer PL2303HX-types (both tested)
+ * Supports PL2303 and newer PL2303HX-types (both tested) 
+ * with ProductID 0x2303 and VendorID 0x067b
+ * 
+ * TODO: support 3rd party USB IDs (see linux driver)
+ * 
  * Supports classic RTS/CTS FlowControl 
  * 
  * TODO: add RFR/CTS, DTR/DSR and XON/XOFF FlowControl
@@ -57,7 +60,7 @@ import android.util.Log;
  * @author atuschen75 at gmail dot com
  *
  */
-public class usbhost_serial_pl2303 implements Runnable {
+public class PL2303driver implements Runnable {
 	
 	// ApplicationContext necessary because of UsbManager and PermissionIntent
 	private Context AppContext; 
@@ -92,7 +95,7 @@ public class usbhost_serial_pl2303 implements Runnable {
 	// Callback Class interface
 	private PL2303callback pl2303Callback; 	
 	
-	public enum BaudRate {
+	public static enum BaudRate {
 		B0, 
 		B75,
 		B150,
@@ -117,25 +120,25 @@ public class usbhost_serial_pl2303 implements Runnable {
 		B6000000
 	};
 
-	public enum DataBits {
+	public static enum DataBits {
 		D5,
 		D6,
 		D7,
 		D8
 	};
 
-	public enum StopBits {
+	public static enum StopBits {
 		S1,
 		S2
 	};
 
-	public enum Parity {
+	public static enum Parity {
 		NONE,
 		ODD,
 		EVEN
 	};
 	
-	public enum FlowControl {
+	public static enum FlowControl {
 		OFF,
 		RTSCTS,
 		RFRCTS,	// not yet implemented
@@ -170,7 +173,7 @@ public class usbhost_serial_pl2303 implements Runnable {
 
 	/**
 	 * BraodcastReceiver for permission to use USB-Device
-	 * Called from the System after the user has denied/granted access to a USB-Device
+	 * Called by the System after the user has denied/granted access to a USB-Device
 	 */
 	private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
 		public void onReceive(Context context, Intent intent) {
@@ -212,7 +215,7 @@ public class usbhost_serial_pl2303 implements Runnable {
 	 * @param context Application Context
 	 * @param PL2303callback Object which implements the callback methods
 	 */
-	public usbhost_serial_pl2303(Context context, PL2303callback callback) {
+	public PL2303driver(Context context, PL2303callback callback) {
 		Log.d("pl2303", "PL2303 driver starting");
 		AppContext = context;
 		pl2303Callback = callback;
