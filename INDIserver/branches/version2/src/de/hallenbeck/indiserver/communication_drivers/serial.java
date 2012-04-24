@@ -39,7 +39,8 @@ import android.hardware.usb.UsbDevice;
 /**
  * Serial communication driver for devices with /dev/ttyS or /dev/ttyUSB support
  * Base class for all other communication drivers as they all use serial communication
- * @author atuschen
+ * 
+ * @author atuschen75 at gmail dot com
  *
  */
 
@@ -162,30 +163,26 @@ public class serial extends communication_driver implements PL2303callback {
 
 	@Override
 	public void onInitFailed(String reason) {
-		// TODO Auto-generated method stub
+		// Not needed
 	}
 	
 	@Override
 	public void onRI(boolean state) {
-		// TODO Auto-generated method stub
-		
+		// Not needed
 	}
 
 	@Override
 	public void onDCD(boolean state) {
-		// TODO Auto-generated method stub
-		
+		// Not needed	
 	}
 
 	@Override
 	public void onDSR(boolean state) {
-		// TODO Auto-generated method stub
-		
+		// Not needed		
 	}
 
 	@Override
 	public void onCTS(boolean state) {
-		// TODO Auto-generated method stub
-		
+		// Not needed		
 	}
 }
