@@ -1,6 +1,6 @@
 = Introduction =
 
-I'm 36 years and from Germany. I began coding mid of the 80s with Locomotive Basic on an Amstrad CPC464. After that I got my first x86 PC and began coding with Turbo Pascal (I had a hard time understanding OOP in TP6.0). This went on until Borland Delphi 7 with which I've done some job-related projects.
+I'm 37 years and from Germany. I began coding mid of the 80s with Locomotive Basic on an Amstrad CPC464. After that I got my first x86 PC and began coding with Turbo Pascal (I had a hard time understanding OOP in TP6.0). This went on until Borland Delphi 7 with which I've done some job-related projects. Later I used (and use today) FreePascal under Linux.
 
 I'm also able to read and understand most C/C++ code, but I don't like it very much because it seems somewhat cryptic to me compared to pascal. 
 
