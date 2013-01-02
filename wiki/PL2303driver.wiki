@@ -1,0 +1,17 @@
+#Short description of the PL2303 driver
+
+== What's supported ==
+
+# PL2303 and newer PL2303HX-types (both tested) with ProductID 0x2303 and VendorID 0x067b
+# You can select one PL2303 out of multiple connected to your device
+# Serial parameters: Baudrate, Databits, Stopbits, Parity and something like basic RTS/CTS Flow-Control
+# Monitoring of Status-Lines DCD, DSR, RI and CTS
+
+== What's NOT supported (at least at the moment)==
+
+# 3rd party PL2303 with different ProductID/VendorID
+# Selecting one specific PL2303 out of multiple connected ones, because most of them don't have a S/N and thus can't be uniquely identified. The Android USB-Host-API just numbers them in the order they were connected.
+# RFR/CTS, DTR/DSR and XON/XOFF Flow-Control
+
+
+
