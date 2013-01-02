@@ -21,7 +21,7 @@ Short description of the PL2303 driver
 == How to use it ==
 
   # include *PL2303driver.java* and *PL2303callback.java* in your project
-  # the calling Activity/Function/whatsoever *must implement/override* the callback-methods *onInitSuccess, onInitFailed, onRI, onDCD, onDSR, onCTS* defined in PL2303callback.java!
+  # the calling object *must implement/override* the callback-methods *onInitSuccess, onInitFailed, onRI, onDCD, onDSR, onCTS* defined in PL2303callback.java!
   # call *getDeviceList(Arraylist)* to retrieve a list of all connected PL2303-devices - Mandatory, do this before open()!
   # call *open(Device)* to open a connection to one PL2303 out of the Arraylist
   # call *setup(Baudrate, Databits, Stopbits, Parity, Flowcontrol)* to setup the serial parameters
