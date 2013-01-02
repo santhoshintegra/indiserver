@@ -18,5 +18,9 @@ Short description of the PL2303 driver
 
   # include *PL2303driver.java* and *PL2303callback.java* in your project
   # the calling Activity/Function/whatsoever must implement/override the callback-methods defined in PL2303callback.java!
-  # 
-
+  # call *getDeviceList(ArrayList)* to retrieve a list of all connected PL2303-devices
+  # call *open(Device)* to open a connection to one PL2303 out of the ArrayList
+  # call *setup(Baudrate, Databits, Stopbits, Parity, FlowControl)* to setup the serial parameters
+  # call *getInputStream()* to get the readable stream of all received bytes
+  # call *getOutputStream()* to get the writable stream where you put all bytes to send
+  # If your program is exited you should call *close()* 
