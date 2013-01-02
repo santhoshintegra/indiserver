@@ -21,12 +21,12 @@ Short description of the PL2303 driver
 == How to use it ==
 
   # include *PL2303driver.java* and *PL2303callback.java* in your project
-  # the calling Activity/Function/whatsoever must implement/override the callback-methods defined in PL2303callback.java!
+  # the calling Activity/Function/whatsoever must implement/override the callback-methods *onInitSuccess, onInitFailed, onRI, onDCD, onDSR, onCTS* defined in PL2303callback.java!
   # call *getDeviceList(Arraylist)* to retrieve a list of all connected PL2303-devices
   # call *open(Device)* to open a connection to one PL2303 out of the Arraylist
   # call *setup(Baudrate, Databits, Stopbits, Parity, Flowcontrol)* to setup the serial parameters
   # call *getInputStream()* to get the readable stream of all received bytes
   # call *getOutputStream()* to get the writable stream where you put all bytes to send
-  # *Optional*: Use the Callbacks for the Status-Lines, if you need it - otherwise leave them empty
-  # *Optional*: call *setRTS(boolean)* or *setDTR(boolean)* to switch Control-Lines on/off 
+  # Optional: Use the Callbacks *onRI, onDCD, onDSR, onCTS* for the Status-Lines, if you need it - otherwise leave them empty
+  # Optional: call *setRTS(boolean)* or *setDTR(boolean)* to switch Control-Lines on/off 
   # If your program is exited you should call *close()* 
