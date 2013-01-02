@@ -14,6 +14,10 @@ Short description of the PL2303 driver
   # Selecting one specific PL2303 out of multiple connected ones, because most of them don't have a S/N and thus can't be uniquely identified. The Android USB-Host-API just numbers them in the order they were connected.
   # RFR/CTS, DTR/DSR and XON/XOFF Flow-Control
 
+== What's NOT tested ==
+
+  # Although implemented, I don't know if the code is able to cope with highspeed serial communication greater than 19200 Baud. 
+
 == How to use it ==
 
   # include *PL2303driver.java* and *PL2303callback.java* in your project
