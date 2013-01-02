@@ -28,4 +28,5 @@ Short description of the PL2303 driver
   # call *getInputStream()* to get the readable stream of all received bytes
   # call *getOutputStream()* to get the writable stream where you put all bytes to send
   # *Optional*: Use the Callbacks for the Status-Lines, if you need it - otherwise leave them empty
+  # *Optional*: call *setRTS(boolean)* or *setDTR(boolean)* to switch Control-Lines on/off 
   # If your program is exited you should call *close()* 
