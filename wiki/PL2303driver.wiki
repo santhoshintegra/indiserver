@@ -31,4 +31,4 @@ Short description of the PL2303 driver
   # Optional: call *setRTS(boolean)* or *setDTR(boolean)* to switch Control-Lines on/off 
   # If your program is exited you should call *close()* 
 
-If you have any questions don't hesitate to ask, if you think it could be done better let me know. 
+===If you have any further questions don't hesitate to ask, if you think it could be done better let me know. ===
