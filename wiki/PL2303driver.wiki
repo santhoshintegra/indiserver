@@ -30,3 +30,5 @@ Short description of the PL2303 driver
   # Optional: Use the Callbacks *onRI, onDCD, onDSR, onCTS* for the Status-Lines, if you need it - otherwise leave them empty
   # Optional: call *setRTS(boolean)* or *setDTR(boolean)* to switch Control-Lines on/off 
   # If your program is exited you should call *close()* 
+
+If you have any questions don't hesitate to ask, if you think it could be done better let me know. 
