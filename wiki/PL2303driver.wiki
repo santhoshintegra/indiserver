@@ -22,6 +22,7 @@ Short description of the PL2303 driver
 
   # include *PL2303driver.java* and *PL2303callback.java* in your project
   # the calling object *must implement/override* the callback-methods *onInitSuccess, onInitFailed, onRI, onDCD, onDSR, onCTS* defined in PL2303callback.java!
+  # Create a new instance of the driver with the *ApplicationContext of the Main-Activity* and the *Object which implements the callback methods* as arguments.
   # call *getDeviceList(Arraylist)* to retrieve a list of all connected PL2303-devices - Mandatory, do this before open()!
   # call *open(Device)* to open a connection to one PL2303 out of the Arraylist
   # Android will now ask the user for permission and according to the result the callbacks *onInitSuccess* or *onInitFailed* will be called
