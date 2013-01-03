@@ -24,6 +24,7 @@ Short description of the PL2303 driver
   # the calling object *must implement/override* the callback-methods *onInitSuccess, onInitFailed, onRI, onDCD, onDSR, onCTS* defined in PL2303callback.java!
   # call *getDeviceList(Arraylist)* to retrieve a list of all connected PL2303-devices - Mandatory, do this before open()!
   # call *open(Device)* to open a connection to one PL2303 out of the Arraylist
+  # Android will now ask the user for permission and according to the result the callbacks *onInitSuccess* or *onInitFailed* will be called
   # call *setup(Baudrate, Databits, Stopbits, Parity, Flowcontrol)* to setup the serial parameters
   # call *getInputStream()* to get the readable stream of all received bytes
   # call *getOutputStream()* to get the writable stream where you put all bytes to send
