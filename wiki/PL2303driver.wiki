@@ -55,6 +55,8 @@ I'm glad that there are so many people out there, that do exactly the same :)
 
 == Screenshot of Test app ==
 
+because everybody likes screenshots :)
+
 http://indiserver.googlecode.com/files/Screenshot_2013-01-04-18-51-25.png
 
 == Downloads ==
