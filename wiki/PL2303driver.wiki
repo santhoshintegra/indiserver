@@ -51,5 +51,6 @@ I'm glad that there are so many people out there, that do exactly the same :)
   * Patches/Bugfixes/etc. are always welcome
 
 == Downloads ==
-  * The driver itself: http://code.google.com/p/indiserver/downloads/detail?name=PL2303driver.zip
-  * A simple test-app: https://code.google.com/p/indiserver/downloads/detail?name=usb-test.zip
+  * The driver itself (source): http://code.google.com/p/indiserver/downloads/detail?name=PL2303driver.zip
+  * A simple test-app (source): https://code.google.com/p/indiserver/downloads/detail?name=usb-test.zip
+  * Test-app as APK: http://code.google.com/p/indiserver/downloads/detail?name=usb-test.apk
