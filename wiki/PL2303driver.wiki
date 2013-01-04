@@ -1,5 +1,16 @@
 Short description of the PL2303 driver
 
+== Preface ==
+
+I'm very happy that my work is used and appreciated by other developers.
+I've gotten many emails with questions about this specific driver, and often thanking mails. My intention in developing was: 
+
+  # I have not found a FREE and WORKING driver for PL2303/Android on the web
+  # learning by doing
+  # fresh up my rusted programming skills
+  
+I'm glad that there are so many people out there, that do exactly the same :)
+
 == What's supported ==
 
   * PL2303 and newer PL2303HX-types (both tested) with ProductID 0x2303 and VendorID 0x067b
