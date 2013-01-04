@@ -49,3 +49,7 @@ I'm glad that there are so many people out there, that do exactly the same :)
   * If you think it could be done better let me know
   * If there is a problem/bug send me a logcat and I'll try to figure it out
   * Patches/Bugfixes/etc. are always welcome
+
+== Downloads ==
+  * The driver itself: http://code.google.com/p/indiserver/downloads/detail?name=PL2303driver.zip
+  * A simple test-app: https://code.google.com/p/indiserver/downloads/detail?name=usb-test.zip
