@@ -52,7 +52,7 @@ I'm glad that there are so many people out there, that do exactly the same :)
 
 == Screenshot of Test app ==
 
-http://code.google.com/p/indiserver/downloads/detail?name=Screenshot_2013-01-04-18-51-25.png
+http://code.google.com/p/indiserver/downloads/Screenshot_2013-01-04-18-51-25.png
 
 == Downloads ==
   * The driver itself (source): http://code.google.com/p/indiserver/downloads/detail?name=PL2303driver.zip
