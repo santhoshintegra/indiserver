@@ -28,6 +28,8 @@ I'm glad that there are so many people out there, that do exactly the same :)
 == What's NOT tested ==
 
   * Although implemented, I don't know if the code is able to cope with highspeed serial communication greater than 19200 Baud. 
+  * I haven't done any (critical) timing-tests - there may be obviously severe bugs! be aware of it! 
+  * Although I'm aware of race-conditions and synchronized obvious critical parts of the code, there may be some problems.
 
 == How to use it ==
 
