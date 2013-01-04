@@ -49,6 +49,7 @@ I'm glad that there are so many people out there, that do exactly the same :)
   * If you think it could be done better let me know
   * If there is a problem/bug send me a logcat and I'll try to figure it out
   * Patches/Bugfixes/etc. are always welcome
+  * If you would like to improve/extend the test-app please send me your code. 
 
 == Screenshot of Test app ==
 
