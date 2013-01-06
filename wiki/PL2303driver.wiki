@@ -12,7 +12,7 @@ I've got many emails with questions about this specific driver, and often thanki
 I'm glad that there are so many people out there, that do exactly the same :)
 
 == Requirements ==
-  * Android device with USB-Host support 
+  * Android device with USB-Host support (no root required)
   * minimum Android 3.2 
   * Fullsize USB Port or USB-OTG-Cable
   * PL2303 Converter
