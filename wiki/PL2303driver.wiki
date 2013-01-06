@@ -11,6 +11,13 @@ I've got many emails with questions about this specific driver, and often thanki
   
 I'm glad that there are so many people out there, that do exactly the same :)
 
+== Requirements ==
+  * Android device with USB-Host support 
+  * minimum Android 3.2 
+  * Fullsize USB Port or USB-OTG-Cable
+  * PL2303 Converter
+
+
 == What's supported ==
 
   * PL2303 and newer PL2303HX-types (both tested) with ProductID 0x2303 and VendorID 0x067b
