@@ -8,7 +8,7 @@ I've got many emails with questions about this specific driver, and often thanki
   # I have not found a *FREE and WORKING* driver for PL2303/Android on the web
   # learning by doing (trying to port an existing driver to Android)
   # fresh up my rusted practical programming skills (in theory everything is easy)
-  
+  # To be able to understand my code later, I've tried to add useful comments. I think that the code is relatively well documented.
 I'm glad that there are so many people out there, that do exactly the same :)
 
 == Requirements ==
