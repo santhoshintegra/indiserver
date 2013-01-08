@@ -5,13 +5,17 @@
 *Android devices*
 
  * Vodafone 845 (Huawei 8120), Android 2.3.7 CM7.2, rooted with custom ROM
- * LG P350 OptimusMe, Android 2.3.7, rooted CM7.2 custom ROM
+ * HTC One V, Android 4.1.2 CM 10, rooted with custom ROM
  * Archos 70H, Android 2.2, unrooted
- * Archos 101G9, Android 4.0.3, unrooted
+ * Archos 101G9, Android 4.0.4, unrooted (main development device)
 
 *Telescope*
 
  * Meade LXD-75 mount with Autostar #497 Handbox, 6" 150mm/1200mm Newton
+
+*USB-Serial-Converter*
+
+  * About 5-6 PL2303 Converters Standard and HX-Type
 
 *Bluetooth-Adaptor*
 
