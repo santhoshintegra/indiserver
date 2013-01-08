@@ -28,7 +28,7 @@ I'm glad that there are so many people out there, that do exactly the same :)
 
 == What's NOT supported (at least at the moment)==
 
-  * 3rd party PL2303 with different ProductID/VendorID
+  * 3rd party PL2303 with different ProductID/VendorID (would be easy to accomplish, but I can't test ist)
   * Selecting one specific PL2303 out of multiple connected ones, because most of them don't have a S/N and thus can't be uniquely identified. The Android USB-Host-API just numbers them in the order they were connected.
   * RFR/CTS, DTR/DSR and XON/XOFF Flow-Control
 
