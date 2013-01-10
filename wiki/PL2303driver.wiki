@@ -59,6 +59,7 @@ I'm glad that there are so many people out there, that do exactly the same :)
   * If there is a problem/bug send me a logcat and I'll try to figure it out
   * Patches/Bugfixes/etc. are always welcome - use the bugtracking: http://code.google.com/p/indiserver/issues/list
   * If you would like to improve/extend the test-app please send me your code. 
+  * *I'm not a professional Coder! I've done this just for fun and learning purposes. I'm open to and welcome every criticism as long as it's constructive. I've got a very good background on security/timing/theory in common, but my practical skills are no way that good! So every comment is welcome.*
 
 == Screenshot of Test app ==
 
