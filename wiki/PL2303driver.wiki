@@ -13,7 +13,7 @@ I'm glad that there are so many people out there, that do exactly the same :)
 
 == What I'm not amused about ==
 
-Prolific Technology (the Producer of PL2303-Chips) has recently (v.1.0.0.2 about February 2013) released an Android Host-Mode SDK for their Chips:
+Prolific Technology (the Producer of PL2303-Chips) has recently (v.1.0.0.2 about February 2013, acutally 1.0.0.4) released an Android Host-Mode SDK for their Chips:
 
 http://www.prolific.com.tw/US/ShowProduct.aspx?p_id=230&pcid=41
 
