@@ -18,7 +18,7 @@ Prolific Technology (the Producer of PL2303-Chips) has recently (v.1.0.0.2 about
 http://www.prolific.com.tw/US/ShowProduct.aspx?p_id=230&pcid=41
 
 Upon closer examination I believe they took code from my driver:
-i.e. some of the error messages are _exactly_ the same, Enumeration of settings are _exactly_ the same.
+i.e. some of the error messages are _exactly_ the same, Enumeration of settings are _exactly_ the same, names and order of constants are _exactly_ the same.
 Especially the setup() method seems to be _very, very_ similar to mine.
 
 It would have been very pleasant, if they would have contacted me BEFORE!
