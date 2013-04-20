@@ -11,6 +11,21 @@ I've got many emails with questions about this specific driver, and often thanki
   # To be able to understand my code later, I've tried to add useful comments. I think that the code is relatively well documented.
 I'm glad that there are so many people out there, that do exactly the same :)
 
+== What I'm not amused about ==
+
+Prolific Technology (the Producer of PL2303-Chips) has recently released an Android Host-Mode SDK for their Chips.
+
+Upon closer examination I believe they took code from my driver:
+i.e. some of the error messages are _exactly_ the same and Enumeration of settings are _exactly_ the same.
+
+It would have been very pleasant, if they would have contacted me BEFORE!
+
+It also would have been pleasant, if they would have respected the GPLv3.
+
+They are releasing their SDK as a jar-Archive without Sources!
+
+
+
 == Requirements ==
   * Android device with USB-Host support (no root required)
   * minimum Android 3.2 
