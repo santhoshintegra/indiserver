@@ -19,7 +19,7 @@ http://www.prolific.com.tw/US/ShowProduct.aspx?p_id=230&pcid=41
 
 Upon closer examination I believe they took code from my driver:
 i.e. some of the error messages are _exactly_ the same, Enumeration of settings are _exactly_ the same, names and order of constants are _exactly_ the same.
-Especially the setup() method seems to be _very, very_ similar to mine.
+Especially the methods setup(), setDTR() and setRTS() seem to be _very, very_ similar to mine.
 
 It would have been very pleasant, if they would have contacted me BEFORE!
 It also would have been pleasant, if they would have respected the GPLv3:
