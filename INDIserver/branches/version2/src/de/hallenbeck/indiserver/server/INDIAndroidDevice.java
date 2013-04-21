@@ -1,26 +1,26 @@
+/*
+ *
+ * This file is part of INDIserver.
+ *
+ * INDIserver is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as published by
+ * the Free Software Foundation.
+ *
+ * INDIserver is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with INDIserver.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2012 Alexander Tuschen <atuschen75 at gmail dot com>
+ *
+ */
+
 package de.hallenbeck.indiserver.server;
 
-
-	/*
-	 *  This file is part of INDI for Java Server.
-	 * 
-	 *  INDI for Java Server is free software: you can redistribute it
-	 *  and/or modify it under the terms of the GNU General Public License 
-	 *  as published by the Free Software Foundation, either version 3 of 
-	 *  the License, or (at your option) any later version.
-	 * 
-	 *  INDI for Java Server is distributed in the hope that it will be
-	 *  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-	 *  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	 *  GNU General Public License for more details.
-	 * 
-	 *  You should have received a copy of the GNU General Public License
-	 *  along with INDI for Java Server.  If not, see 
-	 *  <http://www.gnu.org/licenses/>.
-	 */
-
-
-	import android.content.Context;
+import android.content.Context;
 
 import com.Ostermiller.util.CircularByteBuffer;
 	import java.io.IOException;
