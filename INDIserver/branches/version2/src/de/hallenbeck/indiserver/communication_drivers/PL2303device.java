@@ -1,3 +1,23 @@
+/*
+ *
+ * This file is part of INDIserver.
+ *
+ * INDIserver is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as published by
+ * the Free Software Foundation.
+ *
+ * INDIserver is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with INDIserver.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2012 Alexander Tuschen <atuschen75 at gmail dot com>
+ *
+ */
+
 package de.hallenbeck.indiserver.communication_drivers;
 
 import java.io.BufferedReader;
