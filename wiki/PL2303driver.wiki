@@ -11,7 +11,7 @@ I've got many emails with questions about this specific driver, and often thanki
   # To be able to understand my code later, I've tried to add useful comments. I think that the code is relatively well documented.
 I'm glad that there are so many people out there, that do exactly the same :)
 
-*As I've done this as hobby, there are flaws: i.e. I disobeyed Java coding style-guidlines. So take this driver rather as a blueprint, but please respect the GNU GPL and put your code under GPL as well.*
+*As I've done this as hobby, there are flaws: i.e. I disobeyed Java coding style-guidelines. So take this driver rather as a blueprint, but please respect the GNU GPL and put your code under GPL as well.*
 
 == Requirements ==
   * Android device with USB-Host support (no root required)
