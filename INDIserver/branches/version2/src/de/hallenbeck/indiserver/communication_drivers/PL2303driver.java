@@ -62,37 +62,37 @@ import android.util.Log;
 public class PL2303driver implements Runnable {
 	
 	// ApplicationContext necessary because of UsbManager and PermissionIntent
-	private Context AppContext; 
+	private Context mAppContext; 
 	
 	// All USB Classes
 	private UsbManager mUsbManager;
 	private UsbDevice mDevice;
 	private UsbDeviceConnection mConnection;
-	private UsbInterface intf;
-	private UsbEndpoint ep0;
-	private UsbEndpoint ep1;
-	private UsbEndpoint ep2;
+	private UsbInterface mUSBIntf;
+	private UsbEndpoint mEP0;
+	private UsbEndpoint mEP1;
+	private UsbEndpoint mEP2;
 	
 	// ArrayList of all PL2303 converters connected
-	private ArrayList<UsbDevice> pl2303ArrayList = new ArrayList<UsbDevice>();
+	private ArrayList<UsbDevice> mPL2303ArrayList = new ArrayList<UsbDevice>();
 	
 	// Serial Port settings like Baudrate, see setup() 
-	private byte[] PortSetting = new byte[7]; 
+	private byte[] mPortSetting = new byte[7]; 
 	
 	// Status of RTC/CTS FlowControl
-	private FlowControl Flow = FlowControl.OFF;
+	private FlowControl mFlow = FlowControl.OFF;
 	
 	// Status of DTR/RTS Lines
-	private int ControlLines = 0;
+	private int mControlLines = 0;
 	
 	// Status of DSR/CTS/DCD/RI Lines
-	private byte StatusLines = 0;
+	private byte mStatusLines = 0;
 	
 	// Type 0 = PL2303, Type 1 = PL2303-HX
-	private int PL2303type = 0; 			
+	private int mPL2303type = 0; 			
 
 	// Callback Class interface
-	private PL2303callback pl2303Callback; 	
+	private PL2303callback mPL2303Callback; 	
 	
 	public static enum BaudRate {
 		B0, 
@@ -175,7 +175,7 @@ public class PL2303driver implements Runnable {
 	private static final String ACTION_USB_PERMISSION 	=   "com.android.hardware.USB_PERMISSION";
 
 	/**
-	 * BraodcastReceiver for permission to use USB-Device
+	 * BroadcastReceiver for permission to use USB-Device
 	 * Called by the System after the user has denied/granted access to a USB-Device
 	 */
 	private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
@@ -191,12 +191,12 @@ public class PL2303driver implements Runnable {
 						if (initalize(device)){
 							
 							Log.d(TAG, "Device successfully initialized");
-							pl2303Callback.onInitSuccess();
+							mPL2303Callback.onInitSuccess();
 							
 						} else {
 							
 							Log.d(TAG, "Device initialization failed");
-							pl2303Callback.onInitFailed("Device initialization failed");
+							mPL2303Callback.onInitFailed("Device initialization failed");
 							close();
 						
 						}
@@ -205,7 +205,7 @@ public class PL2303driver implements Runnable {
 						
 						mDevice = null;
 						Log.d(TAG, "Permission denied for device " + device.getDeviceName());
-						pl2303Callback.onInitFailed("Permission denied");
+						mPL2303Callback.onInitFailed("Permission denied");
 						
 					}
 				}
@@ -220,13 +220,13 @@ public class PL2303driver implements Runnable {
 	 */
 	public PL2303driver(Context context, PL2303callback callback) {
 		Log.d(TAG, "PL2303 driver starting");
-		AppContext = context;
-		pl2303Callback = callback;
-		mUsbManager = (UsbManager) AppContext.getSystemService(Context.USB_SERVICE);
+		mAppContext = context;
+		mPL2303Callback = callback;
+		mUsbManager = (UsbManager) mAppContext.getSystemService(Context.USB_SERVICE);
 
 		// Register BroadcastReceiver for Permission Intent
 		IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-		AppContext.registerReceiver(mUsbReceiver, filter);
+		mAppContext.registerReceiver(mUsbReceiver, filter);
 	}
 	
 	/**
@@ -234,7 +234,7 @@ public class PL2303driver implements Runnable {
 	 * @return ArrayList<UsbDevice> 
 	 */
 	public ArrayList<UsbDevice> getDeviceList() {
-		pl2303ArrayList.clear();
+		mPL2303ArrayList.clear();
 		
 		// Get the USB device list (of all devices)
 		HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
@@ -244,11 +244,11 @@ public class PL2303driver implements Runnable {
 		while(deviceIterator.hasNext()){
 			UsbDevice device = deviceIterator.next();
 			if ((device.getProductId()==0x2303) && (device.getVendorId()==0x067b)) {
-			pl2303ArrayList.add(device); }
+			mPL2303ArrayList.add(device); }
 		}
-		Log.d(TAG, pl2303ArrayList.size()+" device(s) found");
+		Log.d(TAG, mPL2303ArrayList.size()+" device(s) found");
  
-		return pl2303ArrayList;
+		return mPL2303ArrayList;
 	}
 	
 	/**
@@ -257,12 +257,12 @@ public class PL2303driver implements Runnable {
 	 * @throws IOException if device is not PL2303 or was not in the original getDeviceList()
 	 */
 	public void open(UsbDevice device) throws IOException {
-		if (pl2303ArrayList.isEmpty()) throw new IOException ("No devices connected, or getDeviceList() was not called");
-		if (!pl2303ArrayList.contains(device)) throw new IOException("Device not in original list");
+		if (mPL2303ArrayList.isEmpty()) throw new IOException ("No devices connected, or getDeviceList() was not called");
+		if (!mPL2303ArrayList.contains(device)) throw new IOException("Device not in original list");
 		if ((device.getProductId()!=0x2303) && (device.getVendorId()!=0x067b)) throw new IOException("Not a compatible PL2303-device");
 		
 		PendingIntent mPermissionIntent;
-		mPermissionIntent = PendingIntent.getBroadcast(AppContext, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_ONE_SHOT);
+		mPermissionIntent = PendingIntent.getBroadcast(mAppContext, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_ONE_SHOT);
 
 		// Request the permission to use the device from the user
 		mUsbManager.requestPermission(device, mPermissionIntent);
@@ -279,29 +279,29 @@ public class PL2303driver implements Runnable {
 		Log.d(TAG, "VendorID: "+mDevice.getVendorId());
 		Log.d(TAG, "ProductID: "+mDevice.getProductId());
 		
-		intf = mDevice.getInterface(0);
-		if (intf == null) {
+		mUSBIntf = mDevice.getInterface(0);
+		if (mUSBIntf == null) {
 			Log.e(TAG, "Getting interface failed!");
 			return false;
 		}
 		
 		// endpoint addr 0x81 = input interrupt
-		ep0 = intf.getEndpoint(0); 
-		if ((ep0.getType() != UsbConstants.USB_ENDPOINT_XFER_INT) || (ep0.getDirection() != UsbConstants.USB_DIR_IN)) {
+		mEP0 = mUSBIntf.getEndpoint(0); 
+		if ((mEP0.getType() != UsbConstants.USB_ENDPOINT_XFER_INT) || (mEP0.getDirection() != UsbConstants.USB_DIR_IN)) {
 			Log.e(TAG, "Getting endpoint 0 (control) failed!");
 			return false;
 		}
 		
 		// endpoint addr 0x2 = output bulk
-		ep1 = intf.getEndpoint(1); 
-		if ((ep1.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK) || (ep1.getDirection() != UsbConstants.USB_DIR_OUT)) {
+		mEP1 = mUSBIntf.getEndpoint(1); 
+		if ((mEP1.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK) || (mEP1.getDirection() != UsbConstants.USB_DIR_OUT)) {
 			Log.e(TAG, "Getting endpoint 1 (output) failed!");
 			return false;
 		}
 		
 		// endpoint addr 0x83 = input bulk
-		ep2 = intf.getEndpoint(2); 
-		if ((ep2.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK) || (ep2.getDirection() != UsbConstants.USB_DIR_IN)) {
+		mEP2 = mUSBIntf.getEndpoint(2); 
+		if ((mEP2.getType() != UsbConstants.USB_ENDPOINT_XFER_BULK) || (mEP2.getDirection() != UsbConstants.USB_DIR_IN)) {
 			Log.e(TAG, "Getting endpoint 2 (input) failed!");
 			return false;
 		}
@@ -312,15 +312,15 @@ public class PL2303driver implements Runnable {
 			return false;
 		}
 		
-		if (!connection.claimInterface(intf, true)) {
+		if (!connection.claimInterface(mUSBIntf, true)) {
 			Log.e(TAG, "Exclusive interface access failed!");
 			return false;
 		}
 		
 		mConnection = connection;
 
-		if (mConnection.getRawDescriptors()[7] == 64) PL2303type = 1; //Type 1 = PL2303HX
-		Log.d(TAG, "PL2303 type " +PL2303type+ " detected");		
+		if (mConnection.getRawDescriptors()[7] == 64) mPL2303type = 1; //Type 1 = PL2303HX
+		Log.d(TAG, "PL2303 type " +mPL2303type+ " detected");		
 		
 		// Initialization of PL2303 according to linux pl2303.c driver
 		byte[] buffer = new byte[1];
@@ -334,7 +334,8 @@ public class PL2303driver implements Runnable {
 		mConnection.controlTransfer(VENDOR_READ_REQUEST_TYPE, VENDOR_READ_REQUEST, 0x8383, 0, buffer, 1, 100);
 		mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 1, null, 0, 100);
 		mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 1, 0, null, 0, 100);
-		if (PL2303type == 1) mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 2, 0x44, null, 0, 100);
+		
+		if (mPL2303type == 1) mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 2, 0x44, null, 0, 100);
 		else mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 2, 0x24, null, 0, 100);
 		
 		// Start control thread for status lines DSR,CTS,DCD and RI
@@ -353,13 +354,13 @@ public class PL2303driver implements Runnable {
 			setRTS(false);
 			setDTR(false);
 			
-			mConnection.releaseInterface(intf);
+			mConnection.releaseInterface(mUSBIntf);
 			mConnection.close();
 			mConnection = null;
 			mDevice = null;
-			ep0 = null;
-			ep1 = null;
-			ep2 = null;
+			mEP0 = null;
+			mEP1 = null;
+			mEP2 = null;
 			Log.d(TAG, "Device closed");
 		}
 	}
@@ -389,9 +390,9 @@ public class PL2303driver implements Runnable {
 		if (mConnection == null) throw new IOException("Connection closed");
 
 		// Get current settings
-		mConnection.controlTransfer(GET_LINE_REQUEST_TYPE, GET_LINE_REQUEST, 0, 0, PortSetting, 7, 100);
+		mConnection.controlTransfer(GET_LINE_REQUEST_TYPE, GET_LINE_REQUEST, 0, 0, mPortSetting, 7, 100);
 		//mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 1, null, 0, 100);
-		Log.d(TAG, "Current serial configuration:" + PortSetting[0] + "," + PortSetting[1] + "," + PortSetting[2] + "," + PortSetting[3] + "," + PortSetting[4] + "," + PortSetting[5] + "," + PortSetting[6]);
+		Log.d(TAG, "Current serial configuration:" + mPortSetting[0] + "," + mPortSetting[1] + "," + mPortSetting[2] + "," + mPortSetting[3] + "," + mPortSetting[4] + "," + mPortSetting[5] + "," + mPortSetting[6]);
 
 		// Setup Baudrate
 		int baud;
@@ -422,40 +423,40 @@ public class PL2303driver implements Runnable {
 		default: throw new IOException("Baudrate not supported");
 		}
 
-		if  ((baud > 1228800) && (PL2303type == 0)) throw new IOException("Baudrate not supported"); // Only PL2303HX supports the higher baudrates   
+		if  ((baud > 1228800) && (mPL2303type == 0)) throw new IOException("Baudrate not supported"); // Only PL2303HX supports the higher baudrates   
 
-		PortSetting[0]=(byte) (baud & 0xff);
-		PortSetting[1]=(byte) ((baud >> 8) & 0xff);
-		PortSetting[2]=(byte) ((baud >> 16) & 0xff);
-		PortSetting[3]=(byte) ((baud >> 24) & 0xff);
+		mPortSetting[0]=(byte) (baud & 0xff);
+		mPortSetting[1]=(byte) ((baud >> 8) & 0xff);
+		mPortSetting[2]=(byte) ((baud >> 16) & 0xff);
+		mPortSetting[3]=(byte) ((baud >> 24) & 0xff);
 
 		// Setup Stopbits
 		switch (S) {
-		case S1: PortSetting[4] = 0; break;
-		case S2: PortSetting[4] = 2; break;
+		case S1: mPortSetting[4] = 0; break;
+		case S2: mPortSetting[4] = 2; break;
 		default: throw new IOException("Stopbit setting not supported"); 
 		}
 
 		// Setup Parity
 		switch (P) {
-		case NONE: PortSetting[5] = 0; break;
-		case ODD: PortSetting[5] = 1; break;
-		case EVEN: PortSetting[5] = 2; break;
+		case NONE: mPortSetting[5] = 0; break;
+		case ODD: mPortSetting[5] = 1; break;
+		case EVEN: mPortSetting[5] = 2; break;
 		default: throw new IOException("Parity setting not supported"); 
 		}
 
 		// Setup Databits
 		switch (D) {
-		case D5: PortSetting[6] = 5; break;
-		case D6: PortSetting[6] = 6; break;
-		case D7: PortSetting[6] = 7; break;
-		case D8: PortSetting[6] = 8; break;
+		case D5: mPortSetting[6] = 5; break;
+		case D6: mPortSetting[6] = 6; break;
+		case D7: mPortSetting[6] = 7; break;
+		case D8: mPortSetting[6] = 8; break;
 		default: throw new IOException("Databit setting not supported");
 		}
 
 		// Set new configuration on PL2303
-		mConnection.controlTransfer(SET_LINE_REQUEST_TYPE, SET_LINE_REQUEST, 0, 0, PortSetting, 7, 100); 
-		Log.d(TAG, "New serial configuration:" + PortSetting[0] + "," + PortSetting[1] + "," + PortSetting[2] + "," + PortSetting[3] + "," + PortSetting[4] + "," + PortSetting[5] + "," + PortSetting[6]);
+		mConnection.controlTransfer(SET_LINE_REQUEST_TYPE, SET_LINE_REQUEST, 0, 0, mPortSetting, 7, 100); 
+		Log.d(TAG, "New serial configuration:" + mPortSetting[0] + "," + mPortSetting[1] + "," + mPortSetting[2] + "," + mPortSetting[3] + "," + mPortSetting[4] + "," + mPortSetting[5] + "," + mPortSetting[6]);
 		
 		// Disable BreakControl
 		mConnection.controlTransfer(BREAK_REQUEST_TYPE, BREAK_REQUEST, BREAK_OFF, 0, null, 0, 100);
@@ -466,16 +467,16 @@ public class PL2303driver implements Runnable {
 			mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x0, null, 0, 100);
 			setRTS(false);
 			setDTR(false);
-			Flow = F;
+			mFlow = F;
 			Log.d(TAG, "FlowControl disabled");
 			break;
 			
 		case RTSCTS: 
-			if (PL2303type == 1) mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x61, null, 0, 100);
+			if (mPL2303type == 1) mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x61, null, 0, 100);
 			else mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0x0, 0x41, null, 0, 100);
 			setDTR(true);
 			setRTS(true);
-			Flow = F;
+			mFlow = F;
 			Log.d(TAG, "RTS/CTS FlowControl enabled");
 			break;
 		
@@ -491,9 +492,9 @@ public class PL2303driver implements Runnable {
 	 * @param state
 	 */
 	public void setDTR(boolean state) {
-		if ((state) && !((ControlLines & CONTROL_DTR)==CONTROL_DTR)) ControlLines = ControlLines + CONTROL_DTR;
-		if (!(state) && ((ControlLines & CONTROL_DTR)==CONTROL_DTR)) ControlLines = ControlLines - CONTROL_DTR;
-		mConnection.controlTransfer(SET_CONTROL_REQUEST_TYPE, SET_CONTROL_REQUEST, ControlLines , 0, null, 0, 100);
+		if ((state) && !((mControlLines & CONTROL_DTR)==CONTROL_DTR)) mControlLines = mControlLines + CONTROL_DTR;
+		if (!(state) && ((mControlLines & CONTROL_DTR)==CONTROL_DTR)) mControlLines = mControlLines - CONTROL_DTR;
+		mConnection.controlTransfer(SET_CONTROL_REQUEST_TYPE, SET_CONTROL_REQUEST, mControlLines , 0, null, 0, 100);
 		Log.d(TAG, "DTR set to " + state);
 	}
 	
@@ -502,9 +503,9 @@ public class PL2303driver implements Runnable {
 	 * @param state
 	 */
 	public void setRTS(boolean state) {
-		if ((state) && !((ControlLines & CONTROL_RTS)==CONTROL_RTS)) ControlLines = ControlLines + CONTROL_RTS;
-		if (!(state) && ((ControlLines & CONTROL_RTS)==CONTROL_RTS)) ControlLines = ControlLines - CONTROL_RTS;
-		mConnection.controlTransfer(SET_CONTROL_REQUEST_TYPE, SET_CONTROL_REQUEST, ControlLines , 0, null, 0, 100);
+		if ((state) && !((mControlLines & CONTROL_RTS)==CONTROL_RTS)) mControlLines = mControlLines + CONTROL_RTS;
+		if (!(state) && ((mControlLines & CONTROL_RTS)==CONTROL_RTS)) mControlLines = mControlLines - CONTROL_RTS;
+		mConnection.controlTransfer(SET_CONTROL_REQUEST_TYPE, SET_CONTROL_REQUEST, mControlLines , 0, null, 0, 100);
 		Log.d(TAG, "RTS set to " + state);
 	}
 	
@@ -530,10 +531,10 @@ public class PL2303driver implements Runnable {
 						if (mConnection == null) throw new IOException("Connection closed");
 						
 						// If FlowControl: Check DSR before read
-						if ((Flow==FlowControl.RTSCTS) && ((StatusLines & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+						if ((mFlow==FlowControl.RTSCTS) && ((mStatusLines & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
 						
 						byte [] readBuffer = new byte[1];
-						int bytesRead = mConnection.bulkTransfer(ep2, readBuffer, 1, 0);
+						int bytesRead = mConnection.bulkTransfer(mEP2, readBuffer, 1, 0);
 						if (bytesRead > 0) retVal = readBuffer[0];
 						return retVal;
 					}
@@ -543,7 +544,7 @@ public class PL2303driver implements Runnable {
 				@Override
 				public int read(byte[] buffer, int offset, int length) throws IOException, IndexOutOfBoundsException {
 					synchronized (this) {
-						int PacketSize = ep2.getMaxPacketSize();
+						int PacketSize = mEP2.getMaxPacketSize();
 						int totalBytesRead = 0;
 						byte [] readBuffer = new byte[PacketSize];
 						
@@ -556,8 +557,8 @@ public class PL2303driver implements Runnable {
 						
 						for (int i = 0 ; i < numTransfers ; i++) {
 							// If FlowControl: Check DSR before read
-							if ((Flow == FlowControl.RTSCTS) && ((StatusLines & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
-							int bytesRead = mConnection.bulkTransfer(ep2, readBuffer, PacketSize, 100);
+							if ((mFlow == FlowControl.RTSCTS) && ((mStatusLines & UART_DSR) != UART_DSR)) throw new IOException ("DSR down");
+							int bytesRead = mConnection.bulkTransfer(mEP2, readBuffer, PacketSize, 100);
 							
 							if (bytesRead >= 0) {
 								System.arraycopy(readBuffer, 0, buffer, offset, bytesRead);
@@ -594,12 +595,12 @@ public class PL2303driver implements Runnable {
 						if (mConnection == null) throw new IOException("Connection closed");
 						
 						// If FlowControl: Check DSR / CTS before write
-						if (Flow==FlowControl.RTSCTS) {
-							if ((StatusLines & UART_DSR) != UART_DSR) throw new IOException ("DSR down");
+						if (mFlow==FlowControl.RTSCTS) {
+							if ((mStatusLines & UART_DSR) != UART_DSR) throw new IOException ("DSR down");
 
 							// Wait until CTS is up
 							// TODO: this blocks!
-							while ((StatusLines & UART_CTS) != UART_CTS) {
+							while ((mStatusLines & UART_CTS) != UART_CTS) {
 								 try {
 									Thread.sleep(100);
 								} catch (InterruptedException e) {
@@ -608,7 +609,7 @@ public class PL2303driver implements Runnable {
 						}
 						
 						byte [] writeBuffer = new byte[1];
-						int bytesWritten = mConnection.bulkTransfer(ep1, writeBuffer, 1, 0);
+						int bytesWritten = mConnection.bulkTransfer(mEP1, writeBuffer, 1, 0);
 						if (bytesWritten < 1 ) throw new IOException ("BulkWrite failed - written: "+bytesWritten); 
 					}
 				}
@@ -617,7 +618,7 @@ public class PL2303driver implements Runnable {
 				@Override
 				public void write (byte[] buffer, int offset, int count) throws IOException, IndexOutOfBoundsException {
 					synchronized (this) {
-						int PacketSize = ep1.getMaxPacketSize();
+						int PacketSize = mEP1.getMaxPacketSize();
 						byte [] writeBuffer = new byte[PacketSize];
 						
 						
@@ -631,12 +632,12 @@ public class PL2303driver implements Runnable {
 						for (int i=0;i<numTransfers;i++) {
 
 							// If FlowControl: Check DSR /CTS before write
-							if (Flow==FlowControl.RTSCTS) {
-								if ((StatusLines & UART_DSR) != UART_DSR) throw new IOException ("DSR down");
+							if (mFlow==FlowControl.RTSCTS) {
+								if ((mStatusLines & UART_DSR) != UART_DSR) throw new IOException ("DSR down");
 
 								// Wait until CTS is up
 								// TODO: this blocks!
-								while ((StatusLines & UART_CTS) != UART_CTS) {
+								while ((mStatusLines & UART_CTS) != UART_CTS) {
 									 try {
 										Thread.sleep(100);
 									} catch (InterruptedException e) {
@@ -650,7 +651,7 @@ public class PL2303driver implements Runnable {
 							if (i == numTransfers - 1) PacketSize = count - ((numTransfers-1) * PacketSize); 
 							
 							System.arraycopy(buffer, offset, writeBuffer, 0, PacketSize);
-							int bytesWritten = mConnection.bulkTransfer(ep1, writeBuffer, PacketSize, 100);
+							int bytesWritten = mConnection.bulkTransfer(mEP1, writeBuffer, PacketSize, 100);
 							if (bytesWritten != PacketSize) throw new IOException ("BulkWrite failed - count: " + PacketSize + " written: "+bytesWritten);
 								
 						}
@@ -668,46 +669,46 @@ public class PL2303driver implements Runnable {
 	 */
 	@Override
 	public void run() {
-		ByteBuffer readBuffer = ByteBuffer.allocate(ep0.getMaxPacketSize());
+		ByteBuffer readBuffer = ByteBuffer.allocate(mEP0.getMaxPacketSize());
 		UsbRequest request = new UsbRequest();
 		
 		// Although documentation says that UsbRequest doesn't work on Endpoint 0 it actually works  
-		request.initialize(mConnection, ep0);
+		request.initialize(mConnection, mEP0);
 
 		while (mConnection != null) {
-			request.queue(readBuffer, ep0.getMaxPacketSize());
+			request.queue(readBuffer, mEP0.getMaxPacketSize());
 			UsbRequest retRequest = mConnection.requestWait();
 			
 			// The request returns when any line status has changed
-			if (retRequest.getEndpoint()==ep0) {
+			if (retRequest.getEndpoint()==mEP0) {
 				
-				if ((readBuffer.get(8) & UART_DSR) != (StatusLines & UART_DSR)) {
+				if ((readBuffer.get(8) & UART_DSR) != (mStatusLines & UART_DSR)) {
 					Log.d(TAG,"Change on DSR detected: "+(readBuffer.get(8) & UART_DSR));
-					if ((readBuffer.get(8) & UART_DSR) == UART_DSR) pl2303Callback.onDSR(true);
-					else pl2303Callback.onDSR(false);
+					if ((readBuffer.get(8) & UART_DSR) == UART_DSR) mPL2303Callback.onDSR(true);
+					else mPL2303Callback.onDSR(false);
 				}
 				
-				if ((readBuffer.get(8) & UART_CTS) != (StatusLines & UART_CTS)) {
+				if ((readBuffer.get(8) & UART_CTS) != (mStatusLines & UART_CTS)) {
 					Log.d(TAG,"Change on CTS detected: "+(readBuffer.get(8) & UART_CTS));
-					if ((readBuffer.get(8) & UART_CTS) == UART_CTS) pl2303Callback.onCTS(true);
-					else pl2303Callback.onCTS(false);
+					if ((readBuffer.get(8) & UART_CTS) == UART_CTS) mPL2303Callback.onCTS(true);
+					else mPL2303Callback.onCTS(false);
 				}
 				
-				if ((readBuffer.get(8) & UART_DCD) != (StatusLines & UART_DCD)) {
+				if ((readBuffer.get(8) & UART_DCD) != (mStatusLines & UART_DCD)) {
 					Log.d(TAG,"Change on DCD detected: "+(readBuffer.get(8) & UART_DCD));
-					if ((readBuffer.get(8) & UART_DCD) == UART_DCD) pl2303Callback.onDCD(true);
-					else pl2303Callback.onDCD(false);
+					if ((readBuffer.get(8) & UART_DCD) == UART_DCD) mPL2303Callback.onDCD(true);
+					else mPL2303Callback.onDCD(false);
 				}
 				
-				if ((readBuffer.get(8) & UART_RING) != (StatusLines & UART_RING)) {
+				if ((readBuffer.get(8) & UART_RING) != (mStatusLines & UART_RING)) {
 					Log.d(TAG,"Change on RI detected: "+(readBuffer.get(8) & UART_RING));
-					if ((readBuffer.get(8) & UART_RING) == UART_RING) pl2303Callback.onRI(true);
-					else pl2303Callback.onRI(false);
+					if ((readBuffer.get(8) & UART_RING) == UART_RING) mPL2303Callback.onRI(true);
+					else mPL2303Callback.onRI(false);
 				}
 			}
 			
 			// Save status
-			StatusLines = readBuffer.get(8);
+			mStatusLines = readBuffer.get(8);
 		}
 	} 
 	
