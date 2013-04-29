@@ -148,7 +148,7 @@ public class PL2303driver implements Runnable {
 	};
 
 	// USB control commands
-	private static final int USB_TIMEOUT = 100;
+	private static final int USB_TIMEOUT = 100; // Timeout 100ms for USB transfers
 	private static final int SET_LINE_REQUEST_TYPE = 0x21;
 	private static final int SET_LINE_REQUEST = 0x20;
 	private static final int BREAK_REQUEST_TYPE = 0x21;
@@ -164,6 +164,7 @@ public class PL2303driver implements Runnable {
 	private static final int SET_CONTROL_REQUEST = 0x22;
 	
 	// RS232 Line constants
+	private static final int FLOWCONTROL_TIMEOUT = 500; // Timeout 500ms for RTS/CTS Flowcontrol
 	private static final int CONTROL_DTR = 0x01;
 	private static final int CONTROL_RTS = 0x02;
 	private static final int UART_DCD = 0x01;
@@ -396,10 +397,10 @@ public class PL2303driver implements Runnable {
 				setRTS(false);
 				setDTR(false);
 			} catch (IOException e) {
-				Log.e(TAG,"Error on close",e);
+				Log.e(TAG,"Error on close: ",e);
 				e.printStackTrace();
 			}
-			mConnection.releaseInterface(mUsbIntf);
+			if (!mConnection.releaseInterface(mUsbIntf)) Log.e(TAG,"Could not release interface");
 			mConnection.close();
 			mConnection = null;
 			mDevice = null;
@@ -724,14 +725,14 @@ public class PL2303driver implements Runnable {
 						if (mFlow==FlowControl.RTSCTS) {
 							if ((mStatusLines & UART_DSR) != UART_DSR) throw new IOException ("DSR down");
 
-							// Wait until CTS is up
-							// TODO: this blocks!
-							while ((mStatusLines & UART_CTS) != UART_CTS) {
+							// Wait FLOWCONTROL_TIMEOUT miliseconds until CTS is up
+							if ((mStatusLines & UART_CTS) != UART_CTS) {
 								 try {
-									Thread.sleep(100);
+									Thread.sleep(FLOWCONTROL_TIMEOUT);
 								} catch (InterruptedException e) {
 								}
 							}
+							if ((mStatusLines & UART_CTS) != UART_CTS) throw new IOException ("CTS down"); 
 						}
 						
 						byte [] writeBuffer = new byte[1];
@@ -762,14 +763,14 @@ public class PL2303driver implements Runnable {
 							if (mFlow==FlowControl.RTSCTS) {
 								if ((mStatusLines & UART_DSR) != UART_DSR) throw new IOException ("DSR down");
 
-								// Wait until CTS is up
-								// TODO: this blocks!
-								while ((mStatusLines & UART_CTS) != UART_CTS) {
+								// Wait FLOWCONTROL_TIMEOUT miliseconds until CTS is up
+								if ((mStatusLines & UART_CTS) != UART_CTS ) {
 									 try {
-										Thread.sleep(100);
+										Thread.sleep(FLOWCONTROL_TIMEOUT);
 									} catch (InterruptedException e) {
 									}
 								}
+								if ((mStatusLines & UART_CTS) != UART_CTS ) throw new IOException ("CTS down");
 							}
 							
 							
@@ -794,6 +795,7 @@ public class PL2303driver implements Runnable {
 	 * Runnable for detection of DSR, CTS , DCD and RI
 	 * Calls the appropriate Callback-function on status change
 	 * UsbRequest on Endpoint zero returns 10 bytes. Byte 9 contains the line status. 
+	 * This thread is automatically started at initialization.
 	 */
 	@Override
 	public void run() {
