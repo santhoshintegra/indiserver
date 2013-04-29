@@ -662,7 +662,7 @@ public class PL2303driver implements Runnable {
 					}
 				}
 
-				// Non-blocking read (Timeout set to 100ms)
+				// Non-blocking read (Timeout set to USB_TIMEOUT)
 				@Override
 				public int read(byte[] buffer, int offset, int length) throws IOException, IndexOutOfBoundsException {
 					synchronized (this) {
@@ -742,7 +742,7 @@ public class PL2303driver implements Runnable {
 					}
 				}
 
-				// Non-blocking write (Timeout set to 100ms)
+				// Non-blocking write (Timeout set to USB_TIMEOUT)
 				@Override
 				public void write (byte[] buffer, int offset, int count) throws IOException, IndexOutOfBoundsException {
 					synchronized (this) {
