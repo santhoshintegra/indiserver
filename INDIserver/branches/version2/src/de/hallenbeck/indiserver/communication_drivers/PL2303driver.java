@@ -191,7 +191,7 @@ public class PL2303driver implements Runnable {
 						
 						Log.d(TAG, "Permission granted for device " + device.getDeviceName());
 						
-						if (initalize(device)){
+						if (mInitializePL2303(device)){
 							
 							Log.d(TAG, "Device successfully initialized");
 							mPL2303Callback.onInitSuccess();
@@ -306,7 +306,7 @@ public class PL2303driver implements Runnable {
 	 * initialize the PL2303 converter
 	 * @return true on success
 	 */
-	private boolean initalize(UsbDevice device) {
+	private boolean mInitializePL2303(UsbDevice device) {
 		mDevice = device;
 		Log.d(TAG, "Device Name: "+mDevice.getDeviceName());
 		Log.d(TAG, "VendorID: "+mDevice.getVendorId());
@@ -374,7 +374,7 @@ public class PL2303driver implements Runnable {
 			else mVendorWrite(2, 0x24, null, 0);
 			
 		} catch (IOException e) {
-			Log.e(TAG, "Failed to initialise PL2303!");
+			Log.e(TAG, "Failed to initialize PL2303:", e);
 			e.printStackTrace();
 			return false;
 		}
@@ -396,7 +396,7 @@ public class PL2303driver implements Runnable {
 				setRTS(false);
 				setDTR(false);
 			} catch (IOException e) {
-				Log.e(TAG,"Error on close");
+				Log.e(TAG,"Error on close",e);
 				e.printStackTrace();
 			}
 			mConnection.releaseInterface(mUsbIntf);
@@ -422,13 +422,77 @@ public class PL2303driver implements Runnable {
 	}
 
 	/**
+	 * Get current Baudrate
+	 * @return int
+	 */
+	public int getBaudRate() {
+		ByteBuffer bb = ByteBuffer.wrap(mPortSetting);
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		IntBuffer ib = bb.asIntBuffer();
+		return ib.get(0);
+	}
+	
+	/**
+	 * Get current Stopbit setting
+	 * @return string
+	 */
+	public String getStopbits() {
+		String sb_read="";
+		switch (mPortSetting[4]) {
+		case 0: sb_read="1"; break; 
+		case 1: sb_read="1.5"; break;
+		case 2: sb_read="2"; break;
+		}
+		return sb_read;
+	}
+	
+	/**
+	 * Get current Parity setting
+	 * @return string
+	 */
+	public String getParity() {
+		String p_read="";
+		switch (mPortSetting[5]) {
+		case 0: p_read="NONE"; break;
+		case 1: p_read="ODD"; break;
+		case 2: p_read="EVEN"; break;
+		}
+		return p_read;
+	}
+
+	/**
+	 * Get current Databit setting
+	 * @return int
+	 */
+	public int getDatabits() {
+		return mPortSetting[6];
+	}
+	
+	/**
+	 * Get current FlowControl setting
+	 * @return string
+	 */
+	public String getFlowControl() {
+		String fc_read="";
+		switch (mFlow) {
+		case OFF: fc_read="OFF"; break;
+		case RTSCTS: fc_read="RTSCTS"; break;
+		case DTRDSR: break;
+		case RFRCTS: break;
+		case XONXOFF: break;
+		}
+		return fc_read;
+	}
+	
+	/**
 	 * Setup basic communication parameters according to linux pl2303.c driver 
 	 * @param Enum BaudRate 
 	 * @param Enum DataBits
 	 * @param Enum StopBits
 	 * @param Enum Parity
 	 * @param Enum FlowControl
-	 * @throws IOException if settings not supported or connection is closed
+	 * @throws IOException if connection is closed or any other USB IO error
+	 * @throws IndexOutOfBoundsException if settings not supported
 	 */
 	public void setup(BaudRate R, DataBits D, StopBits S, Parity P, FlowControl F) throws IOException,IndexOutOfBoundsException {
 		
@@ -440,28 +504,7 @@ public class PL2303driver implements Runnable {
 		if (ret < 7) throw new IOException("Could not get serial port settings");
 		
 		//mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, 0, 1, null, 0, 100);
-		
-		// Some conversions of the PortSetting ByteArray to make debugging output readable
-		ByteBuffer bb = ByteBuffer.wrap(mPortSetting);
-		bb.order(ByteOrder.LITTLE_ENDIAN);
-		IntBuffer ib = bb.asIntBuffer();
-		int baud_read = ib.get(0);
-
-		String sb_read="";
-		String p_read="";
-
-		switch (mPortSetting[4]) {
-		case 0: sb_read="1"; break; 
-		case 1: sb_read="1.5"; break;
-		case 2: sb_read="2"; break;
-		}
-
-		switch (mPortSetting[5]) {
-		case 0: p_read="NONE"; break;
-		case 1: p_read="ODD"; break;
-		case 2: p_read="EVEN"; break;
-		}
-		Log.d(TAG, "Current serial configuration: Baudrate " + baud_read + ", Stopbits "+sb_read+", Parity "+p_read+", Databits "+mPortSetting[6]);
+		Log.d(TAG, "Current serial configuration: Baudrate " + getBaudRate() + ", Stopbits "+ getStopbits() +", Parity "+ getParity() +", Databits "+ getDatabits());
 
 		// Setup Baudrate
 		int baud;
@@ -529,26 +572,8 @@ public class PL2303driver implements Runnable {
 		ret = mConnection.controlTransfer(SET_LINE_REQUEST_TYPE, SET_LINE_REQUEST, 0, 0, mPortSetting, 7, USB_TIMEOUT);
 		if (ret < 7) throw new IOException("Could not set serial port settings");
 		
-		// Some conversions of the PortSetting ByteArray to make debugging output readable
-		bb = ByteBuffer.wrap(mPortSetting);
-		bb.order(ByteOrder.LITTLE_ENDIAN);
-		ib = bb.asIntBuffer();
-		baud_read = ib.get(0);
+		Log.d(TAG, "New serial configuration: Baudrate " + getBaudRate() + ", Stopbits "+ getStopbits() +", Parity "+ getParity() +", Databits "+ getDatabits());				
 
-		switch (mPortSetting[4]) {
-		case 0: sb_read="1"; break; 
-		case 1: sb_read="1.5"; break;
-		case 2: sb_read="2"; break;
-		}
-
-		switch (mPortSetting[5]) {
-		case 0: p_read="NONE"; break;
-		case 1: p_read="ODD"; break;
-		case 2: p_read="EVEN"; break;
-		}
-
-		Log.d(TAG, "New serial configuration: Baudrate " + baud_read + ", Stopbits "+sb_read+", Parity "+p_read+", Databits "+mPortSetting[6]);
-						
 		// Disable BreakControl
 		ret = mConnection.controlTransfer(BREAK_REQUEST_TYPE, BREAK_REQUEST, BREAK_OFF, 0, null, 0, USB_TIMEOUT);
 		if (ret < 0) throw new IOException("Could not disable BreakControl");
