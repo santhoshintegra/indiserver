@@ -83,6 +83,7 @@ public class PL2303driver implements Runnable {
 	private UsbEndpoint mEp0;
 	private UsbEndpoint mEp1;
 	private UsbEndpoint mEp2;
+	private UsbRequest mUsbRequest;
 	
 	// ArrayList of all PL2303 converters connected
 	private ArrayList<UsbDevice> mPL2303ArrayList = new ArrayList<UsbDevice>();
@@ -104,6 +105,9 @@ public class PL2303driver implements Runnable {
 
 	// Callback Class interface
 	private PL2303callback mPL2303Callback; 	
+	
+	// Control variable for Monitoring thread
+	private boolean mStopMonitoringThread = false;
 	
 	public static enum BaudRate {
 		B0, 
@@ -390,6 +394,7 @@ public class PL2303driver implements Runnable {
 		}
 		
 		// Start control thread for status lines DSR,CTS,DCD and RI
+		mStopMonitoringThread = false;
 		Thread t = new Thread(this);
 		t.start();
 		
@@ -409,7 +414,9 @@ public class PL2303driver implements Runnable {
 				Log.e(TAG,"Error on close: ",e);
 				e.printStackTrace();
 			}
-			if (!mConnection.releaseInterface(mUsbIntf)) Log.e(TAG,"Could not release interface");
+			mStopMonitoringThread=true;
+			mUsbRequest.cancel();
+			mConnection.releaseInterface(mUsbIntf);
 			mConnection.close();
 			mConnection = null;
 			mDevice = null;
@@ -667,6 +674,7 @@ public class PL2303driver implements Runnable {
 						byte [] readBuffer = new byte[1];
 						int bytesRead = mConnection.bulkTransfer(mEp2, readBuffer, 1, 0);
 						if (bytesRead > 0) retVal = readBuffer[0];
+						//Log.d(TAG,"Bytes read: " + bytesRead);
 						return retVal;
 					}
 				}
@@ -703,6 +711,7 @@ public class PL2303driver implements Runnable {
 							} else break;
 							
 						}
+						//Log.d(TAG,"Bytes read: " + totalBytesRead);
 						return totalBytesRead;	
 					}
 				}
@@ -748,6 +757,7 @@ public class PL2303driver implements Runnable {
 						byte [] writeBuffer = new byte[1];
 						
 						int bytesWritten = mConnection.bulkTransfer(mEp1, writeBuffer, 1, 0);
+						Log.d(TAG,"Bytes written: " + bytesWritten);
 						if (bytesWritten < 1 ) throw new IOException ("BulkWrite failed - written: "+bytesWritten); 
 					}
 				}
@@ -791,6 +801,7 @@ public class PL2303driver implements Runnable {
 							
 							System.arraycopy(buffer, offset, writeBuffer, 0, PacketSize);
 							int bytesWritten = mConnection.bulkTransfer(mEp1, writeBuffer, PacketSize, USB_TIMEOUT);
+							Log.d(TAG,"Bytes written: " + bytesWritten);
 							if (bytesWritten != PacketSize) throw new IOException ("BulkWrite failed - count: " + PacketSize + " written: "+bytesWritten);
 								
 						}
@@ -810,19 +821,19 @@ public class PL2303driver implements Runnable {
 	@Override
 	public void run() {
 		ByteBuffer readBuffer = ByteBuffer.allocate(mEp0.getMaxPacketSize());
-		UsbRequest request = new UsbRequest();
+		mUsbRequest = new UsbRequest();
 		
 		// Although documentation says that UsbRequest doesn't work on Endpoint 0 it actually works  
-		request.initialize(mConnection, mEp0);
+		mUsbRequest.initialize(mConnection, mEp0);
 		
 		Log.d(TAG, "Status line monitoring thread started");
 		
-		while (mConnection != null) {
-			request.queue(readBuffer, mEp0.getMaxPacketSize());
+		while (!mStopMonitoringThread) {
+			mUsbRequest.queue(readBuffer, mEp0.getMaxPacketSize());
 			UsbRequest retRequest = mConnection.requestWait();
 			
 			// The request returns when any line status has changed
-			if (retRequest.getEndpoint()==mEp0) {
+			if  ((!mStopMonitoringThread) && (retRequest.getEndpoint()==mEp0)) {
 				
 				if ((readBuffer.get(8) & UART_DSR) != (mStatusLines & UART_DSR)) {
 					Log.d(TAG,"Change on DSR detected: "+(readBuffer.get(8) & UART_DSR));
@@ -847,12 +858,12 @@ public class PL2303driver implements Runnable {
 					if ((readBuffer.get(8) & UART_RING) == UART_RING) mPL2303Callback.onRI(true);
 					else mPL2303Callback.onRI(false);
 				}
+				
+				// Save status
+				mStatusLines = readBuffer.get(8);
 			}
 			
-			// Save status
-			mStatusLines = readBuffer.get(8);
 		}
-		
 		Log.d(TAG, "Status line monitoring thread stopped");
 	} 
 	
