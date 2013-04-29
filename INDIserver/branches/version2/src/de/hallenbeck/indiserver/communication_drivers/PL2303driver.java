@@ -59,8 +59,17 @@ import android.util.Log;
  * TODO: add RFR/CTS, DTR/DSR and XON/XOFF FlowControl
  * 
  * @author atuschen75 at gmail dot com
- *
  */
+
+/*
+ * Thanks go to 
+ * - Chris Visschers
+ * - wa.burger
+ * - Andrey Vladimirovic
+ * - viral khara
+ * - Anastasia Kostrjitskaya
+ */
+
 public class PL2303driver implements Runnable {
 	
 	// ApplicationContext necessary because of UsbManager and PermissionIntent
@@ -285,7 +294,7 @@ public class PL2303driver implements Runnable {
 	 */
 	private void mVendorRead(int value, int index, byte[] buffer, int length) throws IOException {
 		int ret = mConnection.controlTransfer(VENDOR_READ_REQUEST_TYPE, VENDOR_READ_REQUEST, value, index, buffer, length, USB_TIMEOUT);
-		if (ret < length) throw new IOException("Vendor read request failed");
+		if (ret < length) throw new IOException("Vendor read request failed! Value: 0x"+ String.format("%04X", value) + " Index: " + index + "Length: " + length +" Return: " + ret);
 	}
 	
 	
@@ -299,7 +308,7 @@ public class PL2303driver implements Runnable {
 	 */
 	private void mVendorWrite(int value, int index, byte[] buffer, int length) throws IOException {
 		int ret = mConnection.controlTransfer(VENDOR_WRITE_REQUEST_TYPE, VENDOR_WRITE_REQUEST, value, index, buffer, length, USB_TIMEOUT);
-		if (ret < length) throw new IOException("Vendor write request failed");
+		if (ret < length) throw new IOException("Vendor write request failed! Value: 0x"+ String.format("%04X", value) + " Index: " + index + "Length: " + length +" Return: " + ret);
 	}
 	
 	
@@ -309,9 +318,9 @@ public class PL2303driver implements Runnable {
 	 */
 	private boolean mInitializePL2303(UsbDevice device) {
 		mDevice = device;
-		Log.d(TAG, "Device Name: "+mDevice.getDeviceName());
-		Log.d(TAG, "VendorID: "+mDevice.getVendorId());
-		Log.d(TAG, "ProductID: "+mDevice.getProductId());
+		Log.d(TAG, "Device Name: " + mDevice.getDeviceName());
+		Log.d(TAG, "VendorID: 0x"+ String.format("%04X", mDevice.getVendorId()));
+		Log.d(TAG, "ProductID: 0x"+ String.format("%04X", mDevice.getProductId()));
 		
 		mUsbIntf = mDevice.getInterface(0);
 		if (mUsbIntf == null) {
@@ -375,7 +384,7 @@ public class PL2303driver implements Runnable {
 			else mVendorWrite(2, 0x24, null, 0);
 			
 		} catch (IOException e) {
-			Log.e(TAG, "Failed to initialize PL2303:", e);
+			Log.e(TAG, "Failed to initialize PL2303: ", e);
 			e.printStackTrace();
 			return false;
 		}
@@ -614,7 +623,7 @@ public class PL2303driver implements Runnable {
 		if (!(state) && ((mControlLines & CONTROL_DTR)==CONTROL_DTR)) mControlLines = mControlLines - CONTROL_DTR;
 		
 		int ret = mConnection.controlTransfer(SET_CONTROL_REQUEST_TYPE, SET_CONTROL_REQUEST, mControlLines , 0, null, 0, USB_TIMEOUT);
-		if (ret < 0) throw new IOException("Setting DTR failed!");	
+		if (ret < 0) throw new IOException("Failed to set DTR to " + state);	
 		else Log.d(TAG, "DTR set to " + state);
 	}
 	
@@ -627,7 +636,7 @@ public class PL2303driver implements Runnable {
 		if (!(state) && ((mControlLines & CONTROL_RTS)==CONTROL_RTS)) mControlLines = mControlLines - CONTROL_RTS;
 		
 		int ret = mConnection.controlTransfer(SET_CONTROL_REQUEST_TYPE, SET_CONTROL_REQUEST, mControlLines , 0, null, 0, USB_TIMEOUT);
-		if (ret < 0) throw new IOException("Setting RTS failed"); 
+		if (ret < 0) throw new IOException("Failed to set RTS to " + state); 
 		else Log.d(TAG, "RTS set to " + state);
 	}
 	
@@ -725,14 +734,15 @@ public class PL2303driver implements Runnable {
 						if (mFlow==FlowControl.RTSCTS) {
 							if ((mStatusLines & UART_DSR) != UART_DSR) throw new IOException ("DSR down");
 
-							// Wait FLOWCONTROL_TIMEOUT miliseconds until CTS is up
+							// Wait FLOWCONTROL_TIMEOUT miliseconds until CTS is up, then check again
 							if ((mStatusLines & UART_CTS) != UART_CTS) {
 								 try {
 									Thread.sleep(FLOWCONTROL_TIMEOUT);
 								} catch (InterruptedException e) {
 								}
+								if ((mStatusLines & UART_CTS) != UART_CTS) throw new IOException ("CTS down"); 
 							}
-							if ((mStatusLines & UART_CTS) != UART_CTS) throw new IOException ("CTS down"); 
+							 
 						}
 						
 						byte [] writeBuffer = new byte[1];
@@ -763,16 +773,16 @@ public class PL2303driver implements Runnable {
 							if (mFlow==FlowControl.RTSCTS) {
 								if ((mStatusLines & UART_DSR) != UART_DSR) throw new IOException ("DSR down");
 
-								// Wait FLOWCONTROL_TIMEOUT miliseconds until CTS is up
+								// Wait FLOWCONTROL_TIMEOUT miliseconds until CTS is up, then check again
 								if ((mStatusLines & UART_CTS) != UART_CTS ) {
 									 try {
 										Thread.sleep(FLOWCONTROL_TIMEOUT);
 									} catch (InterruptedException e) {
 									}
+									if ((mStatusLines & UART_CTS) != UART_CTS ) throw new IOException ("CTS down");
 								}
-								if ((mStatusLines & UART_CTS) != UART_CTS ) throw new IOException ("CTS down");
+								
 							}
-							
 							
 							if(i != 0) offset += PacketSize;
 							
