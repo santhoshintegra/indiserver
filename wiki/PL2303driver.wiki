@@ -64,9 +64,9 @@ In order to use adb-debugging you have to setup adb to use TCP/IP mode.
 Under Linux do the following:
 
   # Connect your Android-Device via USB, be sure USB-debugging is enabled
-  # Open a Console/Terminal and change to <android-sdk>/platform-tools/ directory
+  # Open a Console/Terminal and change to _android-sdk/platform-tools/_ directory
   # To switch your device in TCP/IP-Mode type "./adb tcpip 5555"
-  # To connect to your device type "./adb connect <IP-Address>" 
+  # To connect to your device type "./adb connect _IP-Address_" 
 
 Now you can unplug USB from your device and connect a USB-OTG-Cable with a PL2303.
 
