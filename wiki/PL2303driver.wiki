@@ -57,6 +57,19 @@ I'm glad that there are so many people out there, that do exactly the same :)
   # Optional: call *setRTS(boolean)* or *setDTR(boolean)* to switch Control-Lines on/off 
   # If your program is exited you should call *close()* 
 
+== Debugging ==
+
+In order to use adb-debugging you have to setup adb to use TCP/IP mode.
+
+Under Linux do the following:
+
+  # Connect your Android-Device via USB, be sure USB-debugging is enabled
+  # Open a Console/Terminal and change to <android-sdk>/platform-tools/ directory
+  # To switch your device in TCP/IP-Mode type "./adb tcpip 5555"
+  # To connect to your device type "./adb connect <IP-Address>" 
+
+Now you can unplug USB from your device and connect a USB-OTG-Cable with a PL2303.
+
 == Something at the end ==
   * If you have any further questions don't hesitate to ask
   * If you think it could be done better let me know
