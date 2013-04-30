@@ -73,5 +73,5 @@ http://indiserver.googlecode.com/files/Screenshot_2013-01-04-18-51-25.png
 
 == Downloads ==
   * The driver itself (source): http://code.google.com/p/indiserver/downloads/detail?name=PL2303driver.zip
-  * A simple test-app (source): https://code.google.com/p/indiserver/downloads/detail?name=PL2303test.zip
+  * A simple test-app (source): https://code.google.com/p/indiserver/downloads/detail?name=PL2303test_V0.2.zip
   * Test-app as APK: http://code.google.com/p/indiserver/downloads/detail?name=PL2303test.apk
