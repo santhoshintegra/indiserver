@@ -69,6 +69,8 @@ Under Linux do the following:
   # To connect to your device type "./adb connect _IP-Address_" 
 
 Now you can unplug USB from your device and connect a USB-OTG-Cable with a PL2303.
+Debugging in Eclipse works now as usual. 
+Keep an eye on the battery level of your device
 
 == Something at the end ==
   * If you have any further questions don't hesitate to ask
