@@ -74,6 +74,8 @@ Debugging in Eclipse works now as usual.
 
 Keep an eye on the battery level of your device
 
+http://indiserver.googlecode.com/files/PL2303debug.png
+
 == Something at the end ==
   * If you have any further questions don't hesitate to ask
   * If you think it could be done better let me know
