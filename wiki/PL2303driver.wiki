@@ -63,7 +63,7 @@ In order to use adb-debugging you have to setup adb to use TCP/IP mode.
 
 Under Linux do the following:
 
-  # Connect your Android-Device via USB, be sure USB-debugging is enabled
+  # Connect your Android-Device via USB, be sure USB-debugging is enabled and you have a working WIFI connection
   # Open a Console/Terminal and change to _android-sdk/platform-tools/_ directory
   # To switch your device in TCP/IP-Mode type `./adb tcpip 5555`
   # To connect to your device type `./adb connect <IP-Address>` 
