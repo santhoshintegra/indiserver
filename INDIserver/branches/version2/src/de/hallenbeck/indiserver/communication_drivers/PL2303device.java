@@ -62,7 +62,7 @@ public class PL2303device implements PL2303callback, Runnable {
 	}
 	
 	@Override
-	public void onInitSuccess() {
+	public void onInitSuccess(String devicename) {
 		try {
 			pl2303.setup(BaudRate.B9600, DataBits.D8, StopBits.S1, Parity.NONE, FlowControl.RTSCTS);
 		} catch (IOException e) {
@@ -134,6 +134,12 @@ public class PL2303device implements PL2303callback, Runnable {
 			} catch (IOException e) {
 			}
 		}
+		
+	}
+
+	@Override
+	public void onDeviceDetached(String devicename) {
+		// TODO Auto-generated method stub
 		
 	}
 	

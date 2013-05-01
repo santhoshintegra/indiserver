@@ -145,7 +145,7 @@ public class serial extends communication_driver implements PL2303callback {
 	}
 
 	@Override
-	public void onInitSuccess() {
+	public void onInitSuccess(String devicename) {
 		try {
 			pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE, FlowControl.RTSCTS);
 			InStream = pl2303.getInputStream();
@@ -183,5 +183,11 @@ public class serial extends communication_driver implements PL2303callback {
 	@Override
 	public void onCTS(boolean state) {
 		// Not needed		
+	}
+
+	@Override
+	public void onDeviceDetached(String devicename) {
+		// TODO Auto-generated method stub
+		
 	}
 }

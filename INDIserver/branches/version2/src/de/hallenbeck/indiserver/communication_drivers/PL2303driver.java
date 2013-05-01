@@ -56,7 +56,7 @@ import android.util.Log;
  * 
  * Supports basic RTS/CTS FlowControl 
  * 
- * TODO: add RFR/CTS, DTR/DSR and XON/XOFF FlowControl
+ * TODO: add DTR/DSR and XON/XOFF FlowControl
  * 
  * @author atuschen75 at gmail dot com
  */
@@ -109,6 +109,8 @@ public class PL2303driver implements Runnable {
 	// Control variable for Monitoring thread
 	private boolean mStopMonitoringThread = false;
 	
+	private boolean mConnected = false;
+	
 	public static enum BaudRate {
 		B0, 
 		B75,
@@ -155,7 +157,6 @@ public class PL2303driver implements Runnable {
 	public static enum FlowControl {
 		OFF,
 		RTSCTS,
-		RFRCTS,	// not yet implemented
 		DTRDSR,	// not yet implemented
 		XONXOFF	// not yet implemented
 	};
@@ -177,25 +178,30 @@ public class PL2303driver implements Runnable {
 	private static final int SET_CONTROL_REQUEST = 0x22;
 	
 	// RS232 Line constants
-	private static final int FLOWCONTROL_TIMEOUT = 500; // Timeout 500ms for RTS/CTS Flowcontrol
+	private static final int FLOWCONTROL_TIMEOUT = 500; // Timeout 500ms for Flowcontrol
 	private static final int CONTROL_DTR = 0x01;
 	private static final int CONTROL_RTS = 0x02;
 	private static final int UART_DCD = 0x01;
 	private static final int UART_DSR = 0x02;
 	private static final int UART_RING = 0x08;
 	private static final int UART_CTS = 0x80;
+	
+	// XON/XOFF FlowControl
+	private static final int XON = 0x11;
+	private static final int XOFF = 0x13;
 
 	// Tag for Log.d function
 	private static final String TAG = "pl2303";
 	
 	// Action for PendingIntent
 	private static final String ACTION_USB_PERMISSION 	=   "com.android.hardware.USB_PERMISSION";
-
+	private static final String ACTION_USB_DEVICE_DETACHED 	=   "android.hardware.usb.action.USB_DEVICE_DETACHED";
+	
 	/**
 	 * BroadcastReceiver for permission to use USB-Device
 	 * Called by the System after the user has denied/granted access to a USB-Device
 	 */
-	private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+	private final BroadcastReceiver mUsbPermissionReceiver = new BroadcastReceiver() {
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
 			if (ACTION_USB_PERMISSION.equals(action)) {
@@ -208,7 +214,7 @@ public class PL2303driver implements Runnable {
 						if (mInitializePL2303(device)){
 							
 							Log.d(TAG, "Device successfully initialized");
-							mPL2303Callback.onInitSuccess();
+							mPL2303Callback.onInitSuccess(device.getDeviceName());
 							
 						} else {
 							
@@ -227,9 +233,40 @@ public class PL2303driver implements Runnable {
 					}
 				}
 			}
+			
 		}
 	};
 
+	
+	/**
+	 * BroadcastReceiver for event USB-Device detached
+	 * Called by the System if a USB-Device is detached
+	 */
+	private final BroadcastReceiver mUsbDeviceDetachedReceiver = new BroadcastReceiver() {
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+				if (mConnected && (ACTION_USB_DEVICE_DETACHED.equals(action))) {
+					synchronized (this) {
+						UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+						if (device.getDeviceName().equals(mDevice.getDeviceName())) {
+							Log.d(TAG, "Device detached");
+							mStopMonitoringThread=true;
+							mUsbRequest.cancel();
+							mConnection.releaseInterface(mUsbIntf);
+							mConnection.close();
+							/*mConnection = null;
+							mDevice = null;
+							mEp0 = null;
+							mEp1 = null;
+							mEp2 = null;*/ 
+							mConnected = false;
+							mPL2303Callback.onDeviceDetached(device.getDeviceName());
+						}
+					}
+				}
+		}
+	};
+	
 	/**
 	 * Constructor
 	 * @param context Application Context
@@ -242,8 +279,12 @@ public class PL2303driver implements Runnable {
 		mUsbManager = (UsbManager) mAppContext.getSystemService(Context.USB_SERVICE);
 
 		// Register BroadcastReceiver for Permission Intent
-		IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-		mAppContext.registerReceiver(mUsbReceiver, filter);
+		IntentFilter filterPermission = new IntentFilter(ACTION_USB_PERMISSION);
+		mAppContext.registerReceiver(mUsbPermissionReceiver, filterPermission);
+		
+		// Register BroadcastReceiver for Detached Intent
+		IntentFilter filterDetached = new IntentFilter(ACTION_USB_DEVICE_DETACHED);
+		mAppContext.registerReceiver(mUsbDeviceDetachedReceiver, filterDetached);
 	}
 	
 	/**
@@ -397,7 +438,7 @@ public class PL2303driver implements Runnable {
 		mStopMonitoringThread = false;
 		Thread t = new Thread(this);
 		t.start();
-		
+		mConnected = true;
 		return true;
 	}
 
@@ -405,25 +446,35 @@ public class PL2303driver implements Runnable {
 	 *  Close the connection
 	 */
 	public void close() {
-		if (mConnection != null) {
+		if (mConnected) {
 			// drop DTR/RTS
 			try {
-				setRTS(false);
 				setDTR(false);
 			} catch (IOException e) {
 				Log.e(TAG,"Error on close: ",e);
-				e.printStackTrace();
+			}
+			try {
+				setRTS(false);
+			} catch (IOException e) {
+				Log.e(TAG,"Error on close: ",e);
 			}
 			mStopMonitoringThread=true;
 			mUsbRequest.cancel();
 			mConnection.releaseInterface(mUsbIntf);
 			mConnection.close();
-			mConnection = null;
+			/*mConnection = null;
 			mDevice = null;
 			mEp0 = null;
 			mEp1 = null;
-			mEp2 = null;
+			mEp2 = null; */
+			mConnected = false;
 			Log.d(TAG, "Device closed");
+			
+			// Wait a moment 
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+			}
 		}
 	}
 
@@ -434,7 +485,7 @@ public class PL2303driver implements Runnable {
 	 * @return true on connection
 	 */
 	public boolean isConnected() {
-		if (mConnection != null) return true;
+		if (mConnected) return true;
 		else return false;
 	}
 
@@ -495,7 +546,6 @@ public class PL2303driver implements Runnable {
 		case OFF: fc_read="OFF"; break;
 		case RTSCTS: fc_read="RTSCTS"; break;
 		case DTRDSR: break;
-		case RFRCTS: break;
 		case XONXOFF: break;
 		}
 		return fc_read;
@@ -516,7 +566,6 @@ public class PL2303driver implements Runnable {
 		if (mConnection == null) throw new IOException("Connection closed");
 
 		// Get current settings
-		
 		int ret = mConnection.controlTransfer(GET_LINE_REQUEST_TYPE, GET_LINE_REQUEST, 0, 0, mPortSetting, 7, USB_TIMEOUT);
 		if (ret < 7) throw new IOException("Could not get serial port settings");
 		
@@ -614,7 +663,6 @@ public class PL2303driver implements Runnable {
 			Log.d(TAG, "RTS/CTS FlowControl enabled");
 			break;
 		
-		case RFRCTS: break;
 		case DTRDSR: break;
 		case XONXOFF: break;
 		}
@@ -650,6 +698,10 @@ public class PL2303driver implements Runnable {
 	
 	/** 
 	 * Get the InputStream of the connection. 
+	 * This returns the raw bytestream. 
+	 * The stream is not buffered. 
+	 * To get a character-stream wrap it in some reader i.e. InputStreamReader.
+	 * For buffering wrap it in something like BufferedInputStreamReader.   
 	 * Supported functions:
 	 * 
 	 * read() - blocking read (only one byte) 
@@ -722,6 +774,9 @@ public class PL2303driver implements Runnable {
 
 	/** 
 	 * Get the OutputStream of the connection. 
+	 * This returns the raw bytestream.
+	 * The stream is not buffered.
+	 * To get a character-stream wrap it in some writer i.e. PrintWriter.
 	 * Supported functions:
 	 * 
 	 * public void write(int) - blocking write (only one byte) 
@@ -816,7 +871,7 @@ public class PL2303driver implements Runnable {
 	 * Runnable for detection of DSR, CTS , DCD and RI
 	 * Calls the appropriate Callback-function on status change
 	 * UsbRequest on Endpoint zero returns 10 bytes. Byte 9 contains the line status. 
-	 * This thread is automatically started at initialization.
+	 * This thread is automatically started at initialization and terminated by close(). 
 	 */
 	@Override
 	public void run() {
@@ -833,7 +888,7 @@ public class PL2303driver implements Runnable {
 			UsbRequest retRequest = mConnection.requestWait();
 			
 			// The request returns when any line status has changed
-			if  ((!mStopMonitoringThread) && (retRequest.getEndpoint()==mEp0)) {
+			if  ((!mStopMonitoringThread) && (retRequest != null) && (retRequest.getEndpoint()==mEp0)) {
 				
 				if ((readBuffer.get(8) & UART_DSR) != (mStatusLines & UART_DSR)) {
 					Log.d(TAG,"Change on DSR detected: "+(readBuffer.get(8) & UART_DSR));
