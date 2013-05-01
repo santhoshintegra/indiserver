@@ -71,7 +71,7 @@ Under Linux do the following:
   * Now you can unplug USB from your device and connect a USB-OTG-Cable with a PL2303.
   * Debugging in Eclipse works now as usual. 
   * For Logcat output on commandline type `./adb logcat -s "pl2303"`
-Keep an eye on the battery level of your device
+  * Keep an eye on the battery level of your device
 
 http://indiserver.googlecode.com/files/PL2303debug.png
 
