@@ -66,11 +66,11 @@ Under Linux do the following:
   # Connect your Android-Device via USB, be sure USB-debugging is enabled
   # Open a Console/Terminal and change to _android-sdk/platform-tools/_ directory
   # To switch your device in TCP/IP-Mode type `./adb tcpip 5555`
-  # To connect to your device type `./adb connect _IP-Address_` 
+  # To connect to your device type `./adb connect <IP-Address>` 
 
   * Now you can unplug USB from your device and connect a USB-OTG-Cable with a PL2303.
   * Debugging in Eclipse works now as usual. 
-  * Logcat output on commandline type `./adb logcat -s "pl2303"`
+  * For Logcat output on commandline type `./adb logcat -s "pl2303"`
 Keep an eye on the battery level of your device
 
 http://indiserver.googlecode.com/files/PL2303debug.png
