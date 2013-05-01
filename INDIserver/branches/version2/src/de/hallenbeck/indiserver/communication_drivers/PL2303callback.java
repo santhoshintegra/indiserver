@@ -3,8 +3,9 @@
  * This file is part of INDIserver.
  *
  * INDIserver is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * INDIserver is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,12 +31,17 @@ public interface PL2303callback {
 	/**
 	 * Called after permission to device was granted and initialization was successful
 	 */
-	public void onInitSuccess();
+	public void onInitSuccess(String devicename);
 	
 	/**
 	 * Called if permission to device was denied or initialization failed
 	 */
 	public void onInitFailed(String reason);
+	
+	/**
+	 * Called if a connected Device was detached
+	 */
+	public void onDeviceDetached(String devicename);
 	
 	/**
 	 * Called if RI status line has changed
