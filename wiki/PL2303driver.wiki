@@ -90,6 +90,7 @@ http://indiserver.googlecode.com/files/PL2303debug.png
 
 because everybody likes screenshots :)
 
+Testing the console-port of my switch at 115200/8/N/1:
 http://indiserver.googlecode.com/files/device-2013-05-04-010039.png
 
 == Downloads ==
