@@ -90,7 +90,6 @@ http://indiserver.googlecode.com/files/PL2303debug.png
 
 because everybody likes screenshots :)
 
-http://indiserver.googlecode.com/files/Screenshot_2013-01-04-18-51-25.png
 http://indiserver.googlecode.com/files/device-2013-05-04-010039.png
 
 == Downloads ==
