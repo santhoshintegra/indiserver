@@ -94,5 +94,5 @@ because everybody likes screenshots :) Testing the console-port of my switch at 
 http://indiserver.googlecode.com/files/device-2013-05-04-010039.png
 
 == Downloads ==
-  * Driver and simple test-app (source): https://code.google.com/p/indiserver/downloads/detail?name=PL2303test_V0.3.zip
+  * Driver and simple test-app (source): https://code.google.com/p/indiserver/downloads/detail?name=PL2303test_V0.4.zip
  
