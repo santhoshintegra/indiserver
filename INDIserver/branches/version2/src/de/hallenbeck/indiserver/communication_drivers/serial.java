@@ -64,7 +64,12 @@ public class serial extends communication_driver implements PL2303callback {
 	@Override
 	protected void onConnect(String device) throws IOException {
 		ArrayList<UsbDevice> dev = pl2303.getDeviceList();
-		pl2303.open(dev.get(0));
+		try {
+			pl2303.open(dev.get(0));
+		} catch (PL2303Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -146,18 +151,20 @@ public class serial extends communication_driver implements PL2303callback {
 
 	@Override
 	public void onInitSuccess(String devicename) {
-		try {
-			pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE, FlowControl.RTSCTS);
+		
+			try {
+				pl2303.setup(BaudRate.B9600,DataBits.D8, StopBits.S1, Parity.NONE, FlowControl.RTSCTS);
+			} catch (PL2303Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			InStream = pl2303.getInputStream();
 			OutStream = pl2303.getOutputStream();
 			// Construct Readers
 			InReader = new InputStreamReader(InStream);
 			BufReader = new BufferedReader (InReader);
 			connected = true;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 	}
 
 	@Override
