@@ -56,7 +56,7 @@ public class PL2303device implements PL2303callback, Runnable {
 		
 		try {
 			pl2303.open(deviceList.get(0));
-		} catch (IOException e) {
+		} catch (PL2303Exception e) {
 			Log.e("PL2303device","Error: " + e.getMessage());
 		}
 	}
@@ -65,7 +65,7 @@ public class PL2303device implements PL2303callback, Runnable {
 	public void onInitSuccess(String devicename) {
 		try {
 			pl2303.setup(BaudRate.B9600, DataBits.D8, StopBits.S1, Parity.NONE, FlowControl.RTSCTS);
-		} catch (IOException e) {
+		} catch (PL2303Exception e) {
 			Log.e("PL2303device","Error: " + e.getMessage());
 		}
 	}
