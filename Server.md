@@ -1,0 +1,22 @@
+# Introduction #
+
+The INDI server acts as a hub or relay between the device drivers and the clients.
+
+
+# Details #
+
+The INDI server loads all device drivers, connects to the devices and then
+listens for network connections from clients on tcp-port 7624.
+
+In the simplest mode, the server just relays messages between clients and devices.
+Every message from a client is send to all attached devices and every data from devices is send to all connected clients. This is comparable to a network-hub.
+The drawback is higher bandwidth usage.
+
+A more sophisticated server manages channels between specific devices and clients.
+If client A wants to connect to device B the server handles this as a channel.
+This is comparable to a network-switch.
+The drawback is one must implement more logic into the server.
+
+For the beginning the simple type is suffient.
+
+The server should be started automatically by intent from other android apps or manually by the main activity. It should run as background service and the user should be notified through the notification-manager about connected clients/devices.

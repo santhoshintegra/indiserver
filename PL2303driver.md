@@ -1,0 +1,97 @@
+
+
+Short description of the PL2303 driver
+
+## Preface ##
+
+I'm very happy that my work is used and appreciated by other developers.
+I've got many emails with questions about this specific driver, and often thanking mails. My intention in developing was:
+
+  1. I have not found a **FREE and WORKING** driver for PL2303/Android on the web
+  1. learning by doing (trying to port an existing driver to Android)
+  1. fresh up my rusted practical programming skills (in theory everything is easy)
+  1. To be able to understand my code later, I've tried to add useful comments. I think that the code is relatively well documented.
+I'm glad that there are so many people out there, that do exactly the same :)
+
+**As I've done this as hobby, there are flaws: i.e. I disobeyed Java coding style-guidelines. So take this driver rather as a blueprint, but please respect the GNU GPL and put your code under GPL as well and share it with the community.**
+
+## Requirements ##
+  * Android device with USB-Host support (no root required)
+  * minimum Android 3.2
+  * Fullsize USB Port or USB-OTG-Cable
+  * PL2303 Converter
+
+
+## What's supported ##
+
+  * PL2303 and newer PL2303HX-types (both tested) with ProductID 0x2303 and VendorID 0x067b
+  * You can select one PL2303 out of multiple connected to your device
+  * Serial parameters: Baudrate, Databits, Stopbits, Parity and something like basic RTS/CTS Flow-Control
+  * Monitoring of Status-Lines DCD, DSR, RI and CTS
+  * Switching of Control-Lines RTS and DTR
+
+## What's NOT supported (at least at the moment) ##
+
+  * 3rd party PL2303 with different ProductID/VendorID (would be easy to accomplish, but I can't test ist)
+  * Selecting one specific PL2303 out of multiple connected ones, because most of them don't have a S/N and thus can't be uniquely identified. The Android USB-Host-API just numbers them in the order they were connected.
+  * RFR/CTS, DTR/DSR and XON/XOFF Flow-Control
+  * 1.5 Stopbits
+  * Mark and Space Parity
+
+## What's NOT tested ##
+
+  * Although implemented, I don't know if the code is able to cope with highspeed serial communication greater than 115200 Baud.
+  * ~~I haven't done any (critical) timing-tests - there may be obviously severe bugs! be aware of it!~~
+  * ~~Although I'm aware of race-conditions and synchronized obvious critical parts of the code, there may be some problems.~~
+
+
+## How to use it ##
+
+  1. include **PL2303driver.java** and **PL2303callback.java** in your project
+  1. the calling object **must implement/override** the callback-methods **onInitSuccess, onInitFailed, onDeviceDetached, onRI, onDCD, onDSR, onCTS** defined in PL2303callback.java!
+  1. Create a new instance of the driver with the **ApplicationContext of the Main-Activity** and the **Object which implements the callback methods** as arguments.
+  1. call **getDeviceList(Arraylist)** to retrieve a list of all connected PL2303-devices - Mandatory, do this before open()!
+  1. call **open(Device)** to open a connection to one PL2303 out of the Arraylist
+  1. Android will now ask the user for permission and according to the result the callbacks **onInitSuccess** or **onInitFailed** will be called
+  1. call **setup(Baudrate, Databits, Stopbits, Parity, Flowcontrol)** to setup the serial parameters
+  1. call **getInputStream()** to get the readable stream of all received bytes
+  1. call **getOutputStream()** to get the writable stream where you put all bytes to send
+  1. If the PL2303 is detached from USB while connected the callback **onDeviceDetached(String devicename)** is called. Be sure to stop every communication.
+  1. Optional: Use the Callbacks **onRI, onDCD, onDSR, onCTS** for the Status-Lines, if you need it - otherwise leave them empty
+  1. Optional: call **setRTS(boolean)** or **setDTR(boolean)** to switch Control-Lines on/off
+  1. If your program is exited you should call **close()**
+
+## Debugging ##
+
+In order to use adb-debugging you have to setup adb to use TCP/IP mode.
+
+Under Linux do the following:
+
+  1. Connect your Android-Device via USB, be sure USB-debugging is enabled and you have a working WIFI connection
+  1. Open a Console/Terminal and change to _android-sdk/platform-tools/_ directory
+  1. To switch your device in TCP/IP-Mode type `./adb tcpip 5555`
+  1. To connect to your device type `./adb connect <IP-Address>`
+
+  * Now you can unplug USB from your device and connect a USB-OTG-Cable with a PL2303.
+  * Debugging in Eclipse works now as usual.
+  * For Logcat output on commandline type `./adb logcat -s "pl2303"`
+  * Keep an eye on the battery level of your device
+
+![http://indiserver.googlecode.com/files/PL2303debug.png](http://indiserver.googlecode.com/files/PL2303debug.png)
+
+## Something at the end ##
+  * If you have any further questions don't hesitate to ask
+  * If you think it could be done better let me know
+  * If there is a problem/bug send me a logcat and I'll try to figure it out
+  * Patches/Bugfixes/etc. are always welcome - use the bugtracking: http://code.google.com/p/indiserver/issues/list
+  * If you would like to improve/extend the test-app please send me your code.
+  * **I'm not a professional Coder! I've done this just for fun and learning purposes. I'm open to and welcome every criticism as long as it's constructive. I've got a very good background on security/timing/theory in common, but my practical skills are no way that good! So every comment is welcome.**
+
+## Screenshot of Test app ##
+
+because everybody likes screenshots :) Testing the console-port of my switch at 115200/8/N/1:
+
+![http://indiserver.googlecode.com/files/device-2013-05-04-010039.png](http://indiserver.googlecode.com/files/device-2013-05-04-010039.png)
+
+## Downloads ##
+  * Driver and simple test-app (source): https://code.google.com/p/indiserver/downloads/detail?name=PL2303test_V0.4.zip
